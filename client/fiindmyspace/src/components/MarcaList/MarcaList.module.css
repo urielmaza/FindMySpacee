@@ -1,0 +1,6 @@
+/* src/components/MarcaList/MarcaList.module.css */
+.lista {
+  background-color: #f4f4f4;
+  padding: 1rem;
+  border-radius: 8px;
+}
