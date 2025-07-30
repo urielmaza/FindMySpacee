@@ -2,12 +2,14 @@
 import { useEffect, useState } from 'react';
 import styles from './MarcaList.module.css';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const MarcaList = () => {
   const [marcas, setMarcas] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    fetch('/api/marcas')
+    fetch(`${API_URL}/api/marcas`)
       .then(res => res.json())
       .then(data => {
         setMarcas(data);

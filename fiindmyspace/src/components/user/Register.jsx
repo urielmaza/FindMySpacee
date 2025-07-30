@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Register = () => {
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
@@ -13,7 +15,7 @@ const Register = () => {
     setError('');
     setMessage('');
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, pw })
