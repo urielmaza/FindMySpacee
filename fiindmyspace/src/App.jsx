@@ -1,5 +1,4 @@
-// src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Register from './components/user/Register';
 import Login from './components/user/Login';
@@ -9,7 +8,7 @@ import Footer from './components/Footer';
 
 function App() {
   return (
-    <Router>
+    <>
       <Banner />
       <div style={{ minHeight: '100vh', paddingTop: 80, paddingBottom: 60 }}>
         <Routes>
@@ -20,7 +19,7 @@ function App() {
         </Routes>
       </div>
       <Footer />
-    </Router>
+    </>
   );
 }
 
