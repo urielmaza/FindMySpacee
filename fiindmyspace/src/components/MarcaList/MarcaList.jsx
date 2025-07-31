@@ -2,14 +2,15 @@
 import { useEffect, useState } from 'react';
 import styles from './MarcaList.module.css';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Ya no necesitamos API_URL porque usaremos rutas relativas con el proxy de Vite
 
 const MarcaList = () => {
   const [marcas, setMarcas] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/marcas`)
+    // Usar ruta relativa - Vite proxy redirigirá a localhost:5000
+    fetch('/api/marcas')
       .then(res => res.json())
       .then(data => {
         setMarcas(data);

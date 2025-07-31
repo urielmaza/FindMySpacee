@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Ya no necesitamos API_URL porque usaremos rutas relativas con el proxy de Vite
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +15,8 @@ const Register = () => {
     setError('');
     setMessage('');
     try {
-      const res = await fetch(`${API_URL}/api/register`, {
+      // Usar ruta relativa - Vite proxy redirigirá a localhost:5000
+      const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, pw })

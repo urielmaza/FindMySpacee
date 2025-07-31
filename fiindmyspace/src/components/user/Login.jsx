@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
 import { setUserSession } from '../../utils/auth';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Ya no necesitamos API_URL porque usaremos rutas relativas con el proxy de Vite
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -21,7 +21,8 @@ const Login = () => {
     setError('');
     setMessage('');
     try {
-      const res = await fetch(`${API_URL}/api/login`, {
+      // Usar ruta relativa - Vite proxy redirigirá a localhost:5000
+      const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, pw })
