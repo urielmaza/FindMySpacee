@@ -1,0 +1,78 @@
+.bannerHeader {
+  width: 100%;
+  background: #000;
+  color: #fff;
+  height: 80px; /* Altura fija del banner */
+  padding: 0; /* Sin padding vertical */
+  position: sticky; /* Cambiado de fixed a sticky para que se comporte como un elemento normal */
+  top: 0;
+  left: 0;
+  z-index: 100;
+  overflow: hidden;
+  --border-bottom-width: 1px;
+  --border-color: var(--token-313dd4d6-9859-4bdd-889b-954a849d13e3, rgb(34, 34, 34));
+
+}
+
+.bannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 100%; /* ocupa toda la altura del banner */
+}
+
+.logo {
+  height: auto;
+  max-height: 130px; /* Cambiado de 130px */
+  width: auto;
+  display: block;
+}
+
+.bannerButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 0;
+}
+
+.bannerButton {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.bannerButton:hover{
+  background: rgba(175, 175, 175, 0.1);
+}
+
+/* Resalta el botón de Login */
+.bannerButton.login {
+  background: #ffffff;
+  color: #000;
+}
+
+.bannerButton.login:hover {
+  background: #e2e2e2;
+  color: #000;
+}
+
+.bannerButton:last-child {
+  margin-right: 0;
+}
+
+/* Elimina el título */
+.bannerTitle {
+  display: none;
+}
+
+/* Eliminar el margen global para evitar interferencias */
+.container {
+  margin-top: 0; /* Eliminado el margen superior */
+}

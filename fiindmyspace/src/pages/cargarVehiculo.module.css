@@ -1,0 +1,43 @@
+.container {
+  max-width: 400px;
+  margin: 2rem auto;
+  border: 1px solid #ddd;
+  padding: 24px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.title {
+  font-family: 'Comic Sans MS', cursive;
+  font-size: 2.2rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.formInput {
+  width: 100%;
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+  font-family: 'Comic Sans MS', cursive;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fafafa;
+}
+
+.submitButton {
+  font-family: 'Comic Sans MS', cursive;
+  font-size: 1.2rem;
+  padding: 6px 24px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+  transition: background 0.2s;
+}
+
+.submitButton:hover {
+  background: #f0f0f0;
+}

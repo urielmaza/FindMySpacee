@@ -1,22 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEnvelope, faLock, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import styles from './Register.module.css';
+import logo from '../../assets/logofindmyspaceB.png';
 
-// Ya no necesitamos API_URL porque usaremos rutas relativas con el proxy de Vite
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    /* Inicializar Google Sign-In */
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: (response) => {
+        console.log('Credenciales de Google:', response);
+        // Aquí puedes enviar el token al backend para verificarlo
+      },
+    });
+
+    /* Renderizar el botón de Google Sign-In */
+    window.google.accounts.id.renderButton(
+      document.getElementById('google-signin-btn'),
+      { theme: 'outline', size: 'large' }
+    );
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (pw !== confirmPw) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+    if (!termsAccepted) {
+      setError('Debes aceptar los términos y condiciones');
+      return;
+    }
     setLoading(true);
     setError('');
     setMessage('');
     try {
-      // Usar ruta relativa - Vite proxy redirigirá a localhost:5000
-      const res = await fetch('/api/register', {
+      const res = await fetch(`${API_BASE}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, pw })
@@ -26,6 +60,8 @@ const Register = () => {
         setMessage(data.message);
         setEmail('');
         setPw('');
+        setConfirmPw('');
+        setTimeout(() => navigate('/login'), 1000);
       } else {
         setError(data.error || 'Error al registrar');
       }
@@ -36,23 +72,105 @@ const Register = () => {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '40px auto', padding: 24, border: '1px solid #eee', borderRadius: 8 }}>
-      <h2>Registro</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label>Email:</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: '100%' }} />
+    <div className={styles.parentContainer}>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        {/* Logo centrado */}
+        <div className={styles.logoContainer}>
+          <img src={logo} alt="FindMySpace Logo" className={styles.logo} onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
         </div>
-        <div style={{ marginBottom: 12 }}>
-          <label>Contraseña:</label>
-          <input type="password" value={pw} onChange={e => setPw(e.target.value)} required style={{ width: '100%' }} />
+
+        {/* Texto debajo del logo */}
+        <div className={styles.textContainer}>
+          <h2 className={styles.title}>Crear Cuenta</h2>
+          <p className={styles.subtitle}>Únete a nuestra plataforma de estacionamiento</p>
         </div>
-        <button type="submit" disabled={loading} style={{ width: '100%' }}>
+
+        <div className={styles['flex-row']}>
+          <div id="google-signin-btn"></div>
+        </div>
+
+        <div className={styles.lineContainer}>
+          <hr className={styles.line} />
+          <div className={styles.circle}></div>
+          <hr className={styles.line} />
+        </div>
+
+        <div className={styles['flex-column']}>
+          <label>Email</label>
+        </div>
+        <div className={styles.inputForm}>
+          <FontAwesomeIcon icon={faEnvelope} size="lg" />
+          <input
+            type="email"
+            className={styles.input}
+            placeholder="Ingresa tu Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className={styles['flex-column']}>
+          <label>Contraseña</label>
+        </div>
+        <div className={styles.inputForm}>
+          <FontAwesomeIcon icon={faLock} size="lg" />
+          <input
+            type={showPassword ? 'text' : 'password'}
+            className={styles.input}
+            placeholder="Ingresa tu contraseña"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            required
+          />
+          <FontAwesomeIcon
+            icon={showPassword ? faEyeSlash : faEye}
+            size="lg"
+            onClick={() => setShowPassword(!showPassword)}
+            style={{ cursor: 'pointer', marginRight: '10px' }}
+          />
+        </div>
+
+        <div className={styles['flex-column']}>
+          <label>Confirmar Contraseña</label>
+        </div>
+        <div className={styles.inputForm}>
+          <FontAwesomeIcon icon={faLock} size="lg" />
+          <input
+            type={showConfirmPassword ? 'text' : 'password'}
+            className={styles.input}
+            placeholder="Confirma tu contraseña"
+            value={confirmPw}
+            onChange={(e) => setConfirmPw(e.target.value)}
+            required
+          />
+          <FontAwesomeIcon
+            icon={showConfirmPassword ? faEyeSlash : faEye}
+            size="lg"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            style={{ cursor: 'pointer', marginRight: '10px' }}
+          />
+        </div>
+
+        <div className={styles['flex-row']}>
+          <input
+            type="checkbox"
+            id="terms"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+          />
+          <label htmlFor="terms" className={styles.span}>
+            Acepto los <span style={{ color: '#2d79f3' }}>términos y condiciones</span>
+          </label>
+        </div>
+
+        <button className={styles['button-submit']} type="submit" disabled={loading}>
           {loading ? 'Registrando...' : 'Registrarse'}
         </button>
+
+        {message && <div style={{ color: 'green', marginTop: 16 }}>{message}</div>}
+        {error && <div className={styles.error}>{error}</div>}
       </form>
-      {message && <div style={{ color: 'green', marginTop: 16 }}>{message}</div>}
-      {error && <div style={{ color: 'red', marginTop: 16 }}>{error}</div>}
     </div>
   );
 };

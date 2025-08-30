@@ -1,0 +1,189 @@
+.bannerHeader {
+  width: 100%;
+  background: #000;
+  color: #fff;
+  height: 80px;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  overflow: hidden;
+  --border-bottom-width: 1px;
+  --border-color: var(--token-313dd4d6-9859-4bdd-889b-954a849d13e3, rgb(34, 34, 34));
+  border-bottom: var(--border-bottom-width) solid var(--border-color);
+}
+
+.bannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 100%;
+}
+
+.logo {
+  height: auto;
+  max-height: 110px; /* Reducido para mobile */
+  width: auto;
+  display: block;
+  flex-shrink: 0; /* Evita que el logo se comprima */
+}
+
+.bannerButtons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+  flex-wrap: nowrap; /* Evita que los botones se envuelvan */
+}
+
+.bannerButton {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap; /* Evita que el texto se rompa */
+  font-size: 14px;
+}
+
+.bannerButton:hover {
+  background: rgba(175, 175, 175, 0.1);
+}
+
+.bannerButton.login {
+  background: #ffffff;
+  color: #000;
+}
+
+.bannerButton.login:hover {
+  background: #e2e2e2;
+  color: #000;
+}
+
+.bannerTitle {
+  display: none;
+}
+
+.container {
+  margin-top: 0;
+}
+
+/* Media Queries para Responsive */
+
+/* Tablets y pantallas medianas */
+@media (max-width: 1024px) {
+  .bannerContent {
+    padding: 0 20px;
+  }
+  
+  .logo {
+    max-height: 45px;
+  }
+  
+  .bannerButton {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .bannerButtons {
+    gap: 4px;
+  }
+}
+
+/* Móviles grandes */
+@media (max-width: 768px) {
+  .bannerHeader {
+    height: 70px;
+  }
+  
+  .bannerContent {
+    padding: 0 16px;
+  }
+  
+  .logo {
+    max-height: 40px;
+  }
+  
+  .bannerButton {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .bannerButtons {
+    gap: 3px;
+  }
+}
+
+/* Móviles pequeños */
+@media (max-width: 640px) {
+  .bannerHeader {
+    height: 60px;
+  }
+  
+  .bannerContent {
+    padding: 0 12px;
+  }
+  
+  .logo {
+    max-height: 120px;
+  }
+  
+  .bannerButton {
+    padding: 5px 8px;
+    font-size: 11px;
+    border-radius: 3px;
+  }
+  
+  .bannerButtons {
+    gap: 2px;
+  }
+}
+
+/* Para pantallas muy pequeñas - considera un menú hamburguesa */
+@media (max-width: 480px) {
+  .bannerHeader {
+    height: 55px;
+  }
+  
+  .bannerContent {
+    padding: 0 10px;
+  }
+  
+  .logo {
+    max-height: 65px; /* Aumentado para iPhone 14 Pro Max */
+  }
+  
+  .bannerButton {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+  
+  .bannerButtons {
+    gap: 1px;
+  }
+  
+  /* Opcional: Ocultar algunos botones en pantallas muy pequeñas */
+  .bannerButton:not(.login):nth-child(n+3) {
+    display: none;
+  }
+}
+
+/* Para pantallas extra pequeñas */
+@media (max-width: 360px) {
+  .bannerButton {
+    padding: 3px 5px;
+    font-size: 9px;
+  }
+  
+  /* Mostrar solo los botones más importantes */
+  .bannerButton:not(.login):not(:first-child) {
+    display: none;
+  }
+}
