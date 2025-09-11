@@ -24,10 +24,125 @@
 }
 
 
-.caca {
+.us {
   width: 100%;
-  height: 80vh;
+  min-height: 80vh;
   background-color: rgb(27, 27, 27);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.container {
+  max-width: 1000px;
+  width: 100%;
+  text-align: center;
+}
+
+.mainTitle {
+  font-size: 3rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.highlight {
+  color: white;
+}
+
+.description {
+  font-size: 1.1rem;
+  color: #b0b0b0;
+  line-height: 1.6;
+  margin-bottom: 50px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.featureItem {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  padding: 15px 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.featureItem:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 225, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.featureIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #00e1ff;
+  flex-shrink: 0;
+}
+
+.featureIcon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  transition: all 0.3s ease;
+}
+
+.featureItem:hover .featureIcon svg {
+  transform: scale(1.1);
+  stroke: #ffffff;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mainTitle {
+    font-size: 2.2rem;
+  }
+  
+  .description {
+    font-size: 1rem;
+    padding: 0 10px;
+  }
+  
+  .featuresGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .featureItem {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mainTitle {
+    font-size: 1.8rem;
+  }
+  
+  .us {
+    padding: 40px 15px;
+  }
 }
 
 .background {
@@ -76,15 +191,16 @@
   color: white;
   z-index: 2; /* Asegura que el texto esté por encima de otros elementos */
   font-size: 1.4rem; /* Aumentado el tamaño de las letras */
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   letter-spacing: 0.02em; /* Añadido espaciado entre letras */
   width: 100%;
+  margin-top: 3%;
 }
 
 .textContainer p {
   color: rgb(187, 187, 187); /* Cambiar el color del texto secundario a gris */
   font-weight: bold; /* Cambiar el texto secundario a negrita */
   font-size: 1.1rem;
+
 }
 
 /* Estilo para el botón "Buscar tu estacionamiento ya" */
@@ -109,4 +225,960 @@
 .bannerButton.login:hover {
   background: #e2e2e2;
   color: #000;
+}
+.functions{
+  width: 100%;
+  min-height: 80vh;
+  background: linear-gradient(180deg, rgb(27, 27, 27) 50%, rgb(27, 27, 27) 0%, #361d36 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.functionsTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+}
+
+.functionsSubtitle {
+  font-size: 1.1rem;
+  color: white;
+  line-height: 1.6;
+  margin-bottom: 50px;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.stepCard {
+  background: white;
+  border-radius: 15px;
+  padding: 30px 20px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stepCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.stepNumber {
+  position: absolute;
+  top: -15px;
+  left: 20px;
+  background: #692497;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.stepIcon {
+  width: 60px;
+  height: 60px;
+  background: #692497;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto 20px;
+  color: #f0f9ff;
+}
+
+.stepTitle {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.3;
+}
+
+.stepDescription {
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Responsive design para functions */
+@media (max-width: 768px) {
+  .functionsTitle {
+    font-size: 2rem;
+  }
+  
+  .stepsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .stepCard {
+    padding: 25px 15px;
+  }
+}
+
+.benefits {
+  width: 100%;
+  min-height: 80vh;
+  background: linear-gradient(180deg, #361d36 0%, rgb(27, 27, 27) 90%, rgb(27, 27, 27) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.benefitsTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+}
+
+.benefitsSubtitle {
+  font-size: 1.1rem;
+  color: white;
+  line-height: 1.6;
+  margin-bottom: 50px;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.benefitCard {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 30px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.benefitCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+}
+
+.benefitCard:first-child {
+  background: rgba(54, 29, 176, 0.95);
+  color: white;
+}
+
+.benefitCard:first-child .benefitSubtitle {
+  color: white;
+}
+
+.benefitCard:first-child .benefitList li span {
+  color: white;
+}
+
+.benefitCard:first-child .benefitButton {
+  background: white;
+  color: #361db0;
+}
+
+.benefitCard:first-child .benefitButton:hover {
+  background: #f0f0f0;
+}
+
+.benefitCard:last-child {
+  background: rgba(27, 27, 27, 0.95);
+  color: white;
+}
+
+.benefitCard:last-child .benefitSubtitle {
+  color: white;
+}
+
+.benefitCard:last-child .benefitList li span {
+  color: white;
+}
+
+.benefitCard:last-child .benefitButton {
+  background: #ffffff;
+  color: rgb(0, 0, 0);
+}
+
+.benefitCard:last-child .benefitButton:hover {
+  background: #f0f0f0;
+}
+
+.benefitIcon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: currentColor;
+}
+
+.benefitSubtitle {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 25px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.benefitList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 30px 0;
+}
+
+.benefitList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 15px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.benefitList li svg {
+  color: #3fb6c5;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.benefitCard:first-child .benefitList li svg {
+  color: white;
+}
+
+.benefitList li span {
+  color: #333;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.benefitButton {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #692497;
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.benefitButton:hover {
+  background: #5a1f7f;
+  transform: translateY(-2px);
+}
+
+/* Responsive design para benefits */
+@media (max-width: 768px) {
+  .benefitsTitle {
+    font-size: 2rem;
+  }
+  
+  .benefitsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .benefitCard {
+    padding: 25px 20px;
+  }
+  
+  .benefitsGrid {
+    max-width: 100%;
+    grid-template-columns: 1fr;
+  }
+}
+.testimonials {
+  width: 100%;
+  min-height: 80vh;
+  background-color: rgb(27, 27, 27);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 0;
+  overflow: hidden;
+}
+
+.testimonialsTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.testimonialsSubtitle {
+  font-size: 1.1rem;
+  color: #b0b0b0;
+  line-height: 1.6;
+  margin-bottom: 50px;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 20px;
+}
+
+.highlightNumber {
+  color: #7528a8;
+  font-weight: bold;
+}
+
+.testimonialsContainer {
+  overflow: visible;
+  width: 100vw;
+  position: relative;
+  margin-left: calc(-50vw + 50%);
+}
+
+.testimonialsGrid {
+  display: flex;
+  gap: 25px;
+  animation: slideLeft 40s linear infinite;
+  width: max-content;
+}
+
+@keyframes slideLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.testimonialCard {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 30px 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  min-width: 300px;
+  max-width: 300px;
+  min-height: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.testimonialCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.testimonialCard:before {
+  content: '"';
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  font-size: 3rem;
+  color: #692497;
+  font-family: Georgia, serif;
+  line-height: 1;
+  opacity: 0.3;
+}
+
+.testimonialText {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-style: italic;
+  padding-top: 15px;
+  flex-grow: 1;
+}
+
+.starsContainer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 15px;
+}
+
+.star {
+  color: #ffd700;
+  font-size: 1.1rem;
+}
+
+.star.empty {
+  color: #ddd;
+}
+
+.testimonialAuthor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authorAvatar {
+  width: 40px;
+  height: 40px;
+  background: #692497;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.authorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.authorName {
+  font-weight: bold;
+  color: #333;
+  font-size: 0.95rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.authorRole {
+  color: #666;
+  font-size: 0.85rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Responsive design para testimonials */
+@media (max-width: 768px) {
+  .testimonialsTitle {
+    font-size: 2rem;
+  }
+  
+  .testimonialCard {
+    padding: 25px 20px;
+    min-width: 260px;
+    max-width: 260px;
+    min-height: 240px;
+  }
+  
+  .testimonialText {
+    font-size: 0.95rem;
+  }
+  
+  .testimonialsGrid {
+    animation: slideLeft 50s linear infinite;
+  }
+}
+
+@media (max-width: 480px) {
+  .testimonialsTitle {
+    font-size: 1.8rem;
+  }
+  
+  .testimonials {
+    padding: 40px 15px;
+  }
+  
+  .testimonialCard {
+    padding: 20px 18px;
+    min-width: 240px;
+    max-width: 240px;
+    min-height: 220px;
+  }
+  
+  .testimonialsGrid {
+    animation: slideLeft 60s linear infinite;
+  }
+}
+
+.faqs {
+  width: 100%;
+  min-height: 80vh;
+  background-color: rgb(27, 27, 27);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.faqsTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+}
+
+.faqsSubtitle {
+  font-size: 1.1rem;
+  color: #b0b0b0;
+  line-height: 1.6;
+  margin-bottom: 50px;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.faqsContainer {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.faqItem {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.faqItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 225, 255, 0.3);
+}
+
+.faqQuestion {
+  padding: 20px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+}
+
+.faqIcon {
+  color: #00e1ff;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  margin-left: 15px;
+}
+
+.faqItem.active .faqIcon {
+  transform: rotate(180deg);
+}
+
+.faqAnswer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.faqItem.active .faqAnswer {
+  max-height: 200px;
+}
+
+.faqAnswer p {
+  padding: 20px 25px;
+  margin: 0;
+  color: #e0e0e0;
+  line-height: 1.6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.faqsFooter {
+  text-align: center;
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faqsFooter p {
+  color: #b0b0b0;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.contactButton {
+  background: linear-gradient(135deg, #692497, #00e1ff);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contactButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(105, 36, 151, 0.4);
+}
+
+/* Responsive design para FAQs */
+@media (max-width: 768px) {
+  .faqsTitle {
+    font-size: 2rem;
+  }
+  
+  .faqQuestion {
+    padding: 18px 20px;
+    font-size: 1rem;
+  }
+  
+  .faqAnswer p {
+    padding: 18px 20px;
+    font-size: 0.95rem;
+  }
+  
+  .faqsContainer {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .faqsTitle {
+    font-size: 1.8rem;
+  }
+  
+  .faqs {
+    padding: 40px 15px;
+  }
+  
+  .faqQuestion {
+    padding: 15px 18px;
+    font-size: 0.95rem;
+  }
+  
+  .faqAnswer p {
+    padding: 15px 18px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Footer Styles */
+.Footer {
+  width: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.Footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #692497, #00e1ff, #692497, transparent);
+}
+
+.footerContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px 20px;
+}
+
+.footerTop {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.logoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.footerLogo {
+  width: 180px;
+  height: auto;
+  object-fit: contain;
+}
+
+.footerDescription {
+  color: #b0b0b0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 280px;
+}
+
+.socialLinks {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: #b0b0b0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.socialLink:hover {
+  background: rgba(105, 36, 151, 0.8);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(105, 36, 151, 0.3);
+}
+
+.footerSectionTitle {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 15px 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+}
+
+.footerSectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, #692497, #00e1ff);
+  border-radius: 1px;
+}
+
+.footerLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footerLinks li {
+  margin: 0;
+}
+
+.footerLink {
+  color: #b0b0b0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+}
+
+.footerLink:hover {
+  color: #00e1ff;
+  padding-left: 5px;
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b0b0b0;
+  font-size: 0.9rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.contactItem svg {
+  color: #692497;
+  flex-shrink: 0;
+}
+
+.contactItem a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contactItem a:hover {
+  color: #00e1ff;
+}
+
+.footerBottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footerBottomLeft p {
+  margin: 0;
+  color: #888;
+  font-size: 0.9rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.footerBottomRight {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.footerLegalLink {
+  color: #b0b0b0;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: color 0.3s ease;
+}
+
+.footerLegalLink:hover {
+  color: #00e1ff;
+}
+
+.separator {
+  color: #555;
+  font-size: 0.85rem;
+}
+
+/* Responsive design para Footer */
+@media (max-width: 1024px) {
+  .footerTop {
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 30px;
+  }
+  
+  .footerSection:last-child {
+    grid-column: 1 / -1;
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .footerContainer {
+    padding: 40px 20px 20px;
+  }
+  
+  .footerTop {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    text-align: left;
+  }
+  
+  .footerLogo {
+    width: 150px;
+  }
+  
+  .socialLinks {
+    justify-content: flex-start;
+  }
+  
+  .footerBottom {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .footerBottomRight {
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .separator {
+    display: none;
+  }
+  
+  .footerBottomRight {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footerContainer {
+    padding: 30px 15px 15px;
+  }
+  
+  .footerTop {
+    gap: 25px;
+  }
+  
+  .footerLogo {
+    width: 130px;
+  }
+  
+  .socialLink {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .footerSectionTitle {
+    font-size: 1.1rem;
+  }
+  
+  .contactInfo {
+    gap: 10px;
+  }
+  
+  .contactItem {
+    font-size: 0.85rem;
+  }
 }

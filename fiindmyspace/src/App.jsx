@@ -6,7 +6,6 @@ import Login from './components/user/Login';
 import Parkin from './pages/Parkin'; // Verifica que esta línea esté correcta
 import SubirEstacionamiento from './pages/SubirEstacionamiento';
 import Banner from './components/Banner';
-import Footer from './components/Footer';
 import HomeUser from './pages/HomeUser';
 import CargarVehiculo from './pages/cargarVehiculo'; // Corrige la mayúscula
 import styles from './App.module.css'; // Asegúrate de tener este archivo CSS
