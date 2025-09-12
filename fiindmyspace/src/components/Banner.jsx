@@ -18,6 +18,23 @@ const Banner = () => {
     navigate('/');
   };
 
+  // Navega al Home y hace scroll a una sección con id
+  const scrollToSection = (sectionId) => {
+    // Si ya estamos en la ruta '/', hacemos scroll inmediato
+    const doScroll = () => {
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    if (window.location.pathname === '/') {
+      doScroll();
+    } else {
+      navigate('/');
+      // esperar un breve momento para que la página Home se renderice
+      setTimeout(doScroll, 200);
+    }
+  };
+
   return (
     <header className={styles.bannerHeader}>
       <div className={styles.bannerContent}>
@@ -32,9 +49,9 @@ const Banner = () => {
             </>
           ) : (
             <>
-              <button onClick={() => navigate('/')} className={styles.bannerButton}>Inicio</button>
-              <button onClick={() => navigate('/')} className={styles.bannerButton}>Testimonios</button>
-              <button onClick={() => navigate('/')} className={styles.bannerButton}>FAQ</button>
+              <button onClick={() => scrollToSection('inicio')} className={styles.bannerButton}>Inicio</button>
+              <button onClick={() => scrollToSection('testimonios')} className={styles.bannerButton}>Testimonios</button>
+              <button onClick={() => scrollToSection('preguntas')} className={styles.bannerButton}>FAQ</button>
               <button onClick={() => navigate('/login')} className={`${styles.bannerButton} ${styles.login}`}>Login</button>
             </>
           )}

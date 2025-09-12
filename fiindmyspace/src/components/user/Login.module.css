@@ -1,6 +1,10 @@
-body {
-  background-color: #afafaf;
-
+.loginBackground {
+  background-color: #969696; /* fondo exclusivo para la página de login */
+  min-height: 100vh; /* asegurar que cubra toda la ventana */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .parentContainer {

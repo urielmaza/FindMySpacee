@@ -1,11 +1,11 @@
-body {
+.registerBackground {
   margin: 0;
   padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #424242;
+  min-height: 100vh;
+  background-color: #969696; /* fondo exclusivo para register */
 }
 
 .parentContainer {

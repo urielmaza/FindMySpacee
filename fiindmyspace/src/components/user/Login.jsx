@@ -83,7 +83,7 @@ const Login = () => {
   };
 
   return (
-    <div className={styles.parentContainer}>
+    <div className={`${styles.parentContainer} ${styles.loginBackground}`}>
       <form className={styles.form} onSubmit={handleSubmit}>
         {/* Logo centrado */}
         <div className={styles.logoContainer}>

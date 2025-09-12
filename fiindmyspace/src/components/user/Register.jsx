@@ -72,7 +72,7 @@ const Register = () => {
   };
 
   return (
-    <div className={styles.parentContainer}>
+    <div className={`${styles.parentContainer} ${styles.registerBackground}`}>
       <form className={styles.form} onSubmit={handleSubmit}>
         {/* Logo centrado */}
         <div className={styles.logoContainer}>

@@ -42,6 +42,7 @@ const Home = () => {
 
   return (
     <>
+      <div id="inicio" className={styles.initt}></div>
       <div className={styles.background}>
         <div className={styles.spinnerContainer}>
           <div className={styles.spinner}>
@@ -54,9 +55,8 @@ const Home = () => {
           <p className={styles.description}>Estacionamientos públicos y privados (busca, reserva y disfruta).</p>
           <button onClick={() => navigate('/login')} className={`${styles.bannerButton} ${styles.login}`}>Empezá a buscar tu estacionamiento</button>
         </div>
-        
       </div>
-      <div className={styles.us}>
+  <div id="nosotros" className={styles.us}>
         <div className={styles.container}>
           <h2 className={styles.mainTitle}>¿QUÉ ES <span className={styles.highlight}>FINDMYSPACE</span>?</h2>
           <p className={styles.description}>
@@ -225,7 +225,7 @@ const Home = () => {
                   <span>Menos preparación, más interacción con tus conductores</span>
                 </li>
               </ul>
-              <button className={styles.benefitButton}>Empezar como propietario</button>
+              <button type="button" onClick={() => navigate('/register')} className={styles.benefitButton}>Empezar como propietario</button>
             </div>
             
             <div className={styles.benefitCard}>
@@ -274,12 +274,12 @@ const Home = () => {
                   <span>Adios a las pérdidas de tiempo dando infinitud de vueltas</span>
                 </li>
               </ul>
-              <button className={styles.benefitButton}>Empezar como conductor</button>
+              <button type="button" onClick={() => navigate('/register')} className={styles.benefitButton}>Empezar como conductor</button>
             </div>
           </div>
         </div>
       </div>
-      <div className={styles.testimonials}>
+  <div id="testimonios" className={styles.testimonials}>
         <div className={styles.container}>
           <h2 className={styles.testimonialsTitle}>LO QUE DICEN NUESTROS USUARIOS</h2>
           <p className={styles.testimonialsSubtitle}>
@@ -646,7 +646,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <div className={styles.faqs}>
+  <div id="preguntas" className={styles.faqs}>
         <div className={styles.container}>
           <h2 className={styles.faqsTitle}>Preguntas frecuentes</h2>
           <p className={styles.faqsSubtitle}>Todo lo que necesitás saber para empezar a encontrar tu estacionamiento perfecto con FindMySpace.</p>
