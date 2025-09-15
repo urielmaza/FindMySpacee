@@ -277,7 +277,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 20px;
+  padding: 60px 15px;
 }
 
 .functionsTitle {
@@ -379,6 +379,21 @@
   .stepCard {
     padding: 25px 15px;
   }
+  
+  .functions {
+    padding: 40px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .functions {
+    padding: 30px 10px;
+  }
+  
+  .stepsGrid {
+    max-width: calc(100% - 20px);
+    margin: 0 auto;
+  }
 }
 
 .benefits {
@@ -388,7 +403,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 20px;
+  padding: 60px 15px;
 }
 
 .benefitsTitle {
@@ -562,6 +577,21 @@
   .benefitsGrid {
     max-width: 100%;
     grid-template-columns: 1fr;
+  }
+  
+  .benefits {
+    padding: 40px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .benefits {
+    padding: 30px 10px;
+  }
+  
+  .benefitsGrid {
+    max-width: calc(100% - 20px);
+    margin: 0 auto;
   }
 }
 .testimonials {
@@ -776,7 +806,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 20px;
+  padding: 60px 15px;
 }
 
 .faqsTitle {
@@ -915,6 +945,11 @@
   
   .faqsContainer {
     max-width: 100%;
+    margin: 0 10px;
+  }
+  
+  .faqs {
+    padding: 40px 15px;
   }
 }
 
@@ -924,7 +959,7 @@
   }
   
   .faqs {
-    padding: 40px 15px;
+    padding: 30px 10px;
   }
   
   .faqQuestion {
@@ -935,6 +970,11 @@
   .faqAnswer p {
     padding: 15px 18px;
     font-size: 0.9rem;
+  }
+  
+  .faqsContainer {
+    max-width: calc(100% - 20px);
+    margin: 0 auto;
   }
 }
 
@@ -960,7 +1000,7 @@
 .footerContainer {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 60px 20px 20px;
+  padding: 60px 15px 20px;
 }
 
 .footerTop {
@@ -1158,7 +1198,7 @@
 
 @media (max-width: 768px) {
   .footerContainer {
-    padding: 40px 20px 20px;
+    padding: 40px 15px 20px;
   }
   
   .footerTop {
@@ -1198,7 +1238,7 @@
 
 @media (max-width: 480px) {
   .footerContainer {
-    padding: 30px 15px 15px;
+    padding: 30px 10px 15px;
   }
   
   .footerTop {
