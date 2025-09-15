@@ -42,8 +42,7 @@ const Home = () => {
 
   return (
     <>
-      <div id="inicio" className={styles.initt}></div>
-      <div className={styles.background}>
+      <div id='inicio' className={styles.background}>
         <div className={styles.spinnerContainer}>
           <div className={styles.spinner}>
             <div className={styles.spinner1}></div>
