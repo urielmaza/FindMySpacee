@@ -31,13 +31,15 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 20px;
+  padding: 60px 15px;
 }
 
 .container {
   max-width: 1000px;
   width: 100%;
   text-align: center;
+  padding: 0 20px;
+  margin: 0 auto;
 }
 
 .mainTitle {
@@ -133,6 +135,10 @@
     padding: 12px 20px;
     font-size: 0.9rem;
   }
+  
+  .container {
+    padding: 0 15px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -141,7 +147,45 @@
   }
   
   .us {
-    padding: 40px 15px;
+    padding: 40px 10px;
+  }
+  
+  .container {
+    padding: 0 10px;
+    max-width: calc(100% - 20px);
+  }
+  
+  .featuresGrid {
+    gap: 12px;
+  }
+  
+  .featureItem {
+    padding: 10px 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding: 0 8px;
+    max-width: calc(100% - 16px);
+  }
+  
+  .us {
+    padding: 30px 8px;
+  }
+  
+  .mainTitle {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+  
+  .description {
+    font-size: 0.95rem;
+  }
+  
+  .featureItem {
+    padding: 8px 12px;
+    font-size: 0.85rem;
   }
 }
 

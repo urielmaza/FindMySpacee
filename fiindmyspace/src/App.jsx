@@ -14,8 +14,9 @@ function App() {
   const location = useLocation();
   return (
     <>
-      {/* Mostrar Banner solo si NO estamos en /home-user o /login */}
-      {location.pathname !== '/home-user' && location.pathname !== '/login' && location.pathname !== '/register' && <Banner />}
+
+  {/* Mostrar Banner solo en la ruta '/' */}
+  {location.pathname === '/' && <Banner />}
 
         <Routes>
           <Route path="/" element={<Home />} />
