@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './home.module.css';
+import logo from '../assets/logofindmyspace.png';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -732,7 +733,7 @@ const Home = () => {
           <div className={styles.footerTop}>
             <div className={styles.footerSection}>
               <div className={styles.logoSection}>
-                <img src="/src/assets/logofindmyspace.png" alt="FindMySpace" className={styles.footerLogo} />
+                <img src={logo} alt="FindMySpace" className={styles.footerLogo} />
                 <p className={styles.footerDescription}>
                   La plataforma líder en estacionamientos inteligentes. Encuentra, reserva y disfruta de la mejor experiencia de estacionamiento.
                 </p>
