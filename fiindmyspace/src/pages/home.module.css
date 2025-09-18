@@ -64,7 +64,7 @@
   margin-right: auto;
 }
 
-.featuresGrid {
+.featuresGrid {/*items del inicio*/
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
@@ -72,7 +72,7 @@
   margin: 0 auto;
 }
 
-.featureItem {
+.featureItem {/*color de los items del inicio*/
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 25px;
@@ -94,6 +94,7 @@
 }
 
 .featureIcon {
+  
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,7 +199,7 @@
   z-index: 0; /* Asegura que el fondo esté detrás del spinner */
 }
 
-.spinnerContainer {
+.spinnerContainer {/*contenedor de la mierda q gira*/
   position: absolute;
   top: 40%; /* Reducido para acercar la bola al banner */
   left: 50%;
@@ -208,6 +209,15 @@
   align-items: center;
   z-index: 1; /* Asegura que el spinner esté por encima del fondo */
 }
+/* 
+si tu me hobieras dicho siempre la verdad
+si hubieras respondido cuando te llamé
+si hubieras amado
+cuando te ameee
+serías en mis sueños la mejor mujer
+si no supistee amaar
+ahora te puedes marchaar
+*/
 
 @keyframes animate {
   0% {
@@ -249,6 +259,7 @@
 
 /* Estilo para el botón "Buscar tu estacionamiento ya" */
 .bannerButton {
+  height: 2rem;/*como no va a tener la altura*/
   padding: 8px 16px;
   border-radius: 4px;
   border: none;
