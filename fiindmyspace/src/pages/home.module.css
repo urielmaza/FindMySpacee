@@ -1,4 +1,4 @@
-.spinner {
+.spinner {/*la mierdita es que gira*/
   background-image: linear-gradient(rgb(140, 24, 207) 35%, rgb(0, 225, 255));
   width: 400px; /* Aumentado de 350px a 400px */
   height: 400px; /* Aumentado de 350px a 400px */
@@ -9,7 +9,7 @@
   box-shadow: 0px -5px 20px 0px rgb(101, 15, 151), 0px 5px 20px 0px rgb(0, 225, 255);
 }
 
-.spinner1 {
+.spinner1 {/*la mierdita adentro de la mierdita que gira  */
   background-color: rgb(36, 36, 36);
   width: 400px; /* Aumentado de 350px a 400px */
   height: 400px; /* Aumentado de 350px a 400px */
@@ -17,14 +17,14 @@
   filter: blur(10px);
 }
 
-@keyframes spinning82341 {
+@keyframes spinning82341 {/*animacion para la mierdita q gira*/
   to {
     transform: rotate(360deg);
   }
-}
+}/*Nota: no se si     era muy necesario pq no son muchos pasos*/
 
 
-.us {
+.us {/*Seccion sobre nosotros*/
   width: 100%;
   min-height: 80vh;
   background-color: rgb(27, 27, 27);
@@ -34,15 +34,15 @@
   padding: 60px 15px;
 }
 
-.container {
+.container {/*Contenedores de cada seccion*/
   max-width: 1000px;
   width: 100%;
   text-align: center;
   padding: 0 20px;
-  margin: 0 auto;
-}
+  margin: none;/*Creo que era esto veremos*/
+}/*creo que son los que están descentrados pero hay que encontrar el contenedor padre o crearlo*/
 
-.mainTitle {
+.mainTitle {/*titulo. hay mas de uno revisar(?*/
   font-size: 3rem;
   font-weight: bold;
   color: white;
@@ -50,7 +50,7 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.highlight {
+.highlight {/*para que usar esto y poner el mismo color?*/
   color: white;
 }
 
