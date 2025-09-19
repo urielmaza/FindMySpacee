@@ -12,6 +12,34 @@ const Home = () => {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
+  const copyPhoneNumber = () => {
+    const phoneNumber = '+541161757162';
+    navigator.clipboard.writeText(phoneNumber).then(() => {
+      // Opcional: mostrar una notificación de éxito
+      alert('Número copiado al portapapeles: ' + phoneNumber);
+    }).catch(err => {
+      console.error('Error al copiar el número: ', err);
+      // Fallback para navegadores más antiguos
+      const textArea = document.createElement('textarea');
+      textArea.value = phoneNumber;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Número copiado al portapapeles: ' + phoneNumber);
+    });
+  };
+
   useEffect(() => {
     const createSquare = () => {
       const section = document.querySelector(`.${styles.background}`);
@@ -743,9 +771,9 @@ const Home = () => {
             <div className={styles.footerSection}>
               <h3 className={styles.footerSectionTitle}>Navegación</h3>
               <ul className={styles.footerLinks}>
-                <li><a href="#nosotros" className={styles.footerLink}>¿Qué es FindMySpace?</a></li>
-                <li><a href="#testimonios" className={styles.footerLink}>Testimonios</a></li>
-                <li><a href="#preguntas" className={styles.footerLink}>Preguntas frecuentes</a></li>
+                <li><button onClick={() => scrollToSection('nosotros')} className={styles.footerLink}>¿Qué es FindMySpace?</button></li>
+                <li><button onClick={() => scrollToSection('testimonios')} className={styles.footerLink}>Testimonios</button></li>
+                <li><button onClick={() => scrollToSection('preguntas')} className={styles.footerLink}>Preguntas frecuentes</button></li>
               </ul>
             </div>
             <div className={styles.footerSection}>
@@ -763,13 +791,13 @@ const Home = () => {
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                     <polyline points="22,6 12,13 2,6"/>
                   </svg>
-                  <a href="findmyspace025@gmail.com" className={styles.footerLink}>findmyspace025@gmail.com</a>
+                  <a href="mailto:findmyspace025@gmail.com" className={styles.footerLink}>findmyspace025@gmail.com</a>
                 </div>
                 <div className={styles.contactItem}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                   </svg>
-                  <a href="tel:+541161757162" className={styles.footerLink}>+54 11 6175-7162</a>
+                  <button onClick={copyPhoneNumber} className={styles.footerLink} title="Haz clic para copiar el número">+54 11 6175-7162</button>
                 </div>
                 <div className={styles.contactItem}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

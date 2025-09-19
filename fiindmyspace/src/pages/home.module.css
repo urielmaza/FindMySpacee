@@ -1116,6 +1116,11 @@ ahora te puedes marchaar
   transition: all 0.3s ease;
   position: relative;
   display: inline-block;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
 }
 
 .footerLink:hover {
