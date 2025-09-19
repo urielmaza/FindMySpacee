@@ -1,78 +1,269 @@
-.bannerHeader {
-  width: 100%;
-  background: #000;
-  color: #fff;
-  height: 80px; /* Altura fija del banner */
-  padding: 0; /* Sin padding vertical */
-  position: sticky; /* Cambiado de fixed a sticky para que se comporte como un elemento normal */
+/* Contenedor principal del header */
+.headerContainer {
+  position: fixed;
+  top: -10px;
+  left: -0.5%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  transition: all 0.4s ease;
+}
+
+/* Estado abierto: se desplaza hacia la izquierda */
+.headerContainerOpen {
+  left: 100px;
+  transform: translateX(0);
+  gap: 16px;
+}
+
+/* Botón hamburguesa */
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.3s ease;
+  order: 2; /* Hamburguesa va después del título */
+}
+
+.hamburger:hover {
+  transform: none;
+  background: none;
+}
+
+/* Logo del header */
+.headerLogo {
+  height: 100px;
+  width: auto;
+  margin: 0;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.4s ease;
+  order: 1; /* Logo va primero */
+}
+
+.headerLogoVisible {
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: 0.1s;
+}
+
+.hamburgerLine {
+  width: 18px;
+  height: 2px;
+  background-color: #333;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+/* Animación hamburger a X */
+.hamburgerOpen {
+  background: none;
+}
+
+.hamburgerOpen .hamburgerLine:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hamburgerOpen .hamburgerLine:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburgerOpen .hamburgerLine:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Sidebar lateral */
+.sidebar {
+  position: fixed;
   top: 0;
   left: 0;
-  z-index: 100;
+  height: 100vh;
+  width: 80px; /* Ancho colapsado */
+  background: rgb(255, 255, 255);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  --border-bottom-width: 1px;
-  --border-color: var(--token-313dd4d6-9859-4bdd-889b-954a849d13e3, rgb(34, 34, 34));
-
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
 }
 
-.bannerContent {
+.sidebarOpen {
+  width: 280px; /* Ancho expandido */
+}
+
+.sidebarHeader {
+  padding: 90px 20px 30px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 120px;
+}
+
+.sidebarOpen .sidebarTitle {
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: 0.2s;
+}
+
+.sidebarContent {
+  flex: 1;
+  padding: 20px 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px;
-  height: 100%; /* ocupa toda la altura del banner */
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin: 80px 20px 0 20px;
 }
 
-.logo {
-  height: auto;
-  max-height: 130px; /* Cambiado de 130px */
-  width: auto;
-  display: block;
+.sidebarFooter {
+  padding: 20px 0 30px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.bannerButtons {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 0;
-}
-
-.bannerButton {
-  padding: 8px 16px;
-  border-radius: 4px;
+.navButton {
+  width: 100%;
+  height: 60px;
+  padding: 0 20px;
   border: none;
-  background: transparent;
-  color: #fff;
-  font-weight: bold;
+  background: none;
+  color: #000000;
+  font-size: 16px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.bannerButton:hover{
-  background: rgba(175, 175, 175, 0.1);
-}
-
-/* Resalta el botón de Login */
-.bannerButton.login {
-  background: #ffffff;
-  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  border-left: 3px solid transparent;
 }
 
-.bannerButton.login:hover {
-  background: #e2e2e2;
-  color: #000;
+.navButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: #a4c4a5;
 }
 
-.bannerButton:last-child {
-  margin-right: 0;
+.navIcon {
+  width: 40px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-/* Elimina el título */
-.bannerTitle {
+.navIcon svg {
+  width: 20px;
+  height: 20px;
+  color: #333;
+}
+
+.navText {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.sidebarOpen .navText {
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: 0.1s;
+}
+
+.logoutButton {
+  color: #ff6b6b;
+}
+
+.logoutButton:hover {
+  background: rgba(255, 107, 107, 0.1);
+  border-left-color: #ff6b6b;
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headerContainer {
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .headerContainerOpen {
+    left: 15px;
+    transform: translateX(0);
+    gap: 12px;
+  }
+  
+  .hamburger {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .headerLogo {
+    height: 48px;
+  }
+  
+  .sidebar {
+    width: 0; /* Completamente oculto en móvil cuando está cerrado */
+  }
+  
+  .sidebarOpen {
+    width: 280px;
+  }
+  
+  .sidebarHeader {
+    padding: 80px 20px 25px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebarOpen {
+    width: 100vw;
+  }
+}
+
+/* Limpieza de estilos antiguos */
+.bannerHeader,
+.bannerContent,
+.bannerTitle,
+.bannerButtons,
+.bannerButton,
+.navigation,
+.navigationOpen,
+.navigationContent {
   display: none;
 }
 
-/* Eliminar el margen global para evitar interferencias */
+.logo {
+  display: none;
+}
+
 .container {
-  margin-top: 0; /* Eliminado el margen superior */
+  margin-top: 0;
 }
