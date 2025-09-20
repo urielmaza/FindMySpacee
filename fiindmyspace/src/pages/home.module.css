@@ -602,7 +602,7 @@ ahora te puedes marchaar
   
   .benefitsGrid {
     max-width: calc(100% - 20px);
-    margin: 0 auto;
+    margin: none;
   }
 }
 .testimonials {
@@ -844,7 +844,7 @@ ahora te puedes marchaar
 .faqsContainer {
   max-width: 800px;
   width: 100%;
-  margin: 0 auto;
+  margin: none;
 }
 
 .faqItem {
@@ -956,7 +956,7 @@ ahora te puedes marchaar
   
   .faqsContainer {
     max-width: 100%;
-    margin: 0 10px;
+    margin: none;
   }
   
   .faqs {
@@ -985,7 +985,7 @@ ahora te puedes marchaar
   
   .faqsContainer {
     max-width: calc(100% - 20px);
-    margin: 0 auto;
+    margin: none;
   }
 }
 
