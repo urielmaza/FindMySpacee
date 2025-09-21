@@ -1,120 +1,143 @@
-import React, { useState, useEffect } from 'react';
-import styles from './cargarVehiculo.module.css';
+import React, { useEffect, useState } from 'react';
+import apiClient from '../apiClient';
 import { getUserSession } from '../utils/auth';
-import BannerUser from '../components/BannerUser'; // Importa BannerUser
 
 const CargarVehiculo = () => {
-  const [form, setForm] = useState({
+  const [marcas, setMarcas] = useState([]);
+  const [formData, setFormData] = useState({
     marca: '',
     modelo: '',
-    tipo: '',
-    patente: ''
+    patente: '',
+    tipo_vehiculo: '',
   });
-  const [marcas, setMarcas] = useState([]);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/marcas')
-      .then(res => res.json())
-      .then(data => setMarcas(data))
-      .catch(() => setMarcas([]));
+    // Obtener datos de la sesión del usuario
+    const userSession = getUserSession();
+    if (userSession) {
+      setUserEmail(userSession.email);
+    }
+
+    // Llamada a la API para obtener las marcas
+    const fetchMarcas = async () => {
+      try {
+        const response = await apiClient.get('/marcas/all');
+        setMarcas(response.data);
+      } catch (error) {
+        console.error('Error al obtener las marcas:', error);
+      }
+    };
+
+    fetchMarcas();
   }, []);
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg('');
-    // Validación simple de campos requeridos
-    if (!form.marca || !form.modelo || !form.tipo || !form.patente) {
-      setErrorMsg('Todos los campos son obligatorios');
-      return;
-    }
-    // Obtiene el usuario de la sesión
-    const user = getUserSession();
-    if (!user || !user.id_cliente) {
-      setErrorMsg('No se pudo obtener el id del usuario de la sesión');
-      return;
-    }
-    // Incluye id_cliente en el objeto enviado
-    const dataToSend = { ...form, id_cliente: user.id_cliente };
     try {
-      const response = await fetch('http://localhost:5000/api/vehiculos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dataToSend)
+      // Obtener id_cliente de la sesión del usuario
+      const userSession = getUserSession();
+      const id_cliente = userSession ? userSession.id_cliente : null;
+
+      if (!id_cliente) {
+        alert('No se pudo obtener la sesión del usuario.');
+        return;
+      }
+
+      // Validar que todos los campos requeridos tengan un valor
+      if (!formData.marca || !formData.modelo || !formData.patente || !formData.tipo_vehiculo) {
+        alert('Todos los campos son obligatorios.');
+        return;
+      }
+
+      console.log('Datos enviados al backend:', {
+        ...formData,
+        id_cliente,
       });
-      if (response.ok) {
-        alert('Vehículo cargado correctamente');
-        setForm({ marca: '', modelo: '', tipo: '', patente: '' });
+
+      const response = await apiClient.post('/vehiculos', {
+        ...formData,
+        id_cliente,
+      });
+
+      if (response.status === 201) {
+        alert('Vehículo cargado exitosamente');
+        setFormData({ marca: '', modelo: '', patente: '', tipo_vehiculo: '' });
       } else {
-        const errorData = await response.json();
-        setErrorMsg(errorData?.message || 'Error al cargar el vehículo');
+        alert('Error al cargar el vehículo');
       }
     } catch (error) {
-      setErrorMsg('Error de conexión');
+      console.error('Error al enviar los datos:', error);
+      alert('Error interno del servidor');
     }
   };
 
   return (
-    <>
-      <BannerUser />
-      <div className={styles.container}>
-        <h1 className={styles.title}>Form. vehiculo</h1>
-        {errorMsg && <div style={{ color: 'red', marginBottom: 10 }}>{errorMsg}</div>}
-        <form onSubmit={handleSubmit}>
-          <select
-            name="marca"
-            value={form.marca}
-            onChange={handleChange}
-            className={styles.formInput}
-            required
-          >
-            <option value="">Selecciona una marca</option>
-            {marcas.map(marca => (
-              <option key={marca.id} value={marca.nombre}>{marca.nombre}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            name="modelo"
-            placeholder="modelo"
-            value={form.modelo}
-            onChange={handleChange}
-            className={styles.formInput}
-          />
-          <input
-            type="text"
-            name="tipo"
-            placeholder="tipo"
-            value={form.tipo}
-            onChange={handleChange}
-            className={styles.formInput}
-          />
-          <input
-            type="text"
-            name="patente"
-            placeholder="patente"
-            value={form.patente}
-            onChange={handleChange}
-            className={styles.formInput}
-          />
-          <button
-            type="submit"
-            className={styles.submitButton}
-          >
-            cargar vehiculo
-          </button>
-        </form>
-      </div>
-    </>
+    <div>
+      <h1>Cargar Vehículo</h1>
+      {userEmail && <p>Hola, {userEmail}</p>} {/* Mostrar mensaje con el email del usuario */}
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="marca">Marca:</label>
+        <select
+          id="marca"
+          name="marca"
+          value={formData.marca}
+          onChange={handleInputChange}
+        >
+          <option value="">Seleccione una marca</option>
+          {marcas.map((marca) => (
+            <option key={marca.marca} value={marca.marca}> {/* Cambiado a usar `marca.marca` */}
+              {marca.marca}
+            </option>
+          ))}
+        </select>
+        <br />
+
+        <label htmlFor="modelo">Modelo:</label>
+        <input
+          type="text"
+          id="modelo"
+          name="modelo"
+          value={formData.modelo}
+          onChange={handleInputChange}
+        />
+        <br />
+
+        <label htmlFor="patente">Patente:</label>
+        <input
+          type="text"
+          id="patente"
+          name="patente"
+          value={formData.patente}
+          onChange={handleInputChange}
+        />
+        <br />
+
+        <label htmlFor="tipo_vehiculo">Tipo de Vehículo:</label>
+        <select
+          id="tipo_vehiculo"
+          name="tipo_vehiculo"
+          value={formData.tipo_vehiculo}
+          onChange={handleInputChange}
+        >
+          <option value="">Seleccione un tipo</option>
+          <option value="moto">Moto</option>
+          <option value="auto">Auto</option>
+          <option value="camioneta">Camioneta</option>
+        </select>
+        <br />
+
+        <button type="submit">Cargar</button>
+      </form>
+    </div>
   );
 };
 

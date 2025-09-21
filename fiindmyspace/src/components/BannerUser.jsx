@@ -2,15 +2,26 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './BannerUser.module.css';
 import logo from '../assets/logofindmyspaceB.png';
+import apiClient from "../apiClient";
 
 const BannerUser = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('email');
-    sessionStorage.removeItem('id_cliente');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      // Llamar al endpoint de logout en el backend
+      await apiClient.post('/logout');
+
+      // Eliminar todos los datos de sesión en el cliente
+      sessionStorage.clear();
+      localStorage.clear();
+
+      // Redirigir al usuario a la página de inicio
+      navigate('/');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
   };
 
   const toggleMenu = () => {

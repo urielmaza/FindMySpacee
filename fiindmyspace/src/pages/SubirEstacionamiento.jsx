@@ -1,5 +1,10 @@
 import React, { useState, useRef } from 'react';
 import BannerUser from '../components/BannerUser'; // Importa BannerUser
+import { getUserSession } from '../utils/auth';
+import styles from './SubirEstacionamiento.module.css'; // Asegúrate de tener un archivo CSS para estilos
+
+// Agregar un console.log para verificar los datos de la sesión
+console.log('Datos de la sesión:', sessionStorage);
 
 const AREA_SIZE = 400; // Tamaño del área del estacionamiento en px
 const PLAZA_SIZE = 40; // Tamaño de cada plaza en px
@@ -26,6 +31,11 @@ const SubirEstacionamiento = () => {
 
   const dragPlaza = useRef(null);
   const offset = useRef({ x: 0, y: 0 });
+
+  // Obtener datos de la sesión del usuario
+  const userSession = getUserSession();
+  const idCliente = userSession ? userSession.id_cliente : null;
+  const userEmail = userSession ? userSession.email : 'Usuario';
 
   // Generar array de plazas según la cantidad
   const plazasArray = plazas && Number(plazas) > 0
@@ -77,14 +87,22 @@ const SubirEstacionamiento = () => {
       return;
     }
 
+    const token = localStorage.getItem('token'); // Obtener el token del almacenamiento local
+
     // Enviar datos al backend
     try {
-      const resp = await fetch('/api/espacios', {
+      const resp = await fetch('http://localhost:5000/api/espacios', { // URL actualizada
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` // Agregar el token en los encabezados
+        },
         body: JSON.stringify({
+          id_cliente: idCliente, // Incluir id_cliente
           nombre_estacionamiento: nombre,
           ubicacion,
+          latitud: selectedCoords ? selectedCoords[0] : null, // Agregar latitud
+          longitud: selectedCoords ? selectedCoords[1] : null, // Agregar longitud
           cantidad_plazas: Number(plazas),
           tipo_de_estacionamiento: tipo,
           horario_apertura: apertura,
@@ -160,6 +178,12 @@ const SubirEstacionamiento = () => {
       <BannerUser />
       <div style={{ maxWidth: 420, margin: '40px auto', padding: 24, border: '1px solid #eee', borderRadius: 8 }}>
         <h1 style={{ fontFamily: 'cursive', fontSize: 48, textAlign: 'center', marginBottom: 24 }}>ADMIN</h1>
+        <div className={styles.welcomeCard}>
+          <h1 className={styles.title}>¡Bienvenido de vuelta!</h1>
+          <p className={styles.subtitle}>
+            Hola {userEmail}, has iniciado sesión correctamente en FindMySpace
+          </p>
+        </div>
         <form onSubmit={handleShowMapa}>
           <div style={{ marginBottom: 12 }}>
             <input
@@ -217,11 +241,6 @@ const SubirEstacionamiento = () => {
               </ul>
             )}
           </div>
-          {resolvedAddress && (
-            <div style={{ marginBottom: 12, color: '#2d7cff', fontWeight: 'bold' }}>
-              {resolvedAddress}
-            </div>
-          )}
           <div style={{ marginBottom: 12 }}>
             <input
               type="number"
@@ -245,13 +264,9 @@ const SubirEstacionamiento = () => {
               required
             >
               <option value="">Selecciona tipo de estacionamiento</option>
-              <option value="subterráneo">Subterráneo</option>
-              <option value="aire libre">Aire libre</option>
-              <option value="edificio">Edificio</option>
+              <option value="publico">Público</option>
+              <option value="privado">Privado</option>
             </select>
-          </div>
-          <div style={{ marginBottom: 12, fontFamily: 'cursive', fontSize: 14 }}>
-            estacionamiento (subterráneo, aire libre, edificio)
           </div>
           <div style={{ marginBottom: 12 }}>
             <input

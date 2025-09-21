@@ -1,9 +1,13 @@
 import React from 'react';
 import BannerUser from '../components/BannerUser';
+import { getUserSession } from '../utils/auth';
 import styles from './HomeUser.module.css';
 
 const HomeUser = () => {
-  const userName = sessionStorage.getItem('email') || 'Usuario';
+  const userSession = getUserSession();
+  console.log('Sesión del usuario:', userSession);
+
+  const userEmail = userSession ? userSession.email : 'Usuario';
 
   return (
     <>
@@ -12,7 +16,7 @@ const HomeUser = () => {
         <div className={styles.welcomeCard}>
           <h1 className={styles.title}>¡Bienvenido de vuelta!</h1>
           <p className={styles.subtitle}>
-            Hola {userName.split('@')[0]}, has iniciado sesión correctamente en FindMySpace
+            Hola {userEmail}, has iniciado sesión correctamente en FindMySpace
           </p>
         </div>
 

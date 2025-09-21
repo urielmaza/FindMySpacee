@@ -1,5 +1,5 @@
 // src/App.jsx
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Register from './components/user/Register';
 import Login from './components/user/Login';
@@ -12,6 +12,7 @@ import styles from './App.module.css'; // Asegúrate de tener este archivo CSS
 
 function App() {
   const location = useLocation();
+
   return (
     <>
 
@@ -26,6 +27,8 @@ function App() {
           <Route path="/subir-estacionamiento" element={<SubirEstacionamiento />} />
           <Route path="/cargar-vehiculo" element={<CargarVehiculo />} />
           <Route path="/home-user" element={<HomeUser />} />
+          {/* Ruta para manejar rutas no definidas */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
  
     </>

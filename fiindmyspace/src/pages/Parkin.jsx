@@ -2,23 +2,34 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserSession, clearUserSession } from '../utils/auth';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import BannerUser from '../components/BannerUser'; // <-- Importa el banner correcto
+import BannerUser from '../components/BannerUser';
+import icono_privado from '../../public/icono_publico.jpg';
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+// Crear un ícono personalizado
+const privateParkingIcon = new L.Icon({
+  iconUrl: icono_privado, // Ruta al ícono
+  iconSize: [32, 32], // Tamaño del ícono
+  iconAnchor: [16, 32], // Punto de anclaje del ícono
+  popupAnchor: [0, -32], // Punto de anclaje del popup
+});
 
 const Parkin = () => {
   const navigate = useNavigate();
   const user = getUserSession();
 
-  // Estados para los formularios
   const [addressInput, setAddressInput] = useState('');
   const [resolvedAddress, setResolvedAddress] = useState('');
   const [parkingType, setParkingType] = useState('');
   const [searchResult, setSearchResult] = useState('');
-  const [suggestions, setSuggestions] = useState([]); // Nuevo estado para sugerencias
-  const [selectedCoords, setSelectedCoords] = useState(null); // Nuevo estado para coordenadas
-  const [selectedAddress, setSelectedAddress] = useState(''); // Nuevo estado para dirección seleccionada
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedCoords, setSelectedCoords] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState('');
+  const [direcciones, setDirecciones] = useState([]); // Estado para las direcciones
+  const [showMap, setShowMap] = useState(false); // Estado para mostrar el mapa
 
   useEffect(() => {
     if (!user) navigate('/');
@@ -29,7 +40,6 @@ const Parkin = () => {
     navigate('/');
   };
 
-  // Autocompletar direcciones usando el backend
   const handleAddressChange = async (e) => {
     const value = e.target.value;
     setAddressInput(value);
@@ -45,13 +55,11 @@ const Parkin = () => {
     }
   };
 
-  // Cuando el usuario selecciona una sugerencia
   const handleSuggestionClick = (suggestion) => {
     setAddressInput(suggestion.properties.formatted);
     setResolvedAddress(suggestion.properties.formatted);
     setSuggestions([]);
     if (suggestion.geometry && suggestion.geometry.coordinates) {
-      // Leaflet usa [lat, lng], GeoJSON usa [lng, lat]
       setSelectedCoords([suggestion.geometry.coordinates[1], suggestion.geometry.coordinates[0]]);
       setSelectedAddress(suggestion.properties.formatted);
     }
@@ -61,12 +69,23 @@ const Parkin = () => {
     setParkingType(e.target.value);
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     setSearchResult(
       `Dirección: ${resolvedAddress || addressInput}\nTipo de estacionamiento: ${parkingType}`
     );
-    // No hace falta modificar selectedCoords aquí, ya se guarda al seleccionar la sugerencia
+
+    // Obtener direcciones del backend
+    try {
+      const resp = await fetch(`${API_URL}/api/direcciones`);
+      const data = await resp.json();
+      setDirecciones(data);
+    } catch (error) {
+      console.error('Error al obtener direcciones:', error);
+    }
+
+    // Mostrar el mapa
+    setShowMap(true);
   };
 
   if (!user) return null;
@@ -172,11 +191,11 @@ const Parkin = () => {
         )}
 
         {/* Mapa con la ubicación seleccionada */}
-        {searchResult && selectedCoords && (
+        {showMap && (
           <div style={{ margin: '40px auto', width: '80vw', height: '400px', maxWidth: 600 }}>
             <MapContainer
-              center={selectedCoords}
-              zoom={16}
+              center={selectedCoords || [-34.603722, -58.381592]} // Coordenadas iniciales
+              zoom={13}
               style={{ width: '100%', height: '100%' }}
               scrollWheelZoom={false}
             >
@@ -184,11 +203,24 @@ const Parkin = () => {
                 attribution='&copy; OpenStreetMap contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <Marker position={selectedCoords}>
-                <Popup>
-                  {selectedAddress}
-                </Popup>
-              </Marker>
+
+              {/* Marcador de la dirección buscada */}
+              {selectedCoords && (
+                <Marker position={selectedCoords}>
+                  <Popup>{selectedAddress}</Popup>
+                </Marker>
+              )}
+
+              {/* Marcadores de direcciones obtenidas del backend */}
+              {direcciones.map((direccion) => (
+                <Marker
+                  key={direccion.id_espacio}
+                  position={[direccion.latitud, direccion.longitud]}
+                  icon={privateParkingIcon} // Aplicar el ícono personalizado
+                >
+                  <Popup>{direccion.ubicacion}</Popup>
+                </Marker>
+              ))}
             </MapContainer>
           </div>
         )}
