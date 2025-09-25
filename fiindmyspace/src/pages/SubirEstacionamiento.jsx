@@ -3,8 +3,6 @@ import BannerUser from '../components/BannerUser'; // Importa BannerUser
 import { getUserSession } from '../utils/auth';
 import styles from './SubirEstacionamiento.module.css'; // Asegúrate de tener un archivo CSS para estilos
 
-// Agregar un console.log para verificar los datos de la sesión
-console.log('Datos de la sesión:', sessionStorage);
 
 const AREA_SIZE = 400; // Tamaño del área del estacionamiento en px
 const PLAZA_SIZE = 40; // Tamaño de cada plaza en px

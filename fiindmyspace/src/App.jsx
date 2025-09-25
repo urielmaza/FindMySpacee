@@ -8,6 +8,7 @@ import SubirEstacionamiento from './pages/SubirEstacionamiento';
 import Banner from './components/Banner';
 import HomeUser from './pages/HomeUser';
 import CargarVehiculo from './pages/cargarVehiculo'; // Corrige la mayúscula
+import AuthCallback from './pages/AuthCallback'; // Nueva importación
 import styles from './App.module.css'; // Asegúrate de tener este archivo CSS
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/parkin" element={<Parkin />} />
           <Route path="/subir-estacionamiento" element={<SubirEstacionamiento />} />
           <Route path="/cargar-vehiculo" element={<CargarVehiculo />} />

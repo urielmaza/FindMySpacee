@@ -29,17 +29,48 @@ const Login = () => {
     /* Inicializar Google Sign-In */
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: (response) => {
-        console.log('Credenciales de Google:', response);
-        // Aquí puedes enviar el token al backend para verificarlo
+      cancel_on_tap_outside: false, // Reduce algunos warnings
+      callback: async (response) => {
+        
+        try {
+          // Enviar el token al backend para verificarlo
+          const res = await fetch(`${API_BASE}/api/google/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: response.credential })
+          });
+          
+          const data = await res.json();
+          
+          if (res.ok) {
+            setMessage('Login con Google exitoso');
+            setUserSession({
+              id_cliente: data.user.id_cliente,
+              email: data.user.email
+            });
+            setTimeout(() => navigate('/home-user'), 1000);
+          } else {
+            setError(data.error || 'Error en login con Google');
+          }
+        } catch (err) {
+          console.error('Error procesando login de Google:', err);
+          setError('Error de conexión con el servidor');
+        }
       },
     });
 
     /* Renderizar el botón de Google Sign-In */
     window.google.accounts.id.renderButton(
-      document.getElementById('google-signin-btn'),
-      { theme: 'outline', size: 'large' }
+      document.getElementById('google-signin-btn'), 
+      { 
+        theme: 'outline', 
+        size: 'large',
+        type: 'standard'
+      }
     );
+
+    // Prompt automático deshabilitado para evitar conflictos
+    // window.google.accounts.id.prompt();
   }, []);
 
   const handleSubmit = async (e) => {

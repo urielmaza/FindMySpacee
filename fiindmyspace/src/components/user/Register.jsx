@@ -20,19 +20,51 @@ const Register = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    /* Inicializar Google Sign-In */
+    /* Inicializar Google Sign-In para registro */
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: (response) => {
-        console.log('Credenciales de Google:', response);
-        // Aquí puedes enviar el token al backend para verificarlo
+      cancel_on_tap_outside: false, // Reduce algunos warnings
+      callback: async (response) => {
+        console.log('Credenciales de Google para registro:', response);
+        
+        try {
+          setLoading(true);
+          setError('');
+          setMessage('');
+          
+          // Enviar el token al backend para registrar el usuario
+          const res = await fetch(`${API_BASE}/api/google/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: response.credential })
+          });
+          
+          const data = await res.json();
+          
+          if (res.ok) {
+            setMessage('¡Registro con Google exitoso! Redirigiendo al login...');
+            setTimeout(() => navigate('/login?success=true'), 2000);
+          } else {
+            setError(data.error || 'Error en registro con Google');
+          }
+        } catch (err) {
+          console.error('Error procesando registro de Google:', err);
+          setError('Error de conexión con el servidor');
+        } finally {
+          setLoading(false);
+        }
       },
     });
 
     /* Renderizar el botón de Google Sign-In */
     window.google.accounts.id.renderButton(
       document.getElementById('google-signin-btn'),
-      { theme: 'outline', size: 'large' }
+      { 
+        theme: 'outline', 
+        size: 'large',
+        type: 'standard',
+        text: 'signup_with'
+      }
     );
   }, []);
 

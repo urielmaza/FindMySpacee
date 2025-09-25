@@ -5,7 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import BannerUser from '../components/BannerUser';
-import icono_privado from '../../public/icono_publico.jpg';
+// Los archivos en /public/ se referencian con ruta directa
+const icono_privado = '/icono_publico.jpg';
 
 const API_URL = import.meta.env.VITE_API_URL;
 

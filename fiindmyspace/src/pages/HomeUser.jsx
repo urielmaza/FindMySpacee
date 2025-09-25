@@ -5,7 +5,6 @@ import styles from './HomeUser.module.css';
 
 const HomeUser = () => {
   const userSession = getUserSession();
-  console.log('Sesión del usuario:', userSession);
 
   const userEmail = userSession ? userSession.email : 'Usuario';
 
