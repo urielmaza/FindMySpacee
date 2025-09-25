@@ -25,7 +25,6 @@ const Register = () => {
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
       cancel_on_tap_outside: false, // Reduce algunos warnings
       callback: async (response) => {
-        console.log('Credenciales de Google para registro:', response);
         
         try {
           setLoading(true);

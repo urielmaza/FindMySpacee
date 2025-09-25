@@ -3,6 +3,8 @@ import BannerUser from '../components/BannerUser'; // Importa BannerUser
 import { getUserSession } from '../utils/auth';
 import styles from './SubirEstacionamiento.module.css'; // Asegúrate de tener un archivo CSS para estilos
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 const AREA_SIZE = 400; // Tamaño del área del estacionamiento en px
 const PLAZA_SIZE = 40; // Tamaño de cada plaza en px
@@ -48,7 +50,7 @@ const SubirEstacionamiento = () => {
     setSuggestions([]);
 
     if (value.length > 2) {
-      const resp = await fetch(`/api/autocomplete?text=${encodeURIComponent(value)}`);
+      const resp = await fetch(`${API_URL}/api/autocomplete?text=${encodeURIComponent(value)}`);
       const data = await resp.json();
       if (Array.isArray(data)) {
         setSuggestions(data);
@@ -89,7 +91,7 @@ const SubirEstacionamiento = () => {
 
     // Enviar datos al backend
     try {
-      const resp = await fetch('http://localhost:5000/api/espacios', { // URL actualizada
+      const resp = await fetch(`${API_URL}/api/espacios`, { // URL usando variable de entorno
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

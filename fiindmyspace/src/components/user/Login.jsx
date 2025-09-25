@@ -53,7 +53,7 @@ const Login = () => {
             setError(data.error || 'Error en login con Google');
           }
         } catch (err) {
-          console.error('Error procesando login de Google:', err);
+          console.error('❌ Error en login con Google:', err.message);
           setError('Error de conexión con el servidor');
         }
       },

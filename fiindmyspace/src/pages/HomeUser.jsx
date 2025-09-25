@@ -4,7 +4,7 @@ import { getUserSession } from '../utils/auth';
 import styles from './HomeUser.module.css';
 
 const HomeUser = () => {
-  const userSession = getUserSession();
+  const userSession = getUserSession(); 
 
   const userEmail = userSession ? userSession.email : 'Usuario';
 
