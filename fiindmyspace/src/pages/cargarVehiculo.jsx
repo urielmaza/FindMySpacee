@@ -23,7 +23,6 @@ const CargarVehiculo = () => {
     const fetchMarcas = async () => {
       try {
         const response = await apiClient.get('/marcas/all');
-        console.log('Respuesta completa:', response.data); // Para debug
         
         // Acceder a los datos correctos según la nueva estructura del controlador
         if (response.data.success && response.data.data) {
