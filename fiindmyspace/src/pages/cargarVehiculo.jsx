@@ -23,9 +23,18 @@ const CargarVehiculo = () => {
     const fetchMarcas = async () => {
       try {
         const response = await apiClient.get('/marcas/all');
-        setMarcas(response.data);
+        console.log('Respuesta completa:', response.data); // Para debug
+        
+        // Acceder a los datos correctos según la nueva estructura del controlador
+        if (response.data.success && response.data.data) {
+          setMarcas(response.data.data);
+        } else {
+          console.error('Estructura de respuesta inesperada:', response.data);
+          setMarcas([]); // Array vacío como fallback
+        }
       } catch (error) {
         console.error('Error al obtener las marcas:', error);
+        setMarcas([]); // Array vacío en caso de error
       }
     };
 
@@ -93,11 +102,15 @@ const CargarVehiculo = () => {
           onChange={handleInputChange}
         >
           <option value="">Seleccione una marca</option>
-          {marcas.map((marca) => (
-            <option key={marca.marca} value={marca.marca}> {/* Cambiado a usar `marca.marca` */}
-              {marca.marca}
-            </option>
-          ))}
+          {Array.isArray(marcas) && marcas.length > 0 ? (
+            marcas.map((marca) => (
+              <option key={marca.id_marca || marca.marca} value={marca.marca}>
+                {marca.marca}
+              </option>
+            ))
+          ) : (
+            <option value="" disabled>No hay marcas disponibles</option>
+          )}
         </select>
         <br />
 
