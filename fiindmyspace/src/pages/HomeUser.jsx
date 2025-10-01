@@ -1,12 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import BannerUser from '../components/BannerUser';
 import { getUserSession } from '../utils/auth';
 import styles from './HomeUser.module.css';
 
 const HomeUser = () => {
+  const navigate = useNavigate();
   const userSession = getUserSession(); 
-
   const userEmail = userSession ? userSession.email : 'Usuario';
+
+  const handleCardClick = (route) => {
+    navigate(route);
+  };
 
   return (
     <>
@@ -20,7 +25,11 @@ const HomeUser = () => {
         </div>
 
         <div className={styles.features}>
-          <div className={styles.featureCard} style={{'--delay': '0s'}}>
+          <div 
+            className={styles.featureCard} 
+            style={{'--delay': '0s'}}
+            onClick={() => handleCardClick('/parkin')}
+          >
             <span className={styles.featureIcon}>🅿️</span>
             <h3 className={styles.featureTitle}>Encuentra Parking</h3>
             <p className={styles.featureDescription}>
@@ -28,7 +37,11 @@ const HomeUser = () => {
             </p>
           </div>
           
-          <div className={styles.featureCard} style={{'--delay': '0.1s'}}>
+          <div 
+            className={styles.featureCard} 
+            style={{'--delay': '0.1s'}}
+            onClick={() => handleCardClick('/subir-estacionamiento')}
+          >
             <span className={styles.featureIcon}>🏢</span>
             <h3 className={styles.featureTitle}>Sube tu Estacionamiento</h3>
             <p className={styles.featureDescription}>
@@ -36,7 +49,11 @@ const HomeUser = () => {
             </p>
           </div>
           
-          <div className={styles.featureCard} style={{'--delay': '0.2s'}}>
+          <div 
+            className={styles.featureCard} 
+            style={{'--delay': '0.2s'}}
+            onClick={() => handleCardClick('/cargar-vehiculo')}
+          >
             <span className={styles.featureIcon}>🚗</span>
             <h3 className={styles.featureTitle}>Gestiona tus Vehículos</h3>
             <p className={styles.featureDescription}>
