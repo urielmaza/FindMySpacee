@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import BannerUser from '../components/BannerUser';
 import apiClient from '../apiClient';
 import { getUserSession } from '../utils/auth';
 
@@ -89,9 +90,11 @@ const CargarVehiculo = () => {
   };
 
   return (
-    <div>
-      <h1>Cargar Vehículo</h1>
-      {userEmail && <p>Hola, {userEmail}</p>} {/* Mostrar mensaje con el email del usuario */}
+    <>
+      <BannerUser />
+      <div>
+        <h1>Cargar Vehículo</h1>
+        {userEmail && <p>Hola, {userEmail}</p>} {/* Mostrar mensaje con el email del usuario */}
       <form onSubmit={handleSubmit}>
         <label htmlFor="marca">Marca:</label>
         <select
@@ -149,7 +152,8 @@ const CargarVehiculo = () => {
 
         <button type="submit">Cargar</button>
       </form>
-    </div>
+      </div>
+    </>
   );
 };
 
