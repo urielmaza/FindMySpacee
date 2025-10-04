@@ -48,9 +48,9 @@
   border: 1px solid #ccc;
   border-radius: 8px;
   min-height: 50px;
-  /* border: 1px solid #ccc; Borde gris claro
-  border-radius: 8px; Bordes redondeados */
-  /* height: 50px; Altura estándar */
+  border: 1px solid #ccc;/* Borde gris claro*/
+  border-radius: 8px;/* Bordes redondeados */
+  height: 50px;/* Altura estándar */
   display: flex;
   align-items: center;
   padding-left: 10px; /* Espaciado interno */
@@ -190,11 +190,13 @@
   border-radius: 50%;
 }
 
-@media screen and (max-width: 450px) {
+@media screen and (max-width: 440px) {
   .form{
-    width: 90%;
-    height: 95vh; 
+    min-height: 100vh;
+    width: 100%;
+    border-radius: 0px;
   }
+  
 }
 @media screen and (min-heigth: 670px) {
   .inputForm{
@@ -202,9 +204,18 @@
   }
 
 }
-@media screen and (min-width: 450px) and (max-width: 800px) {
+@media screen and (min-width: 440px) and (max-width: 750px) {
   .form{
-    width: 75%;
+    width: 70%;
+    height: 95vh;
+  }
+  .inputForm{
+    height: 50px;
+  }
+}
+@media screen and (min-width: 750px) and (max-width: 800px) {
+  .form{
+    width: 60%;
     height: 95vh;
   }
   .inputForm{
