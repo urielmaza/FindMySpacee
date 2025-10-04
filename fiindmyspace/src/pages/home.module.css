@@ -35,11 +35,12 @@
 }
 
 .container {/*Contenedores de cada seccion*/
+  justify-content: center;
   max-width: 1000px;
   width: 100%;
   text-align: center;
   padding: 0 20px;
-  margin: none;/*Creo que era esto veremos*/
+  margin: 10px 10px 10px 10px;/*Creo que era esto veremos*/
 }/*creo que son los que están descentrados pero hay que encontrar el contenedor padre o crearlo*/
 
 .mainTitle {/*titulo. hay mas de uno revisar(?*/
@@ -290,7 +291,7 @@ ahora te puedes marchaar
   align-items: center;
   padding: 60px 15px;
 }
-/* nononono */
+
 .functionsTitle {
   font-size: 2.5rem;
   font-weight: bold;
@@ -816,6 +817,8 @@ ahora te puedes marchaar
   background-color: rgb(27, 27, 27);
   display: flex;
   justify-content: center;
+  justify-items: center;
+  align-content: center;
   align-items: center;
   padding: 60px 15px;
 }
@@ -842,6 +845,7 @@ ahora te puedes marchaar
 }
 
 .faqsContainer {
+  justify-self: center;/*esta mierda centra las preguntas*/
   max-width: 800px;
   width: 100%;
   margin: none;
@@ -1116,6 +1120,11 @@ ahora te puedes marchaar
   transition: all 0.3s ease;
   position: relative;
   display: inline-block;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
 }
 
 .footerLink:hover {
