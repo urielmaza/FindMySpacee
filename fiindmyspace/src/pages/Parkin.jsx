@@ -95,7 +95,19 @@ const Parkin = () => {
     <>
       <BannerUser />
       <div style={{ marginTop: 100, marginBottom: 60, textAlign: 'center' }}>
-        <h2>Bienvenido a Parkin</h2>
+        <h2>Bienvenido a Parking</h2>
+        <p style={{ 
+          marginTop: 20, 
+          marginBottom: 30, 
+          fontSize: 14, 
+          color: '#666', 
+          fontStyle: 'italic',
+          maxWidth: 600,
+          margin: '20px auto 30px auto',
+          lineHeight: 1.5
+        }}>
+          <strong>Aclaración:</strong> Las búsquedas de estacionamientos pueden realizarse por ubicación exacta del estacionamiento o mostrando el entorno cercano de la ubicación para facilitar tu elección.
+        </p>
 
         {/* Formulario de lugar destino */}
         <form style={{ marginTop: 40 }} onSubmit={handleSearch}>
