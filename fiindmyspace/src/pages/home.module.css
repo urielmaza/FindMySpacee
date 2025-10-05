@@ -35,11 +35,12 @@
 }
 
 .container {/*Contenedores de cada seccion*/
+  justify-content: center;
   max-width: 1000px;
   width: 100%;
   text-align: center;
-  padding: 0 20px;
-  margin: none;/*Creo que era esto veremos*/
+  padding: 0;
+  margin: none;/*Creo que era esto veremos*/ /*no era eso pero bueno*/
 }/*creo que son los que están descentrados pero hay que encontrar el contenedor padre o crearlo*/
 
 .mainTitle {/*titulo. hay mas de uno revisar(?*/
@@ -816,6 +817,8 @@ ahora te puedes marchaar
   background-color: rgb(27, 27, 27);
   display: flex;
   justify-content: center;
+  justify-items: center;
+  align-content: center;
   align-items: center;
   padding: 60px 15px;
 }
@@ -842,6 +845,7 @@ ahora te puedes marchaar
 }
 
 .faqsContainer {
+  justify-self: center;/*esta mierda centra las preguntas*/
   max-width: 800px;
   width: 100%;
   margin: none;

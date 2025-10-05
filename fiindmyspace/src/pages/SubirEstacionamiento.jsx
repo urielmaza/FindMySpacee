@@ -14,6 +14,10 @@ const SubirEstacionamiento = () => {
   const [ubicacion, setUbicacion] = useState('');
   const [plazas, setPlazas] = useState('');
   const [tipo, setTipo] = useState('');
+  const [tipoEstructura, setTipoEstructura] = useState(''); // aire libre o cerrado
+  const [cantidadPisos, setCantidadPisos] = useState(''); // solo para estacionamientos cerrados
+  const [tieneSubsuelo, setTieneSubsuelo] = useState(''); // solo para estacionamientos cerrados
+  const [precio, setPrecio] = useState('');
   const [apertura, setApertura] = useState('');
   const [cierre, setCierre] = useState('');
 
@@ -81,8 +85,31 @@ const SubirEstacionamiento = () => {
   // Inicializar posiciones al generar el mapa
   const handleShowMapa = async (e) => {
     e.preventDefault();
-    if (!nombre || !ubicacion || !plazas || !tipo || !apertura || !cierre) {
+    
+    // Validación básica para todos los campos excepto precio y pisos
+    if (!nombre || !ubicacion || !plazas || !tipo || !tipoEstructura || !apertura || !cierre) {
       setMensaje('Error al enviar: completa todos los campos.');
+      setTipoMensaje('error');
+      return;
+    }
+    
+    // Validación específica para precio solo si es privado
+    if (tipo === 'privado' && !precio) {
+      setMensaje('Error al enviar: el precio es obligatorio para estacionamientos privados.');
+      setTipoMensaje('error');
+      return;
+    }
+    
+    // Validación específica para cantidad de pisos solo si es cerrado
+    if (tipoEstructura === 'cerrado' && !cantidadPisos) {
+      setMensaje('Error al enviar: la cantidad de pisos es obligatoria para estacionamientos cerrados.');
+      setTipoMensaje('error');
+      return;
+    }
+    
+    // Validación específica para subsuelo solo si es cerrado
+    if (tipoEstructura === 'cerrado' && !tieneSubsuelo) {
+      setMensaje('Error al enviar: debe especificar si tiene subsuelo para estacionamientos cerrados.');
       setTipoMensaje('error');
       return;
     }
@@ -105,6 +132,10 @@ const SubirEstacionamiento = () => {
           longitud: selectedCoords ? selectedCoords[1] : null, // Agregar longitud
           cantidad_plazas: Number(plazas),
           tipo_de_estacionamiento: tipo,
+          tipo_estructura: tipoEstructura, // Nuevo campo
+          cantidad_pisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos) : 1, // Solo enviar pisos si es cerrado
+          tiene_subsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false, // Solo relevante si es cerrado
+          precio_por_hora: tipo === 'privado' ? parseFloat(precio) : 0, // Solo enviar precio si es privado
           horario_apertura: apertura,
           horario_cierre: cierre
         })
@@ -256,10 +287,64 @@ const SubirEstacionamiento = () => {
               min={1}
             />
           </div>
-          <div style={{ marginBottom: 4 }}>
+          <div style={{ marginBottom: 12 }}>
+            <select
+              value={tipoEstructura}
+              onChange={e => {
+                setTipoEstructura(e.target.value);
+                // Limpiar la cantidad de pisos y subsuelo si cambia de cerrado a aire libre
+                if (e.target.value === 'aire_libre') {
+                  setCantidadPisos('');
+                  setTieneSubsuelo('');
+                }
+              }}
+              style={{ width: '100%', fontFamily: 'cursive', fontSize: 18 }}
+              required
+            >
+              <option value="">Selecciona estructura del estacionamiento</option>
+              <option value="aire_libre">Aire Libre</option>
+              <option value="cerrado">Cerrado</option>
+            </select>
+          </div>
+          {/* Campo de cantidad de pisos solo visible para estacionamientos cerrados */}
+          {tipoEstructura === 'cerrado' && (
+            <>
+              <div style={{ marginBottom: 12 }}>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  placeholder="Cantidad de pisos"
+                  value={cantidadPisos}
+                  onChange={e => setCantidadPisos(e.target.value)}
+                  style={{ width: '100%', fontFamily: 'cursive', fontSize: 18 }}
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <select
+                  value={tieneSubsuelo}
+                  onChange={e => setTieneSubsuelo(e.target.value)}
+                  style={{ width: '100%', fontFamily: 'cursive', fontSize: 18 }}
+                  required
+                >
+                  <option value="">¿Tiene subsuelo?</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </>
+          )}
+           <div style={{ marginBottom: 4 }}>
             <select
               value={tipo}
-              onChange={e => setTipo(e.target.value)}
+              onChange={e => {
+                setTipo(e.target.value);
+                // Limpiar el precio si cambia de privado a público
+                if (e.target.value === 'publico') {
+                  setPrecio('');
+                }
+              }}
               style={{ width: '100%', fontFamily: 'cursive', fontSize: 18 }}
               required
             >
@@ -268,6 +353,21 @@ const SubirEstacionamiento = () => {
               <option value="privado">Privado</option>
             </select>
           </div>
+          {/* Campo de precio solo visible para estacionamientos privados */}
+          {tipo === 'privado' && (
+            <div style={{ marginBottom: 12 }}>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Precio por hora (ARS)"
+                value={precio}
+                onChange={e => setPrecio(e.target.value)}
+                style={{ width: '100%', fontFamily: 'cursive', fontSize: 18 }}
+                required
+              />
+            </div>
+          )}
           <div style={{ marginBottom: 12 }}>
             <input
               type="time"
