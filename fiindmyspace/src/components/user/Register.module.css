@@ -74,6 +74,7 @@
 }
 
 .input {
+  border-radius: 8px;
   margin-left: 10px;
   border: none;
   width: 100%;
@@ -147,7 +148,7 @@
   background-color: #555555;
   border-radius: 50%;
 }
-
+/* 
 @media screen and (max-width: 450px) {
   .form{
     width: 90%;
@@ -165,5 +166,48 @@
   .form{
     width: 75%;
     height: 95vh;
+  }
+} */
+ @media screen and (max-width: 550px) {
+  .form{
+    min-height: 100vh;
+    width: 100%;
+    border-radius: 0px;
+    justify-content: center;
+  }
+  
+}
+@media screen and (min-heigth: 670px) {
+  .inputForm{
+    height: 60px;
+  }
+
+}
+@media screen and (min-width: 551px) and (max-width: 750px) {
+  .form{
+    width: 70%;
+    height: 95vh;
+  }
+  .inputForm{
+    height: 50px;
+
+  }
+}
+@media screen and (min-width: 750px) and (max-width: 800px) {
+  .form{
+    width: 60%;
+    height: 95vh;
+  }
+  .inputForm{
+    height: 50px;
+  }
+}
+@media screen and (min-width: 801px) and (max-width: 1024px) {
+  .form{
+    width: 50%;
+    height: 95vh;
+  }
+  .inputForm{
+    height: 50px;
   }
 }
