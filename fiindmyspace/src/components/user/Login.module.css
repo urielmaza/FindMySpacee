@@ -190,7 +190,7 @@
   border-radius: 50%;
 }
 
-@media screen and (max-width: 440px) {
+@media screen and (max-width: 550px) {
   .form{
     min-height: 100vh;
     width: 100%;
@@ -204,7 +204,7 @@
   }
 
 }
-@media screen and (min-width: 440px) and (max-width: 750px) {
+@media screen and (min-width: 551px) and (max-width: 750px) {
   .form{
     width: 70%;
     height: 95vh;
@@ -222,7 +222,7 @@
     height: 50px;
   }
 }
-@media screen and (min-width: 800px) and (max-width: 1024px) {
+@media screen and (min-width: 801px) and (max-width: 1024px) {
   .form{
     width: 50%;
     height: 95vh;
