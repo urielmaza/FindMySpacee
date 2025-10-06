@@ -29,6 +29,7 @@ const SubirEstacionamiento = () => {
   const [selectedPlazas, setSelectedPlazas] = useState([]);
   const [showMapa, setShowMapa] = useState(false);
   const [plazasPos, setPlazasPos] = useState([]); // [{num, x, y}]
+  const [mapaGuardado, setMapaGuardado] = useState(false); // Nuevo estado
 
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState(''); // 'error' o 'exito'
@@ -166,6 +167,7 @@ const SubirEstacionamiento = () => {
       setPlazasPos(newPos);
     }
     setShowMapa(true);
+    setMapaGuardado(false); // Resetear estado de mapa guardado
   };
 
   // Drag & Drop libre
@@ -203,6 +205,48 @@ const SubirEstacionamiento = () => {
 
   // Referencia al área del estacionamiento
   const areaRef = useRef(null);
+
+  // Función para guardar el mapa en la sesión del usuario
+  const handleGuardarMapa = () => {
+    const mapaData = {
+      estacionamiento: {
+        nombre,
+        ubicacion,
+        plazas: Number(plazas),
+        tipo,
+        tipoEstructura,
+        cantidadPisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos) : 1,
+        tieneSubsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
+        precio: tipo === 'privado' ? parseFloat(precio) : 0,
+        apertura,
+        cierre,
+        coordenadas: selectedCoords,
+        fechaCreacion: new Date().toISOString()
+      },
+      mapa: {
+        plazasPos,
+        selectedPlazas,
+        areaSize: AREA_SIZE,
+        plazaSize: PLAZA_SIZE
+      }
+    };
+
+    // Obtener mapas existentes de la sesión
+    const mapasGuardados = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
+    
+    // Agregar el nuevo mapa
+    mapasGuardados.push(mapaData);
+    
+    // Guardar en localStorage
+    localStorage.setItem('findmyspace_mapas', JSON.stringify(mapasGuardados));
+    
+    console.log('🗺️ Mapa guardado en sesión:', mapaData);
+    console.log('📊 Total de mapas guardados:', mapasGuardados.length);
+    
+    setMapaGuardado(true);
+    setMensaje('¡Mapa guardado exitosamente en tu sesión!');
+    setTipoMensaje('exito');
+  };
 
   return (
     <>
@@ -418,52 +462,93 @@ const SubirEstacionamiento = () => {
         )}
         {/* Mapa de plazas interactivo libre */}
         {showMapa && plazasPos.length > 0 && (
-          <div
-            ref={areaRef}
-            style={{
-              width: AREA_SIZE,
-              height: AREA_SIZE,
-              margin: '32px auto',
-              background: '#f7f7f7',
-              border: '2px solid #2d7cff',
-              borderRadius: 12,
-              position: 'relative',
-              overflow: 'hidden',
-              touchAction: 'none'
-            }}
-          >
-            {plazasPos.map((plaza, idx) => (
-              <div
-                key={plaza.num}
+          <>
+            <div
+              ref={areaRef}
+              style={{
+                width: AREA_SIZE,
+                height: AREA_SIZE,
+                margin: '32px auto',
+                background: '#f7f7f7',
+                border: '2px solid #2d7cff',
+                borderRadius: 12,
+                position: 'relative',
+                overflow: 'hidden',
+                touchAction: 'none'
+              }}
+            >
+              {plazasPos.map((plaza, idx) => (
+                <div
+                  key={plaza.num}
+                  style={{
+                    position: 'absolute',
+                    left: plaza.x,
+                    top: plaza.y,
+                    width: PLAZA_SIZE,
+                    height: PLAZA_SIZE,
+                    background: selectedPlazas.includes(plaza.num) ? '#2d7cff' : '#fff',
+                    color: selectedPlazas.includes(plaza.num) ? '#fff' : '#222',
+                    border: '2px solid #2d7cff',
+                    borderRadius: 6,
+                    cursor: 'grab',
+                    fontWeight: 'bold',
+                    fontFamily: 'cursive',
+                    fontSize: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    userSelect: 'none',
+                    boxShadow: '0 2px 8px #0002',
+                    zIndex: 2
+                  }}
+                  title={`Plaza ${plaza.num}`}
+                  onClick={() => handlePlazaClick(plaza.num)}
+                  onMouseDown={e => handleMouseDown(e, idx)}
+                >
+                  {plaza.num}
+                </div>
+              ))}
+            </div>
+            
+            {/* Botón Guardar Mapa */}
+            {!mapaGuardado && (
+              <button
+                onClick={handleGuardarMapa}
                 style={{
-                  position: 'absolute',
-                  left: plaza.x,
-                  top: plaza.y,
-                  width: PLAZA_SIZE,
-                  height: PLAZA_SIZE,
-                  background: selectedPlazas.includes(plaza.num) ? '#2d7cff' : '#fff',
-                  color: selectedPlazas.includes(plaza.num) ? '#fff' : '#222',
-                  border: '2px solid #2d7cff',
-                  borderRadius: 6,
-                  cursor: 'grab',
-                  fontWeight: 'bold',
+                  width: '60%',
+                  margin: '16px auto',
+                  display: 'block',
                   fontFamily: 'cursive',
                   fontSize: 18,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  userSelect: 'none',
-                  boxShadow: '0 2px 8px #0002',
-                  zIndex: 2
+                  padding: '12px 0',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
                 }}
-                title={`Plaza ${plaza.num}`}
-                onClick={() => handlePlazaClick(plaza.num)}
-                onMouseDown={e => handleMouseDown(e, idx)}
               >
-                {plaza.num}
+                💾 Guardar Mapa
+              </button>
+            )}
+            
+            {/* Mensaje de confirmación si ya se guardó */}
+            {mapaGuardado && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  margin: '16px 0',
+                  color: '#28a745',
+                  fontWeight: 'bold',
+                  fontFamily: 'cursive',
+                  fontSize: 16
+                }}
+              >
+                ✅ Mapa guardado en tu sesión
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </>

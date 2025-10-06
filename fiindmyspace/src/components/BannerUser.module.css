@@ -17,6 +17,85 @@
   gap: 16px;
 }
 
+/* Toggle modo oscuro */
+.darkModeToggle {
+  width: 120px;
+  height: 50px;
+  background-color: #e0e0e0;
+  border-radius: 25px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+  transition: background-color 0.5s ease, opacity 0.4s ease, transform 0.4s ease;
+  margin: 0 auto 20px auto;
+  opacity: 0;
+  transform: translateX(-20px);
+  pointer-events: none;
+}
+
+.darkModeToggleVisible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  transition-delay: 0.1s;
+}
+
+:global(body.dark-mode) .darkModeToggle {
+  background-color: #4a4a4a;
+}
+
+.toggleCircle {
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(0);
+  transition: transform 0.5s ease, background-color 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.toggleCircleActive {
+  transform: translateX(70px);
+  background-color: #2a2a2c;
+}
+
+.sunIcon, .moonIcon {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  transition: transform 0.5s ease, opacity 0.3s ease;
+}
+
+.sunIcon {
+  color: #fcde5b;
+  opacity: 1;
+}
+
+.moonIcon {
+  color: white;
+  opacity: 0;
+  transform: translateY(-100%);
+}
+
+.toggleCircleActive .sunIcon {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+.toggleCircleActive .moonIcon {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.iconHidden {
+  opacity: 0;
+}
+
 /* Botón hamburguesa */
 .hamburger {
   background: none;
@@ -30,7 +109,7 @@
   align-items: center;
   gap: 4px;
   transition: all 0.3s ease;
-  order: 2; /* Hamburguesa va después del título */
+  order: 2; /* Hamburguesa después del logo */
 }
 
 .hamburger:hover {
@@ -63,6 +142,11 @@
   transform-origin: center;
 }
 
+/* Modo oscuro para hamburger */
+:global(body.dark-mode) .hamburgerLine {
+  background-color: #fff;
+}
+
 /* Animación hamburger a X */
 .hamburgerOpen {
   background: none;
@@ -91,9 +175,14 @@
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s ease;
   overflow: hidden;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Modo oscuro para sidebar */
+:global(body.dark-mode) .sidebar {
+  background: #2c2c2e;
 }
 
 .sidebarOpen {
@@ -122,6 +211,11 @@
   margin: 80px 0 0 -3px;
 }
 
+/* Modo oscuro para sidebarContent */
+:global(body.dark-mode) .sidebarContent {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .sidebarFooter {
   padding: 20px 0 30px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -144,7 +238,18 @@
   border-left: 3px solid transparent;
 }
 
+/* Modo oscuro para navButton */
+:global(body.dark-mode) .navButton {
+  color: #ffffff;
+}
+
 .navButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: #a4c4a5;
+}
+
+/* Modo oscuro para hover */
+:global(body.dark-mode) .navButton:hover {
   background: rgba(255, 255, 255, 0.1);
   border-left-color: #a4c4a5;
 }
@@ -162,6 +267,12 @@
   width: 20px;
   height: 20px;
   color: #333;
+  transition: color 0.5s ease;
+}
+
+/* Modo oscuro para iconos */
+:global(body.dark-mode) .navIcon svg {
+  color: #fff;
 }
 
 .navText {
@@ -206,18 +317,44 @@
   }
 }
 
+/* Estilos globales para modo oscuro */
+:global(body) {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+:global(body.dark-mode) {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .headerContainer {
     top: 22px;
     left: 4%;
     transform: translateX(-50%);
+    flex-wrap: wrap;
   }
   
   .headerContainerOpen {
     left: 15px;
     transform: translateX(0);
-    gap: 380%;
+    gap: 310px;
+  }
+  
+  .darkModeToggle {
+    width: 80px;
+    height: 35px;
+    margin-right: 10px;
+  }
+  
+  .toggleCircle {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .toggleCircleActive {
+    transform: translateX(45px);
   }
   
   .hamburger {
@@ -245,6 +382,20 @@
 @media (max-width: 480px) {
   .sidebarOpen {
     width: 100vw;
+  }
+  
+  .darkModeToggle {
+    width: 70px;
+    height: 30px;
+  }
+  
+  .toggleCircle {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .toggleCircleActive {
+    transform: translateX(40px);
   }
 }
 

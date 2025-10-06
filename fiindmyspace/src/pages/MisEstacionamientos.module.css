@@ -1,0 +1,225 @@
+/* Contenedor principal de la página */
+.pageContainer {
+  min-height: 100vh;
+  padding-left: 80px; /* Espacio para el sidebar colapsado */
+  padding-top: 40px;
+  padding-right: 40px;
+  padding-bottom: 40px;
+  transition: padding-left 0.4s ease;
+  background-color: var(--bg-color, #ffffff);
+  color: var(--text-color, #000000);
+}
+
+/* Cuando el sidebar está abierto */
+.pageContainerExpanded {
+  padding-left: 300px; /* Espacio para el sidebar expandido */
+}
+
+/* Título principal centrado */
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 auto 3rem auto;
+  color: var(--primary-color, #2c3e50);
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+/* Contenedor de contenido */
+.contentContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Contenedor de la lista */
+.listContainer {
+  background: var(--card-bg, #ffffff);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border: 1px solid var(--border-color, #e1e8ed);
+}
+
+/* Mensaje de estado vacío */
+.emptyMessage {
+  font-size: 1.2rem;
+  color: var(--text-secondary, #666666);
+  margin: 2rem 0;
+}
+
+/* Grid de mapas */
+.mapasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+/* Tarjeta individual de mapa */
+.mapaCard {
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color, #e1e8ed);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mapaCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Header de la tarjeta */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-color, #e1e8ed);
+}
+
+.nombreEstacionamiento {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary-color, #2c3e50);
+  margin: 0;
+  flex: 1;
+}
+
+.deleteButton {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.deleteButton:hover {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* Información del estacionamiento */
+.infoEstacionamiento {
+  margin-bottom: 1.5rem;
+}
+
+.infoEstacionamiento p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--text-color, #333333);
+}
+
+.infoEstacionamiento strong {
+  color: var(--primary-color, #2c3e50);
+}
+
+/* Visualización del mapa */
+.mapaVisualizacion {
+  text-align: center;
+}
+
+.mapaTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-color, #2c3e50);
+  margin: 0 0 0.5rem 0;
+}
+
+.mapaContainer {
+  overflow: hidden;
+  user-select: none;
+}
+
+.plazaVista {
+  pointer-events: none;
+}
+
+/* Estilos para modo oscuro */
+:global(body.dark-mode) .mapaCard {
+  background: #2c2c2e;
+  border-color: #404040;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+:global(body.dark-mode) .nombreEstacionamiento {
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .mapaTitle {
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .infoEstacionamiento p {
+  color: #cccccc;
+}
+
+:global(body.dark-mode) .infoEstacionamiento strong {
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .cardHeader {
+  border-bottom-color: #404040;
+}
+
+:global(body.dark-mode) .deleteButton:hover {
+  background-color: rgba(255, 100, 100, 0.2);
+}
+
+/* Estilos para modo oscuro */
+:global(body.dark-mode) .pageContainer {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .pageTitle {
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .listContainer {
+  background: #2c2c2e;
+  border-color: #404040;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+:global(body.dark-mode) .emptyMessage {
+  color: #cccccc;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding-left: 20px;
+    padding-top: 80px; /* Más espacio arriba en móvil */
+  }
+  
+  .pageContainerExpanded {
+    padding-left: 20px;
+  }
+  
+  .pageTitle {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .listContainer {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 1.8rem;
+  }
+  
+  .listContainer {
+    padding: 1rem;
+  }
+}

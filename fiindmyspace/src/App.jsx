@@ -9,6 +9,7 @@ import Banner from './components/Banner';
 import HomeUser from './pages/HomeUser';
 import CargarVehiculo from './pages/cargarVehiculo'; // Corrige la mayúscula
 import MisVehiculos from './pages/MisVehiculos'; // Nueva importación
+import MisEstacionamientos from './pages/MisEstacionamientos'; // Nueva importación
 import AuthCallback from './pages/AuthCallback'; // Nueva importación
 import styles from './App.module.css'; // Asegúrate de tener este archivo CSS
 
@@ -30,6 +31,7 @@ function App() {
           <Route path="/subir-estacionamiento" element={<SubirEstacionamiento />} />
           <Route path="/cargar-vehiculo" element={<CargarVehiculo />} />
           <Route path="/mis-vehiculos" element={<MisVehiculos />} />
+          <Route path="/mis-estacionamientos" element={<MisEstacionamientos />} />
           <Route path="/home-user" element={<HomeUser />} />
           {/* Ruta para manejar rutas no definidas */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -44,10 +44,13 @@ const Login = () => {
           
           if (res.ok) {
             setMessage('Login con Google exitoso');
-            setUserSession({
+            const sessionData = {
               id_cliente: data.user.id_cliente,
               email: data.user.email
-            });
+            };
+            console.log('\ud83d\udd11 Sesi\u00f3n guardada (Google Login):', sessionData);
+            console.log('\ud83d\udcca Datos completos del usuario (Google):', data.user);
+            setUserSession(sessionData);
             setTimeout(() => navigate('/home-user'), 1000);
           } else {
             setError(data.error || 'Error en login con Google');
@@ -88,10 +91,14 @@ const Login = () => {
       if (res.ok) {
         setMessage(data.message);
         if (data.user && data.user.id_cliente) {
-          setUserSession({
+          const sessionData = {
             id_cliente: data.user.id_cliente,
             email: data.user.email
-          });
+          };
+          console.log('\ud83d\udd11 Sesi\u00f3n guardada (Login Normal):', sessionData);
+          console.log('\ud83d\udcca Datos completos del usuario (Normal):', data.user);
+          console.log('\ud83d\udcbe Response completa del servidor:', data);
+          setUserSession(sessionData);
         } else {
           setError('No se pudo obtener el id_cliente del usuario.');
           setLoading(false);
