@@ -98,7 +98,7 @@
   border-radius: 16px;
   padding: 32px 24px;
   text-align: center;
-  border: 1px solid #00e1ff;
+  border: 1px solid #692497;
   transition: all 0.3s ease;
   animation: fadeInUp 1s ease-out calc(0.6s + var(--delay)) both;
   cursor: pointer;
@@ -115,6 +115,7 @@
   font-size: 3rem;
   margin-bottom: 16px;
   display: block;
+  color: #692497; /* Color normal */
 }
 
 .featureTitle {
@@ -145,6 +146,10 @@
 :global(body.dark-mode) .container {
   --color: #F3F3F3; /* Intercambiado */
   background-color: #E1E1E1; /* Intercambiado */
+}
+
+:global(body.dark-mode) .featureIcon {
+  color: #00e1ff; /* Color cyan en modo oscuro */
 }
 
 :global(body.dark-mode) .title {
