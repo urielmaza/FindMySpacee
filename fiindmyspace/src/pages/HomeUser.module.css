@@ -145,7 +145,7 @@
 /* Modo Oscuro - Intercambio de colores del grid */
 :global(body.dark-mode) .container {
   --color: #F3F3F3; /* Intercambiado */
-  background-color: #E1E1E1; /* Intercambiado */
+  background-color: #404040; /* Intercambiado */
 }
 
 :global(body.dark-mode) .featureIcon {
