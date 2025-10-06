@@ -24,7 +24,7 @@ const HomeUser = () => {
             onClick={() => handleCardClick('/parkin')}
           >
             <span className={styles.featureIcon}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#692497" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#00e1ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8c0 3.613-3.869 7.429-5.393 8.795a1 1 0 0 1-1.214 0C9.87 15.429 6 11.613 6 8a6 6 0 0 1 12 0"/>
                 <circle cx="12" cy="8" r="2"/>
                 <path d="M8.714 14h-3.71a1 1 0 0 0-.948.683l-2.004 6A1 1 0 0 0 3 22h18a1 1 0 0 0 .948-1.316l-2-6a1 1 0 0 0-.949-.684h-3.712"/>
@@ -42,7 +42,7 @@ const HomeUser = () => {
             onClick={() => handleCardClick('/subir-estacionamiento')}
           >
             <span className={styles.featureIcon}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#692497" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#00e1ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20.341 6.484A10 10 0 0 1 10.266 21.85"/>
                 <path d="M3.659 17.516A10 10 0 0 1 13.74 2.152"/>
                 <circle cx="12" cy="12" r="3"/>
@@ -62,7 +62,7 @@ const HomeUser = () => {
             onClick={() => handleCardClick('/cargar-vehiculo')}
           >
             <span className={styles.featureIcon}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#692497" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#00e1ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8"/>
                 <path d="M7 14h.01"/>
                 <path d="M17 14h.01"/>
