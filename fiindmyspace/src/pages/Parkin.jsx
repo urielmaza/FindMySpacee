@@ -5,18 +5,42 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import BannerUser from '../components/BannerUser';
-// Los archivos en /public/ se referencian con ruta directa
-const icono_privado = '/icono_publico.jpg';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Crear un ícono personalizado
-const privateParkingIcon = new L.Icon({
-  iconUrl: icono_privado, // Ruta al ícono
-  iconSize: [32, 32], // Tamaño del ícono
-  iconAnchor: [16, 32], // Punto de anclaje del ícono
-  popupAnchor: [0, -32], // Punto de anclaje del popup
+// Crear iconos personalizados para diferentes tipos de estacionamiento
+const privateIcon = new L.Icon({
+  iconUrl: '/privado.png',
+  iconSize: [56, 56],
+  iconAnchor: [28, 56],
+  popupAnchor: [0, -56],
 });
+
+const publicIcon = new L.Icon({
+  iconUrl: '/publico.png',
+  iconSize: [56, 56],
+  iconAnchor: [28, 56],
+  popupAnchor: [0, -56],
+});
+
+const locationIcon = new L.Icon({
+  iconUrl: '/ubicacion.png',
+  iconSize: [68, 68],
+  iconAnchor: [34, 68],
+  popupAnchor: [0, -68],
+});
+
+// Función para obtener el ícono correcto según el tipo de estacionamiento
+const getIconByType = (tipo) => {
+  switch (tipo) {
+    case 'privado':
+      return privateIcon;
+    case 'publico':
+      return publicIcon;
+    default:
+      return publicIcon; // Por defecto usar el ícono público
+  };
+};
 
 const Parkin = () => {
   const navigate = useNavigate();
@@ -78,11 +102,38 @@ const Parkin = () => {
 
     // Obtener direcciones del backend
     try {
-      const resp = await fetch(`${API_URL}/api/direcciones`);
-      const data = await resp.json();
-      setDirecciones(data);
+      let url = `${API_URL}/api/direcciones`;
+      const params = new URLSearchParams();
+
+      // Agregar filtros si están disponibles
+      if (parkingType) {
+        params.append('tipo', parkingType);
+      }
+
+      // Si tenemos coordenadas, buscar por ubicación
+      if (selectedCoords) {
+        params.append('latitud', selectedCoords[0]);
+        params.append('longitud', selectedCoords[1]);
+        params.append('radio', '10'); // Radio de 10km
+      }
+
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const resp = await fetch(url);
+      const response = await resp.json();
+      
+      if (response.success) {
+        setDirecciones(response.data);
+        console.log('Direcciones obtenidas:', response.data.length, 'filtros aplicados:', response.filtros || 'ninguno');
+      } else {
+        console.error('Error en la respuesta:', response.error);
+        setDirecciones([]);
+      }
     } catch (error) {
       console.error('Error al obtener direcciones:', error);
+      setDirecciones([]);
     }
 
     // Mostrar el mapa
@@ -205,7 +256,36 @@ const Parkin = () => {
 
         {/* Mapa con la ubicación seleccionada */}
         {showMap && (
-          <div style={{ margin: '40px auto', width: '80vw', height: '400px', maxWidth: 600 }}>
+          <>
+            {/* Leyenda de iconos */}
+            <div style={{ 
+              marginTop: 30, 
+              marginBottom: 20, 
+              padding: 15, 
+              backgroundColor: '#f8f9fa', 
+              borderRadius: 8, 
+              border: '1px solid #dee2e6',
+              maxWidth: 600,
+              margin: '30px auto 20px auto'
+            }}>
+              <h4 style={{ margin: '0 0 10px 0', textAlign: 'center', color: '#495057' }}>Leyenda del Mapa</h4>
+              <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 15 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img src="/ubicacion.png" alt="Ubicación" style={{ width: 38, height: 38 }} />
+                  <span style={{ fontSize: 14, color: '#495057' }}>Tu búsqueda</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img src="/privado.png" alt="Privado" style={{ width: 32, height: 32 }} />
+                  <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Privado</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img src="/publico.png" alt="Público" style={{ width: 32, height: 32 }} />
+                  <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Público</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ margin: '40px auto', width: '80vw', height: '400px', maxWidth: 600 }}>
             <MapContainer
               center={selectedCoords || [-34.603722, -58.381592]} // Coordenadas iniciales
               zoom={13}
@@ -219,8 +299,13 @@ const Parkin = () => {
 
               {/* Marcador de la dirección buscada */}
               {selectedCoords && (
-                <Marker position={selectedCoords}>
-                  <Popup>{selectedAddress}</Popup>
+                <Marker position={selectedCoords} icon={locationIcon}>
+                  <Popup>
+                    <div style={{ textAlign: 'center' }}>
+                      <strong>📍 Ubicación buscada</strong><br/>
+                      {selectedAddress}
+                    </div>
+                  </Popup>
                 </Marker>
               )}
 
@@ -229,13 +314,21 @@ const Parkin = () => {
                 <Marker
                   key={direccion.id_espacio}
                   position={[direccion.latitud, direccion.longitud]}
-                  icon={privateParkingIcon} // Aplicar el ícono personalizado
+                  icon={getIconByType(direccion.tipo_de_estacionamiento)}
                 >
-                  <Popup>{direccion.ubicacion}</Popup>
+                  <Popup>
+                    <div style={{ textAlign: 'center' }}>
+                      <strong>{direccion.ubicacion}</strong><br/>
+                      <small style={{ color: '#666' }}>
+                        Tipo: {direccion.tipo_de_estacionamiento === 'privado' ? 'Privado' : 'Público'}
+                      </small>
+                    </div>
+                  </Popup>
                 </Marker>
               ))}
             </MapContainer>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </>
