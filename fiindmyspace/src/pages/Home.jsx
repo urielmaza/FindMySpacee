@@ -712,7 +712,7 @@ const Home = () => {
                 </svg>
               </div>
               <div className={styles.faqAnswer}>
-                <p>Aceptamos tarjetas de crédito y débito (Visa, Mastercard), transferencias bancarias, Mercado Pago, y próximamente billeteras virtuales. Todos los pagos son procesados de forma segura con encriptación de extremo a extremo.</p>
+                <p>Aceptamos tarjetas de crédito y débito (Visa, Mastercard), transferencias bancarias, billeteras virtuales. Todos los pagos son procesados de forma segura con encriptación de extremo a extremo.</p>
               </div>
             </div>
 
