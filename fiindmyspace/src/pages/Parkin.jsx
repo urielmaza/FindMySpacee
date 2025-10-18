@@ -55,6 +55,7 @@ const Parkin = () => {
   const [selectedAddress, setSelectedAddress] = useState('');
   const [direcciones, setDirecciones] = useState([]); // Estado para las direcciones
   const [showMap, setShowMap] = useState(false); // Estado para mostrar el mapa
+  const [isLocating, setIsLocating] = useState(false); // Estado para geolocalización
 
   useEffect(() => {
     if (!user) navigate('/');
@@ -80,17 +81,71 @@ const Parkin = () => {
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('La geolocalización no es compatible con tu navegador.');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          // Usar el backend para no exponer la API key y devolver formato requerido
+          const resp = await fetch(`${API_URL}/api/reverse-geocode?lat=${latitude}&lon=${longitude}`);
+          const data = await resp.json();
+
+          if (data && data.success) {
+            const address = data.address || '';
+            setAddressInput(address);
+            setResolvedAddress(address);
+            setSelectedCoords([latitude, longitude]);
+            setSelectedAddress(address);
+            setSuggestions([]);
+          } else {
+            alert(data?.error || 'No se pudo obtener la dirección de tu ubicación.');
+          }
+        } catch (error) {
+          console.error('Error al obtener la dirección:', error);
+          alert('Hubo un error al obtener tu ubicación.');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        console.error('Error al obtener la ubicación:', error);
+        setIsLocating(false);
+        alert('No se pudo obtener tu ubicación. Asegúrate de permitir el acceso.');
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+    );
+  };
+
   const handleSuggestionClick = (suggestion) => {
-    setAddressInput(suggestion.properties.formatted);
-    setResolvedAddress(suggestion.properties.formatted);
-    setSuggestions([]);
-    if (suggestion.geometry && suggestion.geometry.coordinates) {
-      setSelectedCoords([suggestion.geometry.coordinates[1], suggestion.geometry.coordinates[0]]);
-      setSelectedAddress(suggestion.properties.formatted);
+    // Manejar explícitamente la opción "Usar mi ubicación actual"
+    if (suggestion === 'current-location' || (suggestion && suggestion.id === 'current-location')) {
+      handleUseCurrentLocation();
+      return;
+    }
+
+    // Manejar sugerencias normales con estructura esperada
+    if (suggestion && suggestion.properties && suggestion.properties.formatted) {
+      setAddressInput(suggestion.properties.formatted);
+      setResolvedAddress(suggestion.properties.formatted);
+      setSuggestions([]);
+      if (suggestion.geometry && suggestion.geometry.coordinates) {
+        setSelectedCoords([suggestion.geometry.coordinates[1], suggestion.geometry.coordinates[0]]);
+        setSelectedAddress(suggestion.properties.formatted);
+      }
+    } else {
+      // Este caso no debería ocurrir para sugerencias normales
+      console.error('La sugerencia seleccionada no tiene la estructura esperada:', suggestion);
     }
   };
 
-  const handleParkingTypeChange = (e) => {
+  const handleParkingTypeChange = (e) => {    
     setParkingType(e.target.value);
   };
 
@@ -163,7 +218,7 @@ const Parkin = () => {
         {/* Formulario de lugar destino */}
         <form style={{ marginTop: 40 }} onSubmit={handleSearch}>
           <div style={{ marginBottom: 24, position: 'relative', display: 'inline-block' }}>
-            <label style={{ fontWeight: 'bold', fontSize: 18 }}>Lugar destino:</label>
+            <label style={{ fontWeight: 'bold', fontSize: 18 }}>Dirección:</label>
             <input
               type="text"
               value={addressInput}
@@ -173,6 +228,24 @@ const Parkin = () => {
               required
               autoComplete="off"
             />
+            <button
+              type="button"
+              onClick={handleUseCurrentLocation}
+              disabled={isLocating}
+              style={{
+                marginLeft: 8,
+                padding: '8px 12px',
+                fontSize: 14,
+                cursor: isLocating ? 'not-allowed' : 'pointer',
+                backgroundColor: isLocating ? '#9bbcfb' : '#2d7cff',
+                color: 'white',
+                border: 'none',
+                borderRadius: 4,
+                verticalAlign: 'middle'
+              }}
+            >
+              {isLocating ? 'Obteniendo…' : 'Usar mi ubicación'}
+            </button>
             {/* Sugerencias de autocompletado */}
             {suggestions.length > 0 && (
               <ul
@@ -193,6 +266,21 @@ const Parkin = () => {
                   width: '100%',
                 }}
               >
+                {/* Opción para usar la ubicación actual */}
+                <li
+                  onClick={() => handleSuggestionClick('current-location')}
+                  style={{
+                    padding: '8px 12px',
+                    cursor: 'pointer',
+                    borderBottom: '1px solid #eee',
+                    color: '#007bff',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  📍 Usar mi ubicación actual
+                </li>
+
+                {/* Sugerencias de direcciones */}
                 {suggestions.map((sug) => (
                   <li
                     key={sug.properties.place_id}
