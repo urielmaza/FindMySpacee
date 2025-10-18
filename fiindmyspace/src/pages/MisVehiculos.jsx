@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import BannerUser from '../components/BannerUser';
 import apiClient from '../apiClient';
 import { getUserSession } from '../utils/auth';
 import styles from './MisVehiculos.module.css';
 
 const MisVehiculos = () => {
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [vehiculos, setVehiculos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +57,7 @@ const MisVehiculos = () => {
   }, []);
 
   const handleAgregarVehiculo = () => {
-    navigate('/cargar-vehiculo');
+    window.location.href = '/cargar-vehiculo';
   };
 
   const getVehiculoIcon = (tipoVehiculo) => {

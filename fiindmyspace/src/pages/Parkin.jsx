@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserSession, clearUserSession } from '../utils/auth';
+import { getUserSession } from '../utils/auth';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import BannerUser from '../components/BannerUser';
+import styles from './parkin.module.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -39,12 +40,13 @@ const getIconByType = (tipo) => {
       return publicIcon;
     default:
       return publicIcon; // Por defecto usar el ícono público
-  };
+  }
 };
 
 const Parkin = () => {
   const navigate = useNavigate();
-  const user = getUserSession();
+  const [user, setUser] = useState(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const [addressInput, setAddressInput] = useState('');
   const [resolvedAddress, setResolvedAddress] = useState('');
@@ -55,16 +57,38 @@ const Parkin = () => {
   const [selectedAddress, setSelectedAddress] = useState('');
   const [direcciones, setDirecciones] = useState([]); // Estado para las direcciones
   const [showMap, setShowMap] = useState(false); // Estado para mostrar el mapa
-  const [isLocating, setIsLocating] = useState(false); // Estado para geolocalización
 
   useEffect(() => {
-    if (!user) navigate('/');
-  }, [user, navigate]);
+    // Dar tiempo para que se cargue la sesión del localStorage
+    const checkAuth = () => {
+      try {
+        const userSession = getUserSession();
+        console.log('🔍 Verificando sesión en Parkin:', userSession);
+        
+        if (userSession) {
+          setUser(userSession);
+          setIsCheckingAuth(false);
+        } else {
+          // Dar una segunda oportunidad antes de redirigir
+          setTimeout(() => {
+            const retrySession = getUserSession();
+            if (retrySession) {
+              setUser(retrySession);
+              setIsCheckingAuth(false);
+            } else {
+              console.log('❌ No hay sesión válida, redirigiendo al home');
+              navigate('/');
+            }
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Error al verificar autenticación:', error);
+        navigate('/');
+      }
+    };
 
-  const handleLogout = () => {
-    clearUserSession();
-    navigate('/');
-  };
+    checkAuth();
+  }, [navigate]);
 
   const handleAddressChange = async (e) => {
     const value = e.target.value;
@@ -81,71 +105,17 @@ const Parkin = () => {
     }
   };
 
-  const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert('La geolocalización no es compatible con tu navegador.');
-      return;
-    }
-
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-
-        try {
-          // Usar el backend para no exponer la API key y devolver formato requerido
-          const resp = await fetch(`${API_URL}/api/reverse-geocode?lat=${latitude}&lon=${longitude}`);
-          const data = await resp.json();
-
-          if (data && data.success) {
-            const address = data.address || '';
-            setAddressInput(address);
-            setResolvedAddress(address);
-            setSelectedCoords([latitude, longitude]);
-            setSelectedAddress(address);
-            setSuggestions([]);
-          } else {
-            alert(data?.error || 'No se pudo obtener la dirección de tu ubicación.');
-          }
-        } catch (error) {
-          console.error('Error al obtener la dirección:', error);
-          alert('Hubo un error al obtener tu ubicación.');
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      (error) => {
-        console.error('Error al obtener la ubicación:', error);
-        setIsLocating(false);
-        alert('No se pudo obtener tu ubicación. Asegúrate de permitir el acceso.');
-      },
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
-    );
-  };
-
   const handleSuggestionClick = (suggestion) => {
-    // Manejar explícitamente la opción "Usar mi ubicación actual"
-    if (suggestion === 'current-location' || (suggestion && suggestion.id === 'current-location')) {
-      handleUseCurrentLocation();
-      return;
-    }
-
-    // Manejar sugerencias normales con estructura esperada
-    if (suggestion && suggestion.properties && suggestion.properties.formatted) {
-      setAddressInput(suggestion.properties.formatted);
-      setResolvedAddress(suggestion.properties.formatted);
-      setSuggestions([]);
-      if (suggestion.geometry && suggestion.geometry.coordinates) {
-        setSelectedCoords([suggestion.geometry.coordinates[1], suggestion.geometry.coordinates[0]]);
-        setSelectedAddress(suggestion.properties.formatted);
-      }
-    } else {
-      // Este caso no debería ocurrir para sugerencias normales
-      console.error('La sugerencia seleccionada no tiene la estructura esperada:', suggestion);
+    setAddressInput(suggestion.properties.formatted);
+    setResolvedAddress(suggestion.properties.formatted);
+    setSuggestions([]);
+    if (suggestion.geometry && suggestion.geometry.coordinates) {
+      setSelectedCoords([suggestion.geometry.coordinates[1], suggestion.geometry.coordinates[0]]);
+      setSelectedAddress(suggestion.properties.formatted);
     }
   };
 
-  const handleParkingTypeChange = (e) => {    
+  const handleParkingTypeChange = (e) => {
     setParkingType(e.target.value);
   };
 
@@ -195,101 +165,55 @@ const Parkin = () => {
     setShowMap(true);
   };
 
+  // Mostrar loading mientras verifica la autenticación
+  if (isCheckingAuth) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Cargando...
+      </div>
+    );
+  }
+
+  // Si no hay usuario después de la verificación, no mostrar nada (ya se redirigió)
   if (!user) return null;
 
   return (
     <>
       <BannerUser />
-      <div style={{ marginTop: 100, marginBottom: 60, textAlign: 'center' }}>
-        <h2>Bienvenido a Parking</h2>
-        <p style={{ 
-          marginTop: 20, 
-          marginBottom: 30, 
-          fontSize: 14, 
-          color: '#666', 
-          fontStyle: 'italic',
-          maxWidth: 600,
-          margin: '20px auto 30px auto',
-          lineHeight: 1.5
-        }}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>Bienvenido a Parking</h2>
+        <p className={styles.disclaimer}>
           <strong>Aclaración:</strong> Las búsquedas de estacionamientos pueden realizarse por ubicación exacta del estacionamiento o mostrando el entorno cercano de la ubicación para facilitar tu elección.
         </p>
 
         {/* Formulario de lugar destino */}
-        <form style={{ marginTop: 40 }} onSubmit={handleSearch}>
-          <div style={{ marginBottom: 24, position: 'relative', display: 'inline-block' }}>
-            <label style={{ fontWeight: 'bold', fontSize: 18 }}>Dirección:</label>
+        <form className={styles.form} onSubmit={handleSearch}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Lugar destino:</label>
             <input
               type="text"
               value={addressInput}
               onChange={handleAddressChange}
               placeholder="Buscar dirección"
-              style={{ marginLeft: 12, padding: 8, fontSize: 16, width: 250 }}
+              className={styles.input}
               required
               autoComplete="off"
             />
-            <button
-              type="button"
-              onClick={handleUseCurrentLocation}
-              disabled={isLocating}
-              style={{
-                marginLeft: 8,
-                padding: '8px 12px',
-                fontSize: 14,
-                cursor: isLocating ? 'not-allowed' : 'pointer',
-                backgroundColor: isLocating ? '#9bbcfb' : '#2d7cff',
-                color: 'white',
-                border: 'none',
-                borderRadius: 4,
-                verticalAlign: 'middle'
-              }}
-            >
-              {isLocating ? 'Obteniendo…' : 'Usar mi ubicación'}
-            </button>
             {/* Sugerencias de autocompletado */}
             {suggestions.length > 0 && (
-              <ul
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: 40,
-                  background: '#fff',
-                  border: '1px solid #ccc',
-                  borderRadius: 4,
-                  zIndex: 10,
-                  listStyle: 'none',
-                  margin: 0,
-                  padding: 0,
-                  maxHeight: 180,
-                  overflowY: 'auto',
-                  width: '100%',
-                }}
-              >
-                {/* Opción para usar la ubicación actual */}
-                <li
-                  onClick={() => handleSuggestionClick('current-location')}
-                  style={{
-                    padding: '8px 12px',
-                    cursor: 'pointer',
-                    borderBottom: '1px solid #eee',
-                    color: '#007bff',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  📍 Usar mi ubicación actual
-                </li>
-
-                {/* Sugerencias de direcciones */}
+              <ul className={styles.suggestions}>
                 {suggestions.map((sug) => (
                   <li
                     key={sug.properties.place_id}
                     onClick={() => handleSuggestionClick(sug)}
-                    style={{
-                      padding: '8px 12px',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #eee',
-                    }}
+                    className={styles.suggestionItem}
                   >
                     {sug.properties.formatted}
                   </li>
@@ -299,18 +223,18 @@ const Parkin = () => {
           </div>
           {/* Mostrar dirección real si existe */}
           {resolvedAddress && (
-            <div style={{ marginBottom: 24, color: '#2d7cff', fontWeight: 'bold' }}>
+            <div className={styles.resolvedAddress}>
               {resolvedAddress}
             </div>
           )}
 
           {/* Formulario de tipo de estacionamiento */}
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ fontWeight: 'bold', fontSize: 18 }}>Tipo de estacionamiento:</label>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Tipo de estacionamiento:</label>
             <select
               value={parkingType}
               onChange={handleParkingTypeChange}
-              style={{ marginLeft: 12, padding: 8, fontSize: 16 }}
+              className={styles.select}
               required
             >
               <option value="">Selecciona una opción</option>
@@ -321,15 +245,7 @@ const Parkin = () => {
 
           <button
             type="submit"
-            style={{
-              padding: '12px 32px',
-              fontSize: 18,
-              cursor: 'pointer',
-              backgroundColor: '#2d7cff',
-              color: 'white',
-              border: 'none',
-              borderRadius: 4,
-            }}
+            className={styles.searchButton}
           >
             Buscar
           </button>
@@ -337,7 +253,7 @@ const Parkin = () => {
 
         {/* Resultados de búsqueda */}
         {searchResult && (
-          <div style={{ marginTop: 40, whiteSpace: 'pre-line', fontSize: 16 }}>
+          <div className={styles.searchResult}>
             {searchResult}
           </div>
         )}
@@ -346,34 +262,25 @@ const Parkin = () => {
         {showMap && (
           <>
             {/* Leyenda de iconos */}
-            <div style={{ 
-              marginTop: 30, 
-              marginBottom: 20, 
-              padding: 15, 
-              backgroundColor: '#f8f9fa', 
-              borderRadius: 8, 
-              border: '1px solid #dee2e6',
-              maxWidth: 600,
-              margin: '30px auto 20px auto'
-            }}>
-              <h4 style={{ margin: '0 0 10px 0', textAlign: 'center', color: '#495057' }}>Leyenda del Mapa</h4>
-              <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 15 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <img src="/ubicacion.png" alt="Ubicación" style={{ width: 38, height: 38 }} />
-                  <span style={{ fontSize: 14, color: '#495057' }}>Tu búsqueda</span>
+            <div className={styles.legend}>
+              <h4 className={styles.legendTitle}>Leyenda del Mapa</h4>
+              <div className={styles.legendItems}>
+                <div className={styles.legendItem}>
+                  <img src="/ubicacion.png" alt="Ubicación" className={styles.legendIcon} style={{ width: 38, height: 38 }} />
+                  <span className={styles.legendText}>Tu búsqueda</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <img src="/privado.png" alt="Privado" style={{ width: 32, height: 32 }} />
-                  <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Privado</span>
+                <div className={styles.legendItem}>
+                  <img src="/privado.png" alt="Privado" className={styles.legendIcon} />
+                  <span className={styles.legendText}>Estacionamiento Privado</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <img src="/publico.png" alt="Público" style={{ width: 32, height: 32 }} />
-                  <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Público</span>
+                <div className={styles.legendItem}>
+                  <img src="/publico.png" alt="Público" className={styles.legendIcon} />
+                  <span className={styles.legendText}>Estacionamiento Público</span>
                 </div>
               </div>
             </div>
 
-            <div style={{ margin: '40px auto', width: '80vw', height: '400px', maxWidth: 600 }}>
+            <div className={styles.mapContainer}>
             <MapContainer
               center={selectedCoords || [-34.603722, -58.381592]} // Coordenadas iniciales
               zoom={13}

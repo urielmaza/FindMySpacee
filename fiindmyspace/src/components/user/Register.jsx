@@ -69,6 +69,24 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validación de email
+    if (email.length < 5 || email.length > 100) {
+      setError('El email debe tener entre 5 y 100 caracteres');
+      return;
+    }
+    
+    // Validación de contraseña
+    if (pw.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+    
+    if (pw.length > 50) {
+      setError('La contraseña no puede tener más de 50 caracteres');
+      return;
+    }
+    
     if (pw !== confirmPw) {
       setError('Las contraseñas no coinciden');
       return;
@@ -123,7 +141,7 @@ const Register = () => {
         <div className={styles.lineContainer}>
           <hr className={styles.line} />
           <div className={styles.circle}></div>
-          <hr className={styles.line} />
+          <hr className={styles. line} />
         </div>
 
         <div className={styles['flex-column']}>
@@ -137,6 +155,8 @@ const Register = () => {
             placeholder="Ingresa tu Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            minLength={5}
+            maxLength={100}
             required
           />
         </div>
@@ -149,9 +169,11 @@ const Register = () => {
           <input
             type={showPassword ? 'text' : 'password'}
             className={styles.input}
-            placeholder="Ingresa tu contraseña"
+            placeholder="Ingresa tu contraseña (mín. 8 caracteres)"
             value={pw}
             onChange={(e) => setPw(e.target.value)}
+            minLength={8}
+            maxLength={50}
             required
           />
           <FontAwesomeIcon
@@ -170,9 +192,11 @@ const Register = () => {
           <input
             type={showConfirmPassword ? 'text' : 'password'}
             className={styles.input}
-            placeholder="Confirma tu contraseña"
+            placeholder="Confirma tu contraseña (mín. 8 caracteres)"
             value={confirmPw}
             onChange={(e) => setConfirmPw(e.target.value)}
+            minLength={8}
+            maxLength={50}
             required
           />
           <FontAwesomeIcon
