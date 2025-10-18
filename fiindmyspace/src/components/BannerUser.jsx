@@ -37,15 +37,17 @@ const BannerUser = ({ onMenuToggle }) => {
       // Llamar al endpoint de logout en el backend
       await apiClient.post('/logout');
 
-      // Guardar los mapas antes de limpiar
+      // Guardar las preferencias que queremos mantener antes de limpiar
       const mapasGuardados = localStorage.getItem('findmyspace_mapas');
       const darkMode = localStorage.getItem('darkMode');
 
-      // Eliminar todos los datos de sesión en el cliente
+      // Solo eliminar la sesión del usuario, no todo el localStorage
+      localStorage.removeItem('findmyspace_user');
+      
+      // Limpiar sessionStorage por seguridad
       sessionStorage.clear();
-      localStorage.clear();
 
-      // Restaurar los mapas y preferencias que queremos mantener
+      // Asegurar que las preferencias se mantengan
       if (mapasGuardados) {
         localStorage.setItem('findmyspace_mapas', mapasGuardados);
         console.log('🗺️ Mapas preservados al cerrar sesión');
@@ -55,10 +57,15 @@ const BannerUser = ({ onMenuToggle }) => {
         console.log('🌙 Preferencia de modo oscuro preservada');
       }
 
+      console.log('✅ Logout exitoso, solo se eliminó la sesión del usuario');
+
       // Redirigir al usuario a la página de inicio
       navigate('/');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
+      // Si falla la llamada al backend, al menos limpiar localmente
+      localStorage.removeItem('findmyspace_user');
+      navigate('/');
     }
   };
 
