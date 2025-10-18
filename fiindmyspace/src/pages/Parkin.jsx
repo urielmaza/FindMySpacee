@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserSession, clearUserSession } from '../utils/auth';
+import { getUserSession } from '../utils/auth';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -40,7 +40,7 @@ const getIconByType = (tipo) => {
       return publicIcon;
     default:
       return publicIcon; // Por defecto usar el ícono público
-  };
+  }
 };
 
 const Parkin = () => {
@@ -89,12 +89,6 @@ const Parkin = () => {
 
     checkAuth();
   }, [navigate]);
-
-  const handleLogout = () => {
-    clearUserSession();
-    setUser(null);
-    navigate('/');
-  };
 
   const handleAddressChange = async (e) => {
     const value = e.target.value;
