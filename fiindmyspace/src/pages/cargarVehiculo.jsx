@@ -111,9 +111,9 @@ const CargarVehiculo = () => {
       <BannerUser onMenuToggle={setIsMenuOpen} />
       <div className={`${styles.pageContainer} ${isMenuOpen ? styles.pageContainerExpanded : ''}`}>
         <div className={styles.contentContainer}>
-          <h1 className={styles.pageTitle}>Cargar Vehículo</h1>
-          
+
           <div className={styles.formCard}>
+          <h1 className={styles.pageTitle}>Cargar Vehículo</h1> 
             {userEmail && (
               <div className={styles.welcomeMessage}>
                 🚗 Hola {userEmail}, agrega un nuevo vehículo a tu cuenta
