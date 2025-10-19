@@ -1,21 +1,239 @@
-/* Estilos para SubirEstacionamiento */
+/* Contenedor principal de la página */
+.pageContainer {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background-color: var(--bg-color, #ffffff);
+  color: var(--text-color, #000000);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  
+}
 
-.welcomeCard {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px;
+/* Contenedor de contenido del formulario */
+.contentContainer {
+  width: 100%;
+  max-width: 420px;
+  align-self: center;
+}
+
+/* Tarjeta del formulario */
+.formCard {
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color, #e1e8ed);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Título del formulario */
+.pageTitle {
+  font-family: 'cursive', sans-serif;
+  font-size: 2.5rem;
+  font-weight: bold;
   text-align: center;
   margin-bottom: 16px;
+  color: var(--primary-color, #2c3e50);
 }
 
-.title {
-  font-size: 24px;
+/* Mensaje de bienvenida */
+.welcomeMessage {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-secondary, #666666);
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--welcome-bg, #f8f9fa);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color, #2c3e50);
+}
+
+/* Grupos de campos del formulario */
+.formGroup {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Etiquetas */
+.formLabel {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-color, #333333);
+}
+
+/* Inputs y selects */
+.formInput,
+.formSelect {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--border-color, #e1e8ed);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: var(--input-bg, #ffffff);
+  color: var(--text-color, #333333);
+  box-sizing: border-box;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  outline: none;
+  border-color: var(--primary-color, #2c3e50);
+  box-shadow: 0 0 0 3px rgba(44,62,80,0.1);
+}
+
+.formInput::placeholder {
+  color: var(--placeholder-color, #999999);
+}
+
+/* Botón de envío */
+.submitButton {
+  width: 100%;
+  padding: 12px 0;
+  background: linear-gradient(135deg, #2c3e50, #3498db);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submitButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(44,62,80,0.3);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+}
+
+/* Mensajes de error o éxito */
+.message {
+  margin-top: 1rem;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Área del mapa */
+.mapArea {
+  width: 300px;
+  height: 300px;
+  margin: 16px auto;
+  background: #f7f7f7;
+  border: 2px solid #2d7cff;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Plaza individual */
+.plaza {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 2px solid #2d7cff;
+  border-radius: 6px;
+  font-family: 'cursive', sans-serif;
+  font-size: 18px;
   font-weight: bold;
-  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 2px 8px #0002;
+  z-index: 2;
+  background: #fff;
+  color: #222;
 }
 
-.subtitle {
-  font-size: 16px;
-  color: #666;
+.plaza.selected {
+  background: #2d7cff;
+  color: #fff;
+}
+
+/* Botón de guardar mapa */
+.saveMapButton {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 0;
+  font-family: 'cursive', sans-serif;
+  font-size: 1rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.saveMapButton:hover {
+  background-color: #218838;
+}
+
+/* Mensaje de mapa guardado */
+.mapSavedMessage {
+  text-align: center;
+  margin-top: 12px;
+  font-weight: bold;
+  font-family: 'cursive', sans-serif;
+  font-size: 0.95rem;
+  color: #28a745;
+}
+
+/* Lista de sugerencias autocomplete */
+.suggestionsList {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.suggestionsList li {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.suggestionsList li:hover {
+  background-color: #f0f0f0;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .mapArea {
+    width: 100%;
+    height: 250px;
+  }
 }
