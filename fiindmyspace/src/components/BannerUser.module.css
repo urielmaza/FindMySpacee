@@ -19,8 +19,8 @@
 
 /* Toggle modo oscuro */
 .darkModeToggle {
-  width: 120px;
-  height: 50px;
+  width: 64px;
+  height: 28px;
   background-color: #e0e0e0;
   border-radius: 25px;
   cursor: pointer;
@@ -28,7 +28,7 @@
   align-items: center;
   padding: 0 5px;
   transition: background-color 0.5s ease, opacity 0.4s ease, transform 0.4s ease;
-  margin: 0 auto 20px auto;
+  margin: 0 12px 20px auto; /* alineado a la derecha dentro del footer */
   opacity: 0;
   transform: translateX(-20px);
   pointer-events: none;
@@ -46,8 +46,8 @@
 }
 
 .toggleCircle {
-  width: 40px;
-  height: 40px;
+  width: 24px;
+  height: 24px;
   background-color: white;
   border-radius: 50%;
   display: flex;
@@ -60,7 +60,8 @@
 }
 
 .toggleCircleActive {
-  transform: translateX(70px);
+  /* Movimiento calculado: 64 (ancho) - 10 (padding) - 24 (círculo) = 30 */
+  transform: translateX(30px);
   background-color: #2a2a2c;
 }
 
@@ -216,9 +217,13 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+:global(body.dark-mode) .sidebarFooter {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .sidebarFooter {
   padding: 20px 0 30px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .navButton {
@@ -343,18 +348,18 @@
   }
   
   .darkModeToggle {
-    width: 80px;
-    height: 35px;
-    margin-right: 10px;
+    width: 64px;
+    height: 28px;
+    margin: 0 10px 20px auto; /* seguir a la derecha en móvil */
   }
   
   .toggleCircle {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
   }
   
   .toggleCircleActive {
-    transform: translateX(45px);
+    transform: translateX(30px);
   }
   
   .hamburger {
@@ -395,7 +400,8 @@
   }
   
   .toggleCircleActive {
-    transform: translateX(40px);
+    /* Movimiento: 70 - 10 - 25 = 35 */
+    transform: translateX(35px);
   }
 }
 
