@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import BannerUser from '../components/BannerUser';
 import { getUserSession } from '../utils/auth';
-import styles from './cargarVehiculo.module.css';
+import styles from './SubirEstacionamiento.module.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
