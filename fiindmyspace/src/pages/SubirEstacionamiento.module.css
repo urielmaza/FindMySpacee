@@ -1,20 +1,26 @@
 /* Contenedor principal de la página */
 .pageContainer {
   min-height: 100vh;
-  padding: 40px 20px;
+  padding-left: 80px; /* Espacio para el sidebar colapsado */
+  padding-top: 40px;
+  padding-right: 40px;
+  padding-bottom: 40px;
+  transition: padding-left 0.4s ease;
+  /* Variables de color por defecto */
   background-color: var(--bg-color, #ffffff);
   color: var(--text-color, #000000);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  
 }
 
-/* Contenedor de contenido del formulario */
+/* Cuando el sidebar está abierto (si usas esta clase en tu layout externo) */
+.pageContainerExpanded {
+  padding-left: 300px; /* Espacio para el sidebar expandido */
+}
+
+/* Contenedor de contenido */
 .contentContainer {
-  width: 100%;
-  max-width: 420px;
-  align-self: center;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 /* Tarjeta del formulario */
@@ -22,29 +28,28 @@
   background: var(--card-bg, #ffffff);
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--border-color, #e1e8ed);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  margin-bottom: 2rem;
 }
 
-/* Título del formulario */
-.pageTitle {
-  font-family: 'cursive', sans-serif;
-  font-size: 2.5rem;
-  font-weight: bold;
+/* TÍTULO DENTRO DE LA TARJETA (Corregido) */
+.pageTitleInside {
+  font-size: 2rem; /* Reducido para encajar mejor */
+  font-weight: 700;
   text-align: center;
-  margin-bottom: 16px;
+  margin: 0 auto 1.5rem auto; 
   color: var(--primary-color, #2c3e50);
+  padding: 0 10px;
 }
 
 /* Mensaje de bienvenida */
 .welcomeMessage {
+  
   text-align: center;
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--text-secondary, #666666);
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
   padding: 1rem;
   background: var(--welcome-bg, #f8f9fa);
   border-radius: 8px;
@@ -53,24 +58,22 @@
 
 /* Grupos de campos del formulario */
 .formGroup {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  margin-bottom: 1.5rem;
+  position: relative; /* Necesario para el autocompletado */
 }
 
-/* Etiquetas */
 .formLabel {
+  display: block;
   font-weight: 600;
-  font-size: 1rem;
   color: var(--text-color, #333333);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
-/* Inputs y selects */
-.formInput,
-.formSelect {
+/* Estilos para inputs y selects */
+.formInput, .formSelect {
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px 16px;
   border: 2px solid var(--border-color, #e1e8ed);
   border-radius: 8px;
   font-size: 1rem;
@@ -78,13 +81,13 @@
   background-color: var(--input-bg, #ffffff);
   color: var(--text-color, #333333);
   box-sizing: border-box;
+  min-height: 48px; 
 }
 
-.formInput:focus,
-.formSelect:focus {
+.formInput:focus, .formSelect:focus {
   outline: none;
   border-color: var(--primary-color, #2c3e50);
-  box-shadow: 0 0 0 3px rgba(44,62,80,0.1);
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
 }
 
 .formInput::placeholder {
@@ -94,7 +97,7 @@
 /* Botón de envío */
 .submitButton {
   width: 100%;
-  padding: 12px 0;
+  padding: 14px 0;
   background: linear-gradient(135deg, #2c3e50, #3498db);
   color: white;
   border: none;
@@ -103,137 +106,271 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-top: 1rem;
 }
 
 .submitButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(44,62,80,0.3);
+  box-shadow: 0 4px 20px rgba(44, 62, 80, 0.3);
 }
 
 .submitButton:active {
   transform: translateY(0);
 }
 
-/* Mensajes de error o éxito */
-.message {
-  margin-top: 1rem;
+/* --- ESTILOS DE AUTOCOMPLETADO --- */
+.suggestionsList {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%; 
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e1e8ed);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  z-index: 20; 
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.suggestionItem {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color, #e1e8ed);
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+}
+
+.suggestionItem:last-child {
+  border-bottom: none;
+}
+
+.suggestionItem:hover {
+  background-color: var(--welcome-bg, #f8f9fa);
+}
+
+/* --- ESTILOS DE MENSAJES DE ESTADO --- */
+.statusMessage {
+  margin: 1.5rem 0;
   padding: 12px;
   border-radius: 8px;
-  text-align: center;
   font-weight: 600;
+  text-align: center;
+  font-size: 1rem;
 }
 
-.message.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+.statusMessage.error {
+  background-color: #fcebeb; 
+  color: #c0392b; 
+  border: 1px solid #c0392b;
 }
 
-.message.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+.statusMessage.exito {
+  background-color: #e9f5e9; 
+  color: #27ae60; 
+  border: 1px solid #27ae60;
 }
 
-/* Área del mapa */
+/* --- ESTILOS DEL MAPA --- */
 .mapArea {
-  width: 300px;
-  height: 300px;
-  margin: 16px auto;
-  background: #f7f7f7;
-  border: 2px solid #2d7cff;
+  width: 400px; 
+  height: 400px;
+  margin: 2rem auto;
+  background: var(--welcome-bg, #f8f9fa);
+  border: 3px dashed var(--primary-color, #2c3e50);
   border-radius: 12px;
   position: relative;
   overflow: hidden;
   touch-action: none;
 }
 
-/* Plaza individual */
-.plaza {
+.parkingPlaza {
   position: absolute;
-  width: 40px;
-  height: 40px;
-  border: 2px solid #2d7cff;
-  border-radius: 6px;
-  font-family: 'cursive', sans-serif;
-  font-size: 18px;
-  font-weight: bold;
+  background: var(--input-bg, #ffffff);
+  color: var(--text-color, #333333);
+  border: 1px solid var(--border-color, #e1e8ed);
+  border-radius: 4px;
+  cursor: grab;
+  font-weight: 600;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: grab;
   user-select: none;
-  box-shadow: 0 2px 8px #0002;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
   z-index: 2;
-  background: #fff;
-  color: #222;
 }
 
-.plaza.selected {
-  background: #2d7cff;
-  color: #fff;
+.parkingPlaza.selected {
+  background: var(--primary-color, #2c3e50);
+  color: white;
+  border-color: var(--primary-color, #2c3e50);
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.4);
 }
 
-/* Botón de guardar mapa */
 .saveMapButton {
   width: 100%;
-  margin-top: 12px;
-  padding: 12px 0;
-  font-family: 'cursive', sans-serif;
-  font-size: 1rem;
-  background-color: #28a745;
+  max-width: 400px;
+  margin: 1rem auto 0 auto;
+  display: block;
+  padding: 14px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background-color: #27ae60; /* Verde de éxito */
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
+  transition: all 0.3s ease;
 }
 
 .saveMapButton:hover {
-  background-color: #218838;
+  background-color: #2ecc71;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(39, 174, 96, 0.3);
 }
 
-/* Mensaje de mapa guardado */
 .mapSavedMessage {
   text-align: center;
-  margin-top: 12px;
-  font-weight: bold;
-  font-family: 'cursive', sans-serif;
-  font-size: 0.95rem;
-  color: #28a745;
+  margin: 1.5rem 0;
+  color: #27ae60;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
-/* Lista de sugerencias autocomplete */
-.suggestionsList {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 40px;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  z-index: 10;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 180px;
-  overflow-y: auto;
+
+/* --- ESTILOS PARA MODO OSCURO (DARK MODE) --- */
+:global(body.dark-mode) .pageContainer {
+  background-color: #1a1a1a;
+  color: #ffffff;
 }
 
-.suggestionsList li {
-  padding: 8px 12px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
+:global(body.dark-mode) .pageTitleInside {
+  color: #ffffff;
 }
 
-.suggestionsList li:hover {
-  background-color: #f0f0f0;
+:global(body.dark-mode) .formCard {
+  background: #2c2c2e;
+  border-color: #404040;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* Responsive Design */
-@media (max-width: 480px) {
+:global(body.dark-mode) .welcomeMessage {
+  background: #3a3a3c;
+  color: #cccccc;
+  border-left-color: #ffffff;
+}
+
+:global(body.dark-mode) .formLabel {
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .formInput,
+:global(body.dark-mode) .formSelect {
+  background-color: #3a3a3c;
+  border-color: #555555;
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .formInput:focus,
+:global(body.dark-mode) .formSelect:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+:global(body.dark-mode) .formInput::placeholder {
+  color: #888888;
+}
+
+:global(body.dark-mode) .suggestionsList {
+  background: #2c2c2e;
+  border-color: #404040;
+}
+
+:global(body.dark-mode) .suggestionItem {
+  border-bottom-color: #404040;
+}
+
+:global(body.dark-mode) .suggestionItem:hover {
+  background-color: #3a3a3c;
+}
+
+:global(body.dark-mode) .statusMessage.error {
+  background-color: #5e282d;
+  color: #ffbaba;
+  border-color: #ffbaba;
+}
+
+:global(body.dark-mode) .statusMessage.exito {
+  background-color: #285e3a;
+  color: #baffc3;
+  border-color: #baffc3;
+}
+
+:global(body.dark-mode) .mapArea {
+  background: #3a3a3c;
+  border-color: #ffffff;
+}
+
+:global(body.dark-mode) .parkingPlaza {
+  background: #2c2c2e;
+  color: #ffffff;
+  border-color: #555555;
+}
+
+:global(body.dark-mode) .parkingPlaza.selected {
+  background: #ffffff;
+  color: #2c3e50;
+  border-color: #ffffff;
+}
+
+
+/* --- DISEÑO RESPONSIVO --- */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding-left: 20px;
+    padding-top: 80px; 
+    padding-right: 20px;
+  }
+  
+  .pageContainerExpanded {
+    padding-left: 20px;
+  }
+  
+  .pageTitleInside {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  
+  .formCard {
+    padding: 1.5rem;
+  }
+
   .mapArea {
-    width: 100%;
-    height: 250px;
+    width: 100%; 
+    height: 300px;
+  }
+
+  .saveMapButton {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitleInside {
+    font-size: 1.6rem;
+  }
+  
+  .formCard {
+    padding: 1rem;
+  }
+  
+  .contentContainer {
+    padding: 0 10px;
   }
 }
