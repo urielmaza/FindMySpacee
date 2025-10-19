@@ -92,6 +92,138 @@
   justify-items: center; /* Centrar elementos del grid */
 }
 
+/* Barra de acción superior */
+.actionBar {
+  position: absolute;
+  top: 30px; /* ligeramente más abajo */
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px); /* respeta el padding horizontal de .container (20px + 20px) */
+  max-width: 1000px;
+  margin: 0; /* sin margen, ya que está posicionado */
+  display: flex;
+  justify-content: space-between; /* izquierda y derecha a la misma altura */
+  align-items: center;
+  z-index: 3; /* sobre el contenido */
+}
+
+.leftActions { display: flex; align-items: center; gap: 8px; }
+.rightActions { position: relative; display: flex; align-items: center; right: -42px; }
+
+.avatarButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #B300FF; /* violeta fluor */
+  background: #F3F3F3; /* sigue el fondo */
+  color: #000;
+  font-weight: 700;
+  font-size: 18px; /* inicial más grande para acompañar el tamaño */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.05s ease;
+  box-shadow: 0 2px 8px rgba(179, 0, 255, 0.15);
+}
+
+.avatarButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(179, 0, 255, 0.25);
+}
+
+:global(body.dark-mode) .avatarButton {
+  background: #404040;
+  color: #fff;
+  border-color: #00E5FF; /* celeste flúor en modo oscuro */
+}
+
+/* Glow en modo oscuro para avatar */
+:global(body.dark-mode) .avatarButton {
+  box-shadow: 0 2px 8px rgba(0, 229, 255, 0.18);
+}
+:global(body.dark-mode) .avatarButton:hover {
+  box-shadow: 0 4px 14px rgba(0, 229, 255, 0.30);
+}
+
+.avatarMenu {
+  position: absolute;
+  top: calc(100% + 8px); /* siempre debajo del avatar, con separación */
+  right: 0;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  min-width: 160px;
+  z-index: 10;
+}
+
+:global(body.dark-mode) .avatarMenu {
+  background: rgba(50, 50, 50, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.menuItem {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #111;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.menuItem:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+:global(body.dark-mode) .menuItem { color: #fff; }
+:global(body.dark-mode) .menuItem:hover { background: rgba(255, 255, 255, 0.08); }
+
+.menuItemDanger { color: #b00020; }
+:global(body.dark-mode) .menuItemDanger { color: #ff6b6b; }
+
+.profileButton {
+  background: #F3F3F3; /* igual al fondo de la página (modo claro) */
+  color: #000000;
+  border: 2px solid #B300FF; /* violeta fluor */
+  padding: 8px 16px;
+  border-radius: 999px; /* píldora */
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(179, 0, 255, 0.15);
+}
+
+.profileButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(179, 0, 255, 0.25);
+}
+
+.profileButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(179, 0, 255, 0.15);
+}
+
+/* Modo oscuro */
+:global(body.dark-mode) .profileButton {
+  background: #404040; /* igual al fondo de la página (modo oscuro) */
+  color: #FFFFFF;
+  border-color: #00E5FF; /* celeste flúor en modo oscuro */
+  box-shadow: 0 2px 8px rgba(0, 229, 255, 0.18);
+}
+
+/* Hover glow en modo oscuro para profile button */
+:global(body.dark-mode) .profileButton:hover {
+  box-shadow: 0 4px 14px rgba(0, 229, 255, 0.30);
+}
+
 .featureCard {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(15px);
@@ -198,6 +330,11 @@
   .container {
     padding: 20px 16px; /* Centrado en móvil */
   }
+  .actionBar {
+    top: 24px; /* ligeramente más abajo en tablet */
+    width: calc(100% - 32px); /* respeta padding horizontal 16px */
+  }
+  .rightActions { right: -24px; }
   
   .title {
     font-size: 2.5rem;
@@ -222,6 +359,11 @@
   .container {
     padding: 16px;
   }
+  .actionBar {
+    top: 20px; /* ligeramente más abajo en móvil */
+    width: calc(100% - 32px); /* respeta padding horizontal 16px */
+  }
+  .rightActions { right: -24px; }
   
   .title {
     font-size: 2rem;

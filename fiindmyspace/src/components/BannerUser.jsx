@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './BannerUser.module.css';
 import logoLight from '../assets/logofindmyspaceB.png';
 import logoDark from '../assets/logofindmyspace.png';
-import apiClient from "../apiClient";
+// apiClient ya no se usa aquí
 
 const BannerUser = ({ onMenuToggle }) => {
   const navigate = useNavigate();
@@ -32,35 +32,7 @@ const BannerUser = ({ onMenuToggle }) => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      // Llamar al endpoint de logout en el backend
-      await apiClient.post('/logout');
-
-      // Guardar los mapas antes de limpiar
-      const mapasGuardados = localStorage.getItem('findmyspace_mapas');
-      const darkMode = localStorage.getItem('darkMode');
-
-      // Eliminar todos los datos de sesión en el cliente
-      sessionStorage.clear();
-      localStorage.clear();
-
-      // Restaurar los mapas y preferencias que queremos mantener
-      if (mapasGuardados) {
-        localStorage.setItem('findmyspace_mapas', mapasGuardados);
-        console.log('🗺️ Mapas preservados al cerrar sesión');
-      }
-      if (darkMode) {
-        localStorage.setItem('darkMode', darkMode);
-        console.log('🌙 Preferencia de modo oscuro preservada');
-      }
-
-      // Redirigir al usuario a la página de inicio
-      navigate('/');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  };
+  // Logout se maneja desde HomeUser (avatar). Banner ya no incluye cerrar sesión.
 
   const toggleMenu = () => {
     const newMenuState = !isMenuOpen;
@@ -127,8 +99,36 @@ const BannerUser = ({ onMenuToggle }) => {
           </button>
           <button onClick={() => handleNavigation('/mis-estacionamientos')} className={styles.navButton}>
             <span className={styles.navIcon}>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,2A2,2 0 0,1 14,4V8L15,7V16H13V9.5L12,10.5L11,9.5V16H9V7L10,8V4A2,2 0 0,1 12,2M12,6A1,1 0 0,0 11,7A1,1 0 0,0 12,8A1,1 0 0,0 13,7A1,1 0 0,0 12,6M7,18A1,1 0 0,0 6,19A1,1 0 0,0 7,20A1,1 0 0,0 8,19A1,1 0 0,0 7,18M17,18A1,1 0 0,0 16,19A1,1 0 0,0 17,20A1,1 0 0,0 18,19A1,1 0 0,0 17,18Z"/>
+              <svg viewBox="0 0 512 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <g>
+                  <g>
+                    <path d="M510.84,317.223c-0.004-0.008-0.003-0.015-0.007-0.023l-0.052-0.1c-0.007-0.013-0.013-0.026-0.02-0.039l-29.763-56.768
+                      c-1.761-3.359-5.24-5.463-9.032-5.463h-110.54c-3.743,0-7.186,2.051-8.968,5.342l-10.692,19.746
+                      c-22.764-16.425-48.02-28.037-74.82-34.507c32.643-18.067,54.797-52.861,54.797-92.738c0-58.405-47.515-105.921-105.92-105.921
+                      s-105.92,47.516-105.92,105.921c0,39.89,22.169,74.695,54.83,92.756c-38.119,9.198-73.089,28.683-101.515,57.082
+                      C22.451,343.236,0,397.408,0,455.049c0,5.632,4.566,10.199,10.199,10.199h491.602c5.633,0,10.199-4.567,10.199-10.199V321.935
+                      C512,320.234,511.578,318.633,510.84,317.223z M367.501,275.228h98.296l19.141,36.508H347.732L367.501,275.228z M130.3,152.673
+                      c0-47.157,38.364-85.522,85.521-85.522c47.156,0,85.521,38.364,85.521,85.522c0,47.156-38.364,85.521-85.521,85.521
+                      C168.664,238.194,130.3,199.829,130.3,152.673z M321.663,317.04c-0.797,1.453-1.251,3.121-1.251,4.895v122.915H20.662
+                      c5.332-102.95,90.829-185.076,195.16-185.076c42.368,0,82.372,13.207,116.14,38.248L321.663,317.04z M429.484,444.849h-26.557
+                      v-48.151h26.557V444.849z M491.602,444.849h-41.719v-58.351c0-5.632-4.566-10.199-10.199-10.199h-46.955
+                      c-5.633,0-10.199,4.567-10.199,10.199v58.351H340.81V332.134h150.791V444.849z"/>
+                  </g>
+                </g>
+                <g>
+                  <g>
+                    <path d="M121.033,317.765c-3.478-4.431-9.89-5.204-14.321-1.725c-4.324,3.395-8.542,7.036-12.537,10.824
+                      c-4.088,3.876-4.259,10.332-0.383,14.42c2.006,2.114,4.702,3.181,7.403,3.181c2.519,0,5.044-0.928,7.016-2.798
+                      c3.537-3.354,7.271-6.577,11.098-9.582C123.739,328.607,124.511,322.196,121.033,317.765z"/>
+                  </g>
+                </g>
+                <g>
+                  <g>
+                    <path d="M85.284,351.132c-4.61-3.24-10.97-2.131-14.21,2.478c-13.369,19.016-22.718,40.117-27.789,62.719
+                      c-1.233,5.497,2.222,10.952,7.719,12.185c0.752,0.168,1.502,0.249,2.242,0.249c4.667,0,8.878-3.224,9.942-7.969
+                      c4.483-19.98,12.75-38.637,24.573-55.454C91,360.734,89.892,354.372,85.284,351.132z"/>
+                  </g>
+                </g>
               </svg>
             </span>
             <span className={styles.navText}>Mis Estacionamientos</span>
@@ -136,7 +136,7 @@ const BannerUser = ({ onMenuToggle }) => {
          
         </div>
         
-        <div className={styles.sidebarFooter}>
+  <div className={styles.sidebarFooter}>
           {/* Toggle modo oscuro */}
           <div className={`${styles.darkModeToggle} ${isMenuOpen ? styles.darkModeToggleVisible : ''}`} onClick={toggleDarkMode}>
             <div className={`${styles.toggleCircle} ${isDarkMode ? styles.toggleCircleActive : ''}`}>
@@ -149,14 +149,7 @@ const BannerUser = ({ onMenuToggle }) => {
             </div>
           </div>
           
-          <button onClick={handleLogout} className={`${styles.navButton} ${styles.logoutButton}`}>
-            <span className={styles.navIcon}>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"/>
-              </svg>
-            </span>
-            <span className={styles.navText}>Cerrar Sesión</span>
-          </button>
+          {/* Botón de Cerrar Sesión removido: la acción vive en el avatar de HomeUser */}
         </div>
       </nav>
       

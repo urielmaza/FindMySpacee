@@ -248,6 +248,7 @@
   color: #ffffff;
 }
 
+
 .navButton:hover {
   background: rgba(255, 255, 255, 0.1);
   border-left-color: #a4c4a5;
@@ -256,7 +257,7 @@
 /* Modo oscuro para hover */
 :global(body.dark-mode) .navButton:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-left-color: #a4c4a5;
+  border-left-color: #00E5FF; /* celeste flúor en modo oscuro */
 }
 
 .navIcon {
