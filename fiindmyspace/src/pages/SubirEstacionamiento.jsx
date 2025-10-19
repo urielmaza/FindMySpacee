@@ -215,11 +215,6 @@ const SubirEstacionamiento = () => {
         <div className={styles.contentContainer}>
           <div className={styles.formCard}>
             <h1 className={styles.pageTitle}>Nuevo Estacionamiento</h1>
-            {userEmail && (
-              <div className={styles.welcomeMessage}>
-                Hola {userEmail}, Estás agregando un nuevo estacionamiento.
-              </div>
-            )}
             <form onSubmit={handleShowMapa}>
               <div className={styles.formGroup}>
                 <input

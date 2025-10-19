@@ -7,6 +7,8 @@ import styles from './cargarVehiculo.module.css';
 const CargarVehiculo = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [marcas, setMarcas] = useState([]);
+  // Tipo de patente: '6' => AAA 123 (7 con espacio); '7' => AA 123 BB (9 con espacios)
+  const [patenteTipo, setPatenteTipo] = useState('6');
   const [formData, setFormData] = useState({
     marca: '',
     modelo: '',
@@ -48,10 +50,66 @@ const CargarVehiculo = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    // Formatear la patente según tipo seleccionado
+    if (name === 'patente') {
+      const raw = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      if (patenteTipo === '6') {
+        // Formato AAA 123: 3 letras + espacio + 3 dígitos
+        let letters = '';
+        let digits = '';
+        for (const ch of raw) {
+          if (/^[A-Z]$/.test(ch)) {
+            if (letters.length < 3) letters += ch;
+          } else if (/^[0-9]$/.test(ch)) {
+            if (letters.length === 3 && digits.length < 3) digits += ch;
+          }
+          if (letters.length === 3 && digits.length === 3) break;
+        }
+        const formatted = letters.length === 3 ? `${letters} ${digits}` : letters;
+        setFormData({ ...formData, patente: formatted });
+        return;
+      } else {
+        // patenteTipo === '7' => Formato AA 123 BB: 2 letras, espacio, 3 dígitos, espacio, 2 letras
+        let first = '';
+        let numbers = '';
+        let last = '';
+        for (const ch of raw) {
+          if (/^[A-Z]$/.test(ch)) {
+            if (first.length < 2) {
+              first += ch;
+            } else if (numbers.length === 3 && last.length < 2) {
+              last += ch;
+            }
+          } else if (/^[0-9]$/.test(ch)) {
+            if (first.length === 2 && numbers.length < 3) {
+              numbers += ch;
+            }
+          }
+          if (first.length === 2 && numbers.length === 3 && last.length === 2) break;
+        }
+        let formatted = first;
+        if (first.length === 2) {
+          formatted += ` ${numbers}`;
+        }
+        if (numbers.length === 3) {
+          formatted += ` ${last}`;
+        }
+        setFormData({ ...formData, patente: formatted });
+        return;
+      }
+    }
     setFormData({
       ...formData,
       [name]: value,
     });
+  };
+
+  const handlePatenteTipoChange = (e) => {
+    const value = e.target.value;
+    setPatenteTipo(value);
+    // Reiniciar la patente al cambiar de tipo para evitar inconsistencias
+    setFormData((prev) => ({ ...prev, patente: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -74,6 +132,18 @@ const CargarVehiculo = () => {
       // Validar que todos los campos requeridos tengan un valor
       if (!formData.marca || !formData.modelo || !formData.patente || !formData.tipo_vehiculo) {
         setMessage('Todos los campos son obligatorios.');
+        setMessageType('error');
+        setLoading(false);
+        return;
+      }
+
+      // Validación según tipo
+      const regex = patenteTipo === '6'
+        ? /^[A-Z]{3} [0-9]{3}$/
+        : /^[A-Z]{2} [0-9]{3} [A-Z]{2}$/;
+      if (!regex.test(formData.patente)) {
+        const formatoDesc = patenteTipo === '6' ? 'AAA 123' : 'AA 123 BB';
+        setMessage(`La patente debe tener el formato ${formatoDesc}.`);
         setMessageType('error');
         setLoading(false);
         return;
@@ -114,11 +184,6 @@ const CargarVehiculo = () => {
 
           <div className={styles.formCard}>
           <h1 className={styles.pageTitle}>Cargar Vehículo</h1> 
-            {userEmail && (
-              <div className={styles.welcomeMessage}>
-                🚗 Hola {userEmail}, agrega un nuevo vehículo a tu cuenta
-              </div>
-            )}
             
             <form onSubmit={handleSubmit}>
               <div className={styles.formGroup}>
@@ -157,9 +222,24 @@ const CargarVehiculo = () => {
                   required
                 />
               </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="patenteTipo" className={styles.formLabel}>Tipo de patente:</label>
+                <select
+                  id="patenteTipo"
+                  name="patenteTipo"
+                  value={patenteTipo}
+                  onChange={handlePatenteTipoChange}
+                  className={styles.formSelect}
+                >
+                  <option value="6">6 dígitos (Ej: AAA 123)</option>
+                  <option value="7">7 dígitos (Ej: AA 123 BB)</option>
+                </select>
+              </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="patente" className={styles.formLabel}>Patente:</label>
+                <label htmlFor="patente" className={styles.formLabel}>
+                  {patenteTipo === '6' ? 'Patente (AAA 123):' : 'Patente (AA 123 BB):'}
+                </label>
                 <input
                   type="text"
                   id="patente"
@@ -167,7 +247,11 @@ const CargarVehiculo = () => {
                   value={formData.patente}
                   onChange={handleInputChange}
                   className={styles.formInput}
-                  placeholder="Ej: ABC123"
+                  placeholder={patenteTipo === '6' ? 'Ej: AAA 123' : 'Ej: AB 123 CD'}
+                  minLength={patenteTipo === '6' ? 7 : 9}
+                  maxLength={patenteTipo === '6' ? 7 : 9}
+                  pattern={patenteTipo === '6' ? '[A-Za-z]{3} [0-9]{3}' : '[A-Za-z]{2} [0-9]{3} [A-Za-z]{2}'}
+                  title={patenteTipo === '6' ? 'Formato requerido: 3 letras, espacio, 3 números (AAA 123)' : 'Formato requerido: 2 letras, espacio, 3 números, espacio, 2 letras (AA 123 BB)'}
                   required
                 />
               </div>
@@ -183,9 +267,9 @@ const CargarVehiculo = () => {
                   required
                 >
                   <option value="">Seleccione un tipo</option>
-                  <option value="moto">🏍️ Moto</option>
-                  <option value="auto">🚗 Auto</option>
-                  <option value="camioneta">🚙 Camioneta</option>
+                  <option value="moto">Moto</option>
+                  <option value="auto">Auto</option>
+                  <option value="camioneta">Camioneta</option>
                 </select>
               </div>
 
@@ -194,7 +278,7 @@ const CargarVehiculo = () => {
                 className={styles.submitButton}
                 disabled={loading}
               >
-                {loading ? 'Cargando...' : '💾 Cargar Vehículo'}
+                {loading ? 'Cargando...' : 'Cargar Vehículo'}
               </button>
             </form>
             

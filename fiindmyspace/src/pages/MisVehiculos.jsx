@@ -25,14 +25,9 @@ const MisVehiculos = () => {
           setLoading(false);
           return;
         }
-
-        console.log('🔍 Sesión del usuario:', userSession);
-        console.log('🆔 ID Cliente:', userSession.id_cliente);
-
         setProgress(50);
-        
+
         const url = `/vehiculos/usuario/${userSession.id_cliente}`;
-        console.log('🌐 URL a consultar:', url);
         
         const response = await apiClient.get(url);
         
@@ -64,10 +59,10 @@ const MisVehiculos = () => {
 
   const getVehiculoIcon = (tipoVehiculo) => {
     switch(tipoVehiculo?.toLowerCase()) {
-      case 'moto': return '🏍️';
-      case 'auto': return '🚗';
-      case 'camioneta': return '🚙';
-      default: return '🚗';
+      case 'moto': return '';
+      case 'auto': return '';
+      case 'camioneta': return '';
+      default: return '';
     }
   };
 
@@ -79,7 +74,7 @@ const MisVehiculos = () => {
           <div className={styles.contentContainer}>
             <h1 className={styles.pageTitle}>Mis Vehículos</h1>
             <div className={styles.loadingCard}>
-              <div className={styles.loadingText}>🚗 Cargando vehículos...</div>
+              <div className={styles.loadingText}>Cargando vehículos...</div>
               <div className={styles.progressBar}>
                 <div 
                   className={styles.progressFill}
@@ -160,16 +155,16 @@ const MisVehiculos = () => {
                         {vehiculo.modelo}
                       </p>
                       <div className={styles.vehiculoPatente}>
-                        🆔 {vehiculo.patente}
+                         {vehiculo.patente}
                       </div>
                     </div>
                     
                     <div className={styles.cardActions}>
                       <button className={styles.editButton}>
-                        ✏️ Editar
+                         Editar
                       </button>
                       <button className={styles.deleteButton}>
-                        🗑️ Eliminar
+                         Eliminar
                       </button>
                     </div>
                   </div>
@@ -185,7 +180,7 @@ const MisVehiculos = () => {
                 </button>
                 <div className={styles.statsContainer}>
                   <span className={styles.statsText}>
-                    📊 Total: {vehiculos.length} vehículo{vehiculos.length !== 1 ? 's' : ''}
+                  {vehiculos.length} vehículo{vehiculos.length !== 1 ? 's' : ''}
                   </span>
                 </div>
               </div>

@@ -10,7 +10,6 @@ const MisEstacionamientos = () => {
   useEffect(() => {
     const mapas = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
     setMapasGuardados(mapas);
-    console.log('🗺️ Mapas cargados desde sesión:', mapas);
   }, []);
 
   // Función para eliminar un mapa
@@ -18,7 +17,6 @@ const MisEstacionamientos = () => {
     const nuevosMapas = mapasGuardados.filter((_, i) => i !== index);
     setMapasGuardados(nuevosMapas);
     localStorage.setItem('findmyspace_mapas', JSON.stringify(nuevosMapas));
-    console.log('🗑️ Mapa eliminado. Mapas restantes:', nuevosMapas.length);
   };
 
   // Función para formatear fecha
