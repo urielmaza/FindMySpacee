@@ -467,7 +467,7 @@ const SubirEstacionamiento = () => {
                     className={styles.submitButton}
                     style={{ backgroundColor: '#28a745', marginTop: '16px' }}
                   >
-                    💾 Guardar Mapa
+                    Guardar Mapa
                   </button>
                 )}
 
@@ -482,7 +482,7 @@ const SubirEstacionamiento = () => {
                       fontSize: 16
                     }}
                   >
-                    ✅ Mapa guardado en tu sesión
+                    Mapa guardado en tu sesión
                   </div>
                 )}
               </>
