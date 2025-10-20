@@ -33,6 +33,66 @@
   padding: 0 20px;
 }
 
+/* Overlay y tarjeta de confirmación de eliminación */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.confirmCard {
+  background: var(--card-bg, #ffffff);
+  color: var(--text-color, #111111);
+  border: 1px solid var(--border-color, #e1e8ed);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.confirmTitle {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.confirmText {
+  margin: 0 0 16px 0;
+  color: var(--text-secondary, #555555);
+}
+
+.confirmActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.confirmCancel {
+  background: #e0e0e0;
+  color: #111111;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmDelete {
+  background: #ff4444;
+  color: #ffffff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* Tarjeta de carga */
 .loadingCard {
   background: var(--card-bg, #ffffff);
@@ -391,6 +451,26 @@
 }
 
 :global(body.dark-mode) .pageTitle {
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .confirmCard {
+  background: #1f1f1f;
+  color: #ffffff;
+  border-color: #333333;
+}
+
+:global(body.dark-mode) .confirmText {
+  color: #d0d0d0;
+}
+
+:global(body.dark-mode) .confirmCancel {
+  background: #3a3a3c;
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .confirmDelete {
+  background: #ff4444;
   color: #ffffff;
 }
 

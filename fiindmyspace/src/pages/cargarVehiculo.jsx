@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import BannerUser from '../components/BannerUser';
 import apiClient from '../apiClient';
 import { getUserSession } from '../utils/auth';
 import styles from './cargarVehiculo.module.css';
 
 const CargarVehiculo = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [marcas, setMarcas] = useState([]);
   // Tipo de patente: '6' => AAA 123 (7 con espacio); '7' => AA 123 BB (9 con espacios)
@@ -47,6 +50,33 @@ const CargarVehiculo = () => {
 
     fetchMarcas();
   }, []);
+
+  // Detectar modo edición por query param ?id=123 y precargar
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (!id) return;
+    const cargarVehiculo = async () => {
+      try {
+        const resp = await apiClient.get(`/vehiculos/${id}`);
+        if (resp.data && resp.data.success && resp.data.data) {
+          const v = resp.data.data;
+          // Determinar tipo de patente por longitud con espacios
+          const tipo = v.patente && v.patente.trim().length === 7 ? '6' : '7';
+          setPatenteTipo(tipo);
+          setFormData({
+            marca: v.marca || '',
+            modelo: v.modelo || '',
+            patente: v.patente || '',
+            tipo_vehiculo: v.tipo_vehiculo || '',
+          });
+        }
+      } catch (err) {
+        console.error('Error al cargar vehículo para edición:', err);
+      }
+    };
+    cargarVehiculo();
+  }, [location.search]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -149,22 +179,35 @@ const CargarVehiculo = () => {
         return;
       }
 
-      console.log('Datos enviados al backend:', {
-        ...formData,
-        id_cliente,
-      });
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
 
-      const response = await apiClient.post('/vehiculos', {
-        ...formData,
-        id_cliente,
-      });
-
-      if (response.status === 201) {
-        setMessage('¡Vehículo cargado exitosamente!');
-        setMessageType('success');
-        setFormData({ marca: '', modelo: '', patente: '', tipo_vehiculo: '' });
+      let response;
+      if (id) {
+        // Modo edición
+        response = await apiClient.put(`/vehiculos/${id}`, {
+          ...formData,
+        });
       } else {
-        setMessage('Error al cargar el vehículo');
+        // Modo creación
+        response = await apiClient.post('/vehiculos', {
+          ...formData,
+          id_cliente,
+        });
+      }
+
+      const ok = id ? response.status === 200 : response.status === 201;
+      if (ok) {
+        setMessage(id ? '¡Vehículo actualizado exitosamente!' : '¡Vehículo cargado exitosamente!');
+        setMessageType('success');
+        if (!id) {
+          setFormData({ marca: '', modelo: '', patente: '', tipo_vehiculo: '' });
+        } else {
+          // tras editar, volver a Mis Vehículos tras breve delay
+          setTimeout(() => navigate('/mis-vehiculos'), 800);
+        }
+      } else {
+        setMessage(id ? 'Error al actualizar el vehículo' : 'Error al cargar el vehículo');
         setMessageType('error');
       }
     } catch (error) {

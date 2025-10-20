@@ -12,6 +12,7 @@ const MisVehiculos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, vehiculo: null });
 
   useEffect(() => {
     const fetchVehiculos = async () => {
@@ -55,6 +56,44 @@ const MisVehiculos = () => {
 
   const handleAgregarVehiculo = () => {
     navigate('/cargar-vehiculo');
+  };
+
+  const refrescarLista = async () => {
+    try {
+      const userSession = getUserSession();
+      if (!userSession) return;
+      const url = `/vehiculos/usuario/${userSession.id_cliente}`;
+      const response = await apiClient.get(url);
+      if (response.data.success) {
+        setVehiculos(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error al refrescar lista:', err);
+    }
+  };
+
+  const handleEditar = (vehiculo) => {
+    navigate(`/cargar-vehiculo?id=${vehiculo.id_vehiculo}`);
+  };
+
+  const solicitarEliminar = (vehiculo) => {
+    setConfirmDelete({ open: true, vehiculo });
+  };
+
+  const cerrarConfirmacion = () => setConfirmDelete({ open: false, vehiculo: null });
+
+  const confirmarEliminar = async () => {
+    const vehiculo = confirmDelete.vehiculo;
+    if (!vehiculo) return;
+    try {
+      await apiClient.delete(`/vehiculos/${vehiculo.id_vehiculo}`);
+      setVehiculos((prev) => prev.filter(v => v.id_vehiculo !== vehiculo.id_vehiculo));
+      cerrarConfirmacion();
+      refrescarLista();
+    } catch (err) {
+      console.error('Error al eliminar vehículo:', err);
+      cerrarConfirmacion();
+    }
   };
 
   const getVehiculoIcon = (tipoVehiculo) => {
@@ -160,6 +199,11 @@ const MisVehiculos = () => {
       <div className={`${styles.pageContainer} ${isMenuOpen ? styles.pageContainerExpanded : ''}`}>
         <div className={styles.contentContainer}>
           <h1 className={styles.pageTitle}>Mis Vehículos</h1>
+          <div className={styles.statsContainer} style={{ marginBottom: '12px' }}>
+            <span className={styles.statsText}>
+              Usted tiene {vehiculos.length} vehículo{vehiculos.length !== 1 ? 's' : ''}
+            </span>
+          </div>
           <button
             className={styles.addButton}
             onClick={handleAgregarVehiculo}
@@ -172,7 +216,7 @@ const MisVehiculos = () => {
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
               </svg>
             </span>
-            <span className={styles.addButtonLabel}>Agregar otro vehículo</span>
+            <span className={styles.addButtonLabel}>Agregar vehículo</span>
           </button>
           {vehiculos.length === 0 ? (
             <div className={styles.emptyCard}>
@@ -207,31 +251,42 @@ const MisVehiculos = () => {
                     </div>
                     
                     <div className={styles.cardActions}>
-                      <button className={styles.editButton}>
+               <button className={styles.editButton} onClick={() => handleEditar(vehiculo)}>
                          Editar
                       </button>
-                      <button className={styles.deleteButton}>
+            <button className={styles.deleteButton} onClick={() => solicitarEliminar(vehiculo)}>
                          Eliminar
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
-              
-              <div className={styles.actionsContainer}>
-                
-                <div className={styles.statsContainer}>
-                  <span className={styles.statsText}>
-                  {vehiculos.length} vehículo{vehiculos.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-              </div>
             </>
           )}
         </div>
       </div>
+
+      {confirmDelete.open && (
+        <div className={styles.confirmOverlay} role="dialog" aria-modal="true">
+          <div className={styles.confirmCard}>
+            <h3 className={styles.confirmTitle}>¿Eliminar vehículo?</h3>
+            <p className={styles.confirmText}>
+              Se eliminará "{confirmDelete.vehiculo?.marca} {confirmDelete.vehiculo?.modelo}" con patente {confirmDelete.vehiculo?.patente}.
+            </p>
+            <div className={styles.confirmActions}>
+              <button type="button" className={styles.confirmCancel} onClick={cerrarConfirmacion}>
+                Cancelar
+              </button>
+              <button type="button" className={styles.confirmDelete} onClick={confirmarEliminar}>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
 
 export default MisVehiculos;
+
