@@ -151,7 +151,6 @@ const Parkin = () => {
       
       if (response.success) {
         setDirecciones(response.data);
-        console.log('Direcciones obtenidas:', response.data.length, 'filtros aplicados:', response.filtros || 'ninguno');
       } else {
         console.error('Error en la respuesta:', response.error);
         setDirecciones([]);

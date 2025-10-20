@@ -10,7 +10,6 @@ export function setUserSession(user) {
 export function getUserSession() {
   const user = localStorage.getItem('findmyspace_user');
   const parsedUser = user ? JSON.parse(user) : null;
-  console.log('📖 Obteniendo sesión de localStorage:', parsedUser);
   return parsedUser;
 }
 

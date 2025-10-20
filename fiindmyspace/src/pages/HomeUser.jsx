@@ -44,15 +44,7 @@ const HomeUser = () => {
       <div className={styles.container}>
         {/* Barra de acción superior */}
         <div className={styles.actionBar}>
-          <div className={styles.leftActions}>
-            <button
-              type="button"
-              className={styles.profileButton}
-              aria-label="Completa tu perfil"
-              // onClick={() => navigate('/mi-perfil')}
-            >
-              Completa tu perfil
-            </button>
+          <div className={styles.leftActions}> 
           </div>
           <div className={styles.rightActions} ref={avatarRef}>
             <button
@@ -115,7 +107,7 @@ const HomeUser = () => {
           <div 
             className={styles.featureCard} 
             style={{'--delay': '0.2s'}}
-            onClickv   ={() => handleCardClick('/cargar-vehiculo')}
+            onClick={() => handleCardClick('/cargar-vehiculo')}
           >
             <span className={styles.featureIcon}>
               <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

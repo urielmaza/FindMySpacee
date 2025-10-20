@@ -1,3 +1,32 @@
+.revealLeftBase { opacity: 0; transform: translateX(-80px); will-change: transform, opacity; }
+.revealRightBase { opacity: 0; transform: translateX(80px); will-change: transform, opacity; }
+.revealUpBase { opacity: 0; transform: translateY(56px); will-change: transform, opacity; }
+
+.revealSlowVisible {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 2400ms cubic-bezier(0.22, 1, 0.36, 1), transform 2400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.revealParentSteps > [data-reveal]:nth-child(1) { transition-delay: 0ms; }
+.revealParentSteps > [data-reveal]:nth-child(2) { transition-delay: 300ms; }
+.revealParentSteps > [data-reveal]:nth-child(3) { transition-delay: 600ms; }
+
+/* Stagger para tarjetas de Beneficios */
+.revealParentBenefits > [data-reveal] { transition-delay: 0ms; }
+.revealParentBenefits > [data-reveal]:nth-child(1) { transition-delay: 0ms; }
+.revealParentBenefits > [data-reveal]:nth-child(2) { transition-delay: 200ms; }
+.revealParentBenefits > [data-reveal]:nth-child(3) { transition-delay: 400ms; }
+.revealParentBenefits > [data-reveal]:nth-child(4) { transition-delay: 600ms; }
+
+/* Stagger para items de Preguntas frecuentes */
+.revealParentFaqs > [data-reveal] { transition-delay: 0ms; }
+.revealParentFaqs > [data-reveal]:nth-child(1) { transition-delay: 0ms; }
+.revealParentFaqs > [data-reveal]:nth-child(2) { transition-delay: 180ms; }
+.revealParentFaqs > [data-reveal]:nth-child(3) { transition-delay: 360ms; }
+.revealParentFaqs > [data-reveal]:nth-child(4) { transition-delay: 540ms; }
+.revealParentFaqs > [data-reveal]:nth-child(5) { transition-delay: 720ms; }
+.revealParentFaqs > [data-reveal]:nth-child(6) { transition-delay: 900ms; }
 .spinner {/*la mierdita es que gira*/
   background-image: linear-gradient(rgb(140, 24, 207) 35%, rgb(0, 225, 255));
   width: 400px; /* Aumentado de 350px a 400px */
@@ -23,6 +52,12 @@
   }
 }/*Nota: no se si     era muy necesario pq no son muchos pasos*/
 
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none !important;
+  }
+}
+
 
 .us {/*Seccion sobre nosotros*/
   width: 100%;
@@ -32,6 +67,39 @@
   justify-content: center;
   align-items: center;
   padding: 60px 15px;
+}
+
+/* Reveal on scroll - sección nosotros */
+.revealBase {
+  opacity: 0;
+  transform: translateY(24px);
+  will-change: transform, opacity;
+}
+
+.revealVisible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.revealParent > [data-reveal] {
+  transition-delay: 0ms;
+}
+
+.revealParent > [data-reveal]:nth-child(1) { transition-delay: 0ms; }
+.revealParent > [data-reveal]:nth-child(2) { transition-delay: 120ms; }
+.revealParent > [data-reveal]:nth-child(3) { transition-delay: 240ms; }
+.revealParent > [data-reveal]:nth-child(4) { transition-delay: 360ms; }
+.revealParent > [data-reveal]:nth-child(5) { transition-delay: 480ms; }
+.revealParent > [data-reveal]:nth-child(6) { transition-delay: 600ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .revealBase,
+  .revealVisible {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
 
 .container {/*Contenedores de cada seccion*/
@@ -200,6 +268,28 @@
   z-index: 0; /* Asegura que el fondo esté detrás del spinner */
 }
 
+/* Animación de entrada para el bloque inicial */
+.heroAnimateOnLoad {
+  opacity: 0;
+  transform: translateY(72px);
+  will-change: transform, opacity;
+}
+
+.heroVisible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 3600ms cubic-bezier(0.22, 1, 0.36, 1), transform 3600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroAnimateOnLoad,
+  .heroVisible {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 .spinnerContainer {/*contenedor de la mierda q gira*/
   position: absolute;
   top: 40%; /* Reducido para acercar la bola al banner */
@@ -281,6 +371,49 @@ ahora te puedes marchaar
 .bannerButton.login:hover {
   background: #e2e2e2;
   color: #000;
+}
+
+/* Animaciones por elemento (coherentes con el banner) */
+.leftIntro {
+  opacity: 0;
+  transform: translateX(-120px);
+  will-change: transform, opacity;
+}
+
+.leftVisible {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 5200ms cubic-bezier(0.22, 1, 0.36, 1), transform 5200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rightIntro {
+  opacity: 0;
+  transform: translateX(120px);
+  will-change: transform, opacity;
+}
+
+.rightVisible {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 5600ms cubic-bezier(0.22, 1, 0.36, 1) 800ms, transform 5600ms cubic-bezier(0.22, 1, 0.36, 1) 800ms;
+}
+
+/* Variante para el botón: entra último (más delay que el párrafo) */
+.leftVisibleButton {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 5200ms cubic-bezier(0.22, 1, 0.36, 1) 1600ms, transform 5200ms cubic-bezier(0.22, 1, 0.36, 1) 1600ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leftIntro,
+  .leftVisible,
+  .rightIntro,
+  .rightVisible {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
 .functions{
   width: 100%;
@@ -1020,6 +1153,22 @@ ahora te puedes marchaar
 
 .footerTop {
   display: grid;
+  .revealParentFooter .footerSection {
+    will-change: transform, opacity;
+  }
+
+  .revealParentFooter .footerSection:nth-child(1) {
+    transition-delay: 0ms;
+  }
+  .revealParentFooter .footerSection:nth-child(2) {
+    transition-delay: 180ms;
+  }
+  .revealParentFooter .footerSection:nth-child(3) {
+    transition-delay: 360ms;
+  }
+  .revealParentFooter .footerSection:nth-child(4) {
+    transition-delay: 540ms;
+  }
   grid-template-columns: 2fr 1fr 1fr 1.5fr;
   gap: 40px;
   margin-bottom: 40px;

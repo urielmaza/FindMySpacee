@@ -7,6 +7,7 @@ import logo from '../assets/logofindmyspace.png';
 const Home = () => {
   const navigate = useNavigate();
   const [activeFaq, setActiveFaq] = useState(null);
+  const [heroVisible, setHeroVisible] = useState(false);
 
   const toggleFaq = (index) => {
     setActiveFaq(activeFaq === index ? null : index);
@@ -41,12 +42,16 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const createSquare = () => {
-      const section = document.querySelector(`.${styles.background}`);
-      if (!section) return; // Verifica si el elemento existe antes de continuar
+    // Restaurar partículas animadas (estrellas) como antes
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
 
+    const section = document.querySelector(`.${styles.background}`);
+    if (!section) return; // Verifica si el elemento existe antes de continuar
+
+    const createSquare = () => {
       const square = document.createElement('span');
-      const size = Math.random() * 5; // Reducido aún más el tamaño máximo de las pelotitas
+      const size = Math.random() * 5; // tamaño máximo de las pelotitas
 
       square.style.width = 4 + size + 'px';
       square.style.height = 4 + size + 'px';
@@ -56,6 +61,7 @@ const Home = () => {
       square.style.borderRadius = '50%';
       square.style.background = 'white';
       square.style.pointerEvents = 'none';
+      square.style.opacity = String(0.35 + Math.random() * 0.55);
       square.style.animation = `${styles.animate} 5s linear infinite`;
 
       section.appendChild(square);
@@ -69,31 +75,97 @@ const Home = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Animación de entrada del primer bloque (#inicio)
+  useEffect(() => {
+    // Delay inicial para que el texto aparezca después de un pequeño tiempo de espera
+    const t = setTimeout(() => setHeroVisible(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Reveal al hacer scroll (sección "nosotros")
+  useEffect(() => {
+    const elements = document.querySelectorAll('[data-reveal]');
+    if (!elements.length) return;
+
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      elements.forEach(el => {
+        el.classList.add(styles.revealVisible);
+        // Si es un contenedor de cadena, mostrar inmediatamente sus hijos
+        if (el.hasAttribute('data-chain')) {
+          const chainChildren = el.querySelectorAll(`.${styles.faqItem}`);
+          chainChildren.forEach(child => child.classList.add(styles.revealVisible));
+        }
+      });
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const target = entry.target;
+            const variant = target.getAttribute('data-reveal-variant');
+            const isChain = target.hasAttribute('data-chain');
+
+            // Función auxiliar para aplicar clase visible según variante
+            const applyVisible = (el) => {
+              if (variant === 'slow') {
+                el.classList.add(styles.revealSlowVisible);
+              } else {
+                el.classList.add(styles.revealVisible);
+              }
+            };
+
+            if (isChain) {
+              // Revela en cadena los hijos directos tipo faqItem
+              const items = target.querySelectorAll(`.${styles.faqItem}`);
+              items.forEach((item, index) => {
+                const delay = index * 180; // intervalo de cadena
+                setTimeout(() => applyVisible(item), delay);
+              });
+              // Opcional: también marcar el contenedor como visible
+              applyVisible(target);
+            } else {
+              applyVisible(target);
+            }
+
+            io.unobserve(target);
+          }
+        });
+      },
+      { root: null, rootMargin: '0px 0px -10% 0px', threshold: 0.15 }
+    );
+
+    elements.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
   return (
     <>
-      <div id='inicio' className={styles.background}>
+      <div id='inicio' className={`${styles.background}`}>
         <div className={styles.spinnerContainer}>
           <div className={styles.spinner}>
             <div className={styles.spinner1}></div>
           </div>
         </div>
         <div className={styles.textContainer}>
-          <h1 className={styles.mainTitle}>Visualiza cualquier estacionamiento
+          <h1 className={`${styles.mainTitle} ${styles.leftIntro} ${heroVisible ? styles.leftVisible : ''}`}>Visualiza cualquier estacionamiento
           <br /> como si estuvieras allí</h1>
-          <p className={styles.description}>Estacionamientos públicos y privados (busca, reserva y disfruta).</p>
-          <button onClick={() => navigate('/login')} className={`${styles.bannerButton} ${styles.login}`}>Empezá a buscar tu estacionamiento</button>
+          <p className={`${styles.description} ${styles.rightIntro} ${heroVisible ? styles.rightVisible : ''}`}>Estacionamientos públicos y privados (busca, reserva y disfruta).</p>
+          <button onClick={() => navigate('/login')} className={`${styles.bannerButton} ${styles.login} ${styles.leftIntro} ${heroVisible ? styles.leftVisibleButton : ''}`}>Empezá a buscar tu estacionamiento</button>
         </div>
       </div>
   <div id="nosotros" className={styles.us}>
         <div className={styles.container}>
-          <h2 className={styles.mainTitle}>¿QUÉ ES <span className={styles.highlight}>FINDMYSPACE</span>?</h2>
-          <p className={styles.description}>
+          <h2 className={`${styles.mainTitle} ${styles.revealBase}`} data-reveal>¿QUÉ ES <span className={styles.highlight}>FINDMYSPACE</span>?</h2>
+          <p className={`${styles.description} ${styles.revealBase}`} data-reveal>
             FindMySpace es la plataforma de estacionamiento que utiliza inteligencia artificial para 
             convertir cualquier estacionamiento en una experiencia interactiva, mejorando la forma en que buscamos y reservamos espacios.
           </p>
           
-          <div className={styles.featuresGrid}>
-            <div className={styles.featureItem}>
+          <div className={`${styles.featuresGrid} ${styles.revealParent}`}>
+            <div className={`${styles.featureItem} ${styles.revealBase}`} data-reveal>
               <div className={styles.featureIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
@@ -101,7 +173,7 @@ const Home = () => {
               </div>
               <span>IA entrenada</span>
             </div>
-            <div className={styles.featureItem}>
+            <div className={`${styles.featureItem} ${styles.revealBase}`} data-reveal>
               <div className={styles.featureIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
@@ -112,7 +184,7 @@ const Home = () => {
               </div>
               <span>Compatible con cualquier estacionamiento</span>
             </div>
-            <div className={styles.featureItem}>
+            <div className={`${styles.featureItem} ${styles.revealBase}`} data-reveal>
               <div className={styles.featureIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/>
@@ -121,7 +193,7 @@ const Home = () => {
               </div>
               <span>Precisión en la búsqueda</span>
             </div>
-            <div className={styles.featureItem}>
+            <div className={`${styles.featureItem} ${styles.revealBase}`} data-reveal>
               <div className={styles.featureIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
@@ -131,7 +203,7 @@ const Home = () => {
               </div>
               <span>Contenido interactivo</span>
             </div>
-            <div className={styles.featureItem}>
+            <div className={`${styles.featureItem} ${styles.revealBase}`} data-reveal>
               <div className={styles.featureIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -141,7 +213,7 @@ const Home = () => {
               </div>
               <span>Sin conocimiento previos</span>
             </div>
-            <div className={styles.featureItem}>
+            <div className={`${styles.featureItem} ${styles.revealBase}`} data-reveal>
               <div className={styles.featureIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
@@ -154,11 +226,11 @@ const Home = () => {
       </div>
       <div className={styles.functions}>
         <div className={styles.container}>
-          <h2 className={styles.functionsTitle}>CÓMO FUNCIONA EN 3 PASOS</h2>
-          <p className={styles.functionsSubtitle}>Tan simple que vas a estar buscando tu estacionamiento en minutos</p>
+          <h2 className={`${styles.functionsTitle} ${styles.revealLeftBase}`} data-reveal data-reveal-variant="slow">CÓMO FUNCIONA EN 3 PASOS</h2>
+          <p className={`${styles.functionsSubtitle} ${styles.revealRightBase}`} data-reveal data-reveal-variant="slow">Tan simple que vas a estar buscando tu estacionamiento en minutos</p>
 
-          <div className={styles.stepsGrid}>
-            <div className={styles.stepCard}>
+          <div className={`${styles.stepsGrid} ${styles.revealParentSteps}`}>
+            <div className={`${styles.stepCard} ${styles.revealUpBase}`} data-reveal data-reveal-variant="slow">
               <div className={styles.stepNumber}>1</div>
               <div className={styles.stepIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -172,7 +244,7 @@ const Home = () => {
               <p className={styles.stepDescription}>Se parte de nuestra comunidad para poder acceder a nuestras funcionalidades.</p>
             </div>
             
-            <div className={styles.stepCard}>
+            <div className={`${styles.stepCard} ${styles.revealUpBase}`} data-reveal data-reveal-variant="slow">
               <div className={styles.stepNumber}>2</div>
               <div className={styles.stepIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -186,7 +258,7 @@ const Home = () => {
               <p className={styles.stepDescription}>Propietarios: Sube la información de tu estacionamiento. <br />Conductores: Busca y reserva estacionamientos.</p>
             </div>
             
-            <div className={styles.stepCard}>
+            <div className={`${styles.stepCard} ${styles.revealUpBase}`} data-reveal data-reveal-variant="slow">
               <div className={styles.stepNumber}>3</div>
               <div className={styles.stepIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -203,11 +275,11 @@ const Home = () => {
       </div>
       <div className={styles.benefits}>
         <div className={styles.container}>
-          <h2 className={styles.benefitsTitle}>BENEFICIOS PARA CADA PERFIL</h2>
-          <p className={styles.benefitsSubtitle}>Diseñado específicamente para las necesidades de propietarios y conductores</p>
+          <h2 className={`${styles.benefitsTitle} ${styles.revealLeftBase}`} data-reveal data-reveal-variant="slow">BENEFICIOS PARA CADA PERFIL</h2>
+          <p className={`${styles.benefitsSubtitle} ${styles.revealRightBase}`} data-reveal data-reveal-variant="slow">Diseñado específicamente para las necesidades de propietarios y conductores</p>
           
-          <div className={styles.benefitsGrid}>
-            <div className={styles.benefitCard}>
+          <div className={`${styles.benefitsGrid} ${styles.revealParentBenefits}`}>
+            <div className={`${styles.benefitCard} ${styles.revealUpBase}`} data-reveal data-reveal-variant="slow">
               <div className={styles.benefitIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -256,7 +328,7 @@ const Home = () => {
               <button type="button" onClick={() => navigate('/register')} className={styles.benefitButton}>Empezar como propietario</button>
             </div>
             
-            <div className={styles.benefitCard}>
+            <div className={`${styles.benefitCard} ${styles.revealUpBase}`} data-reveal data-reveal-variant="slow">
               <div className={styles.benefitIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -306,381 +378,14 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </div>
-  <div id="testimonios" className={styles.testimonials}>
-        <div className={styles.container}>
-          <h2 className={styles.testimonialsTitle}>LO QUE DICEN NUESTROS USUARIOS</h2>
-          <p className={styles.testimonialsSubtitle}>
-            Más de <span className={styles.highlightNumber}>10.75k+</span> Miles de conductores y propietarios ya están 
-            transformando su experiencia de estacionamiento con FindMySpace
-          </p>
-          
-          <div className={styles.testimonialsContainer}>
-            <div className={styles.testimonialsGrid}>
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Antes perdía horas buscando estacionamiento. Ahora encuentro el lugar perfecto en minutos."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>P</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Paula Rodriguez</span>
-                    <span className={styles.authorRole}>Conductora frecuente</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Mi estacionamiento ahora genera ingresos constantes. La plataforma es increíble."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>C</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Carlos Núñez</span>
-                    <span className={styles.authorRole}>Propietario de estacionamiento</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "La seguridad y facilidad de uso superaron mis expectativas. ¡Excelente servicio!"
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={`${styles.star} ${styles.empty}`}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>T</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Thiago Martinez</span>
-                    <span className={styles.authorRole}>Conductor frecuente</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "FindMySpace cambió completamente mi rutina diaria. Reservar es súper fácil."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>N</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Natalia Silva</span>
-                    <span className={styles.authorRole}>Ejecutiva de ventas</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Tarjetas adicionales para efecto continuo */}
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Como madre ocupada, encontrar estacionamiento cerca del colegio era un dolor de cabeza. Ahora es muy fácil."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>M</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>María González</span>
-                    <span className={styles.authorRole}>Madre de familia</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Tengo un pequeño estacionamiento y con FindMySpace lo rentabilicé al máximo. Excelente retorno de inversión."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>R</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Roberto Fernández</span>
-                    <span className={styles.authorRole}>Pequeño empresario</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Trabajo en el centro y siempre llegaba tarde por buscar estacionamiento. Esto me cambió la vida laboral."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={`${styles.star} ${styles.empty}`}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>A</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Ana Morales</span>
-                    <span className={styles.authorRole}>Contadora</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "La app es súper intuitiva y el sistema de pagos es muy seguro. Lo recomiendo al 100%."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>D</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Diego Ramírez</span>
-                    <span className={styles.authorRole}>Desarrollador</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Duplicado completo para loop infinito perfecto */}
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Antes perdía horas buscando estacionamiento. Ahora encuentro el lugar perfecto en minutos."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>P</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Paula Rodriguez</span>
-                    <span className={styles.authorRole}>Conductora frecuente</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Mi estacionamiento ahora genera ingresos constantes. La plataforma es increíble."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>C</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Carlos Núñez</span>
-                    <span className={styles.authorRole}>Propietario de estacionamiento</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "La seguridad y facilidad de uso superaron mis expectativas. ¡Excelente servicio!"
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={`${styles.star} ${styles.empty}`}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>T</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Thiago Martinez</span>
-                    <span className={styles.authorRole}>Conductor frecuente</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "FindMySpace cambió completamente mi rutina diaria. Reservar es súper fácil."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>N</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Natalia Silva</span>
-                    <span className={styles.authorRole}>Ejecutiva de ventas</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Como madre ocupada, encontrar estacionamiento cerca del colegio era un dolor de cabeza. Ahora es muy fácil."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>M</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>María González</span>
-                    <span className={styles.authorRole}>Madre de familia</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Tengo un pequeño estacionamiento y con FindMySpace lo rentabilicé al máximo. Excelente retorno de inversión."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>R</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Roberto Fernández</span>
-                    <span className={styles.authorRole}>Pequeño empresario</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "Trabajo en el centro y siempre llegaba tarde por buscar estacionamiento. Esto me cambió la vida laboral."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={`${styles.star} ${styles.empty}`}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>A</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Ana Morales</span>
-                    <span className={styles.authorRole}>Contadora</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.testimonialCard}>
-                <p className={styles.testimonialText}>
-                  "La app es súper intuitiva y el sistema de pagos es muy seguro. Lo recomiendo al 100%."
-                </p>
-                <div className={styles.starsContainer}>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                  <span className={styles.star}>★</span>
-                </div>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.authorAvatar}>
-                    <span>D</span>
-                  </div>
-                  <div className={styles.authorInfo}>
-                    <span className={styles.authorName}>Diego Ramírez</span>
-                    <span className={styles.authorRole}>Desarrollador</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </div>               
   <div id="preguntas" className={styles.faqs}>
         <div className={styles.container}>
-          <h2 className={styles.faqsTitle}>Preguntas frecuentes</h2>
-          <p className={styles.faqsSubtitle}>Todo lo que necesitás saber para empezar a encontrar tu estacionamiento perfecto con FindMySpace.</p>
+          <h2 className={`${styles.faqsTitle} ${styles.revealLeftBase}`} data-reveal data-reveal-variant="slow">Preguntas frecuentes</h2>
+          <p className={`${styles.faqsSubtitle} ${styles.revealRightBase}`} data-reveal data-reveal-variant="slow">Todo lo que necesitás saber para empezar a encontrar tu estacionamiento perfecto con FindMySpace.</p>
           
-          <div className={styles.faqsContainer}>
-            <div className={`${styles.faqItem} ${activeFaq === 0 ? styles.active : ''}`}>
+          <div className={`${styles.faqsContainer} ${styles.revealParentFaqs}`} data-reveal data-chain data-reveal-variant="slow">
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 0 ? styles.active : ''}`}>
               <div className={styles.faqQuestion} onClick={() => toggleFaq(0)}>
                 <span>¿Hay versión gratuita?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -692,7 +397,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${activeFaq === 1 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 1 ? styles.active : ''}`}>
               <div className={styles.faqQuestion} onClick={() => toggleFaq(1)}>
                 <span>¿Es seguro dejar mi vehículo?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -704,7 +409,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${activeFaq === 2 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 2 ? styles.active : ''}`}>
               <div className={styles.faqQuestion} onClick={() => toggleFaq(2)}>
                 <span>¿Qué métodos de pago aceptan?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -716,7 +421,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${activeFaq === 3 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 3 ? styles.active : ''}`}>
               <div className={styles.faqQuestion} onClick={() => toggleFaq(3)}>
                 <span>¿Puedo cancelar mi reserva?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -728,7 +433,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${activeFaq === 4 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 4 ? styles.active : ''}`}>
               <div className={styles.faqQuestion} onClick={() => toggleFaq(4)}>
                 <span>¿Cómo publico mi estacionamiento?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -740,7 +445,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${activeFaq === 5 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 5 ? styles.active : ''}`}>
               <div className={styles.faqQuestion} onClick={() => toggleFaq(5)}>
                 <span>¿Qué soporte técnico ofrecen?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -752,14 +457,13 @@ const Home = () => {
               </div>
             </div>
           </div>
-
-          
         </div>
       </div>
-      <div className={styles.Footer}>
+
+      <div id="contacto" className={styles.Footer}>
         <div className={styles.footerContainer}>
-          <div className={styles.footerTop}>
-            <div className={styles.footerSection}>
+          <div className={`${styles.footerTop} ${styles.revealParentFooter}`}>
+            <div className={`${styles.footerSection} ${styles.revealLeftBase}`} data-reveal data-reveal-variant="slow">
               <div className={styles.logoSection}>
                 <img src={logo} alt="FindMySpace" className={styles.footerLogo} />
                 <p className={styles.footerDescription}>
@@ -768,15 +472,14 @@ const Home = () => {
               </div>
             </div>
             
-            <div className={styles.footerSection}>
+            <div className={`${styles.footerSection} ${styles.revealUpBase}`} data-reveal data-reveal-variant="slow">
               <h3 className={styles.footerSectionTitle}>Navegación</h3>
               <ul className={styles.footerLinks}>
                 <li><button onClick={() => scrollToSection('nosotros')} className={styles.footerLink}>¿Qué es FindMySpace?</button></li>
-                <li><button onClick={() => scrollToSection('testimonios')} className={styles.footerLink}>Testimonios</button></li>
                 <li><button onClick={() => scrollToSection('preguntas')} className={styles.footerLink}>Preguntas frecuentes</button></li>
               </ul>
             </div>
-            <div className={styles.footerSection}>
+            <div className={`${styles.footerSection} ${styles.revealUpBase}`} data-reveal data-reveal-variant="slow">
               <h3 className={styles.footerSectionTitle}>Contacto</h3>
               <div className={styles.contactInfo}>
                 <div className={styles.contactItem}>
@@ -808,7 +511,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <div className={styles.footerSection}>
+            <div className={`${styles.footerSection} ${styles.revealRightBase}`} data-reveal data-reveal-variant="slow">
               <h3 className={styles.footerSectionTitle}>Redes Sociales</h3>
               <ul className={styles.footerLinks}>
                 <div className={styles.socialLinks}>
@@ -833,10 +536,10 @@ const Home = () => {
           </div>
           
           <div className={styles.footerBottom}>
-            <div className={styles.footerBottomLeft}>
+            <div className={`${styles.footerBottomLeft} ${styles.revealLeftBase}`} data-reveal data-reveal-variant="slow">
               <p>&copy; 2025 FindMySpace. Todos los derechos reservados.</p>
             </div>
-            <div className={styles.footerBottomRight}>
+            <div className={`${styles.footerBottomRight} ${styles.revealRightBase}`} data-reveal data-reveal-variant="slow">
               <a href="/privacidad" className={styles.footerLegalLink}>Política de privacidad</a>
               <span className={styles.separator}>|</span>
               <a href="/terminos" className={styles.footerLegalLink}>Términos de servicio</a>

@@ -48,8 +48,6 @@ const Login = () => {
               id_cliente: data.user.id_cliente,
               email: data.user.email
             };
-            console.log('\ud83d\udd11 Sesi\u00f3n guardada (Google Login):', sessionData);
-            console.log('\ud83d\udcca Datos completos del usuario (Google):', data.user);
             setUserSession(sessionData);
             setTimeout(() => navigate('/home-user'), 1000);
           } else {
@@ -95,9 +93,6 @@ const Login = () => {
             id_cliente: data.user.id_cliente,
             email: data.user.email
           };
-          console.log('\ud83d\udd11 Sesi\u00f3n guardada (Login Normal):', sessionData);
-          console.log('\ud83d\udcca Datos completos del usuario (Normal):', data.user);
-          console.log('\ud83d\udcbe Response completa del servidor:', data);
           setUserSession(sessionData);
         } else {
           setError('No se pudo obtener el id_cliente del usuario.');
