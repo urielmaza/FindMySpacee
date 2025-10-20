@@ -44,15 +44,7 @@ const HomeUser = () => {
       <div className={styles.container}>
         {/* Barra de acción superior */}
         <div className={styles.actionBar}>
-          <div className={styles.leftActions}>
-            <button
-              type="button"
-              className={styles.profileButton}
-              aria-label="Completa tu perfil"
-              // onClick={() => navigate('/mi-perfil')}
-            >
-              Completa tu perfil
-            </button>
+          <div className={styles.leftActions}> 
           </div>
           <div className={styles.rightActions} ref={avatarRef}>
             <button
