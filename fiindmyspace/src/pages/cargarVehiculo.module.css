@@ -134,7 +134,7 @@
 
 /* Estilos para modo oscuro */
 :global(body.dark-mode) .pageContainer {
-  background-color: #1a1a1a;
+  background-color: #2c2c2e;
   color: #ffffff;
 }
 

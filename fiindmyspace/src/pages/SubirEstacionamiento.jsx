@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import BannerUser from '../components/BannerUser';
 import { getUserSession } from '../utils/auth';
 import styles from './SubirEstacionamiento.module.css';
@@ -11,6 +12,9 @@ const AREA_SIZE = 400;
 const PLAZA_SIZE = 40;
 
 const SubirEstacionamiento = () => {
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const editingId = searchParams.get('id');
   const [nombre, setNombre] = useState('');
   const [ubicacion, setUbicacion] = useState('');
   const [plazas, setPlazas] = useState('');
@@ -48,6 +52,7 @@ const SubirEstacionamiento = () => {
   const [showMapa, setShowMapa] = useState(false);
   const [plazasPos, setPlazasPos] = useState([]);
   const [mapaGuardado, setMapaGuardado] = useState(false);
+  const [fase, setFase] = useState('form'); // 'form' | 'tarifas'
 
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
@@ -55,6 +60,8 @@ const SubirEstacionamiento = () => {
   const dragPlaza = useRef(null);
   const offset = useRef({ x: 0, y: 0 });
   const areaRef = useRef(null);
+  // Bandera para evitar reseteos mientras se precargan datos en modo edición
+  const isPrefillingRef = useRef(false);
 
   const userSession = getUserSession();
   const idCliente = userSession ? userSession.id_cliente : null;
@@ -66,11 +73,136 @@ const SubirEstacionamiento = () => {
 
   // Efecto: título del documento
   useEffect(() => {
-    document.title = 'Nuevo Estacionamiento - FindMySpace';
-  }, []);
+    document.title = editingId ? 'Editar Estacionamiento - FindMySpace' : 'Nuevo Estacionamiento - FindMySpace';
+  }, [editingId]);
+
+  // Cargar datos cuando editingId existe
+  useEffect(() => {
+    const cargarDatos = async () => {
+      if (!editingId) return;
+      try {
+        // Evitar que el efecto de reseteo del mapa se dispare mientras precargamos
+        isPrefillingRef.current = true;
+        // 1) Si viene un layout en el state de navegación, úsalo directamente
+        const incomingLayout = location?.state?.layout;
+        if (incomingLayout && Array.isArray(incomingLayout.plazasPos)) {
+          setPlazasPos(incomingLayout.plazasPos || []);
+          setSelectedPlazas(incomingLayout.selectedPlazas || []);
+          setShowMapa(true);
+          setMapaGuardado(false);
+        }
+        const resp = await apiClient.get(`/espacios/${editingId}`);
+        if (resp.data?.success) {
+          const { espacio, horarios } = resp.data.data || {};
+          if (espacio) {
+            setNombre(espacio.nombre_estacionamiento || '');
+            setUbicacion(espacio.ubicacion || '');
+            setAddressInput(espacio.ubicacion || '');
+            setPlazas(String(espacio.cantidad_plazas || ''));
+            setTipo(espacio.tipo_de_estacionamiento || '');
+            setTipoEstructura(espacio.tipo_estructura || '');
+            setCantidadPisos(espacio.cantidad_pisos ? String(espacio.cantidad_pisos) : '');
+            setTieneSubsuelo(espacio.tiene_subsuelo ? 'si' : 'no');
+            setPrecio(espacio.precio_por_hora ? String(espacio.precio_por_hora) : '');
+            if (typeof espacio.latitud === 'number' && typeof espacio.longitud === 'number') {
+              setSelectedCoords([espacio.latitud, espacio.longitud]);
+            }
+            // 2) Si no vino en state, intentar precargar el layout del mapa desde localStorage por coincidencia
+            try {
+              const mapas = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
+              // Búsqueda exacta por nombre, ubicación y plazas
+              let match = incomingLayout ? null : mapas.find((m) => {
+                const e = m?.estacionamiento || {};
+                return (
+                  (e.nombre || '').trim() === (espacio.nombre_estacionamiento || '').trim() &&
+                  (e.ubicacion || '').trim() === (espacio.ubicacion || '').trim() &&
+                  Number(e.plazas) === Number(espacio.cantidad_plazas)
+                );
+              });
+              // Fallback: coincidencia case-insensitive
+              if (!match && !incomingLayout) {
+                match = mapas.find((m) => {
+                  const e = m?.estacionamiento || {};
+                  return (
+                    ((e.nombre || '').trim().toLowerCase()) === ((espacio.nombre_estacionamiento || '').trim().toLowerCase()) &&
+                    ((e.ubicacion || '').trim().toLowerCase()) === ((espacio.ubicacion || '').trim().toLowerCase()) &&
+                    Number(e.plazas) === Number(espacio.cantidad_plazas)
+                  );
+                });
+              }
+              // Fallback: por coordenadas (si existen) y plazas
+              if (!match && !incomingLayout && Array.isArray((mapas[0]?.estacionamiento?.coordenadas))) {
+                const lat = Number(espacio.latitud);
+                const lon = Number(espacio.longitud);
+                const eps = 1e-5; // tolerancia
+                match = mapas.find((m) => {
+                  const e = m?.estacionamiento || {};
+                  const c = Array.isArray(e.coordenadas) ? e.coordenadas : [];
+                  if (c.length === 2 && !Number.isNaN(lat) && !Number.isNaN(lon)) {
+                    const dLat = Math.abs(Number(c[0]) - lat);
+                    const dLon = Math.abs(Number(c[1]) - lon);
+                    return dLat < eps && dLon < eps && Number(e.plazas) === Number(espacio.cantidad_plazas);
+                  }
+                  return false;
+                });
+              }
+              if (!incomingLayout && match && match.mapa) {
+                setPlazasPos(match.mapa.plazasPos || []);
+                setSelectedPlazas(match.mapa.selectedPlazas || []);
+                setShowMapa(true);
+                setMapaGuardado(false);
+              } else {
+                // Generar una grilla por defecto según la cantidad de plazas
+                const total = Number(espacio.cantidad_plazas || 0);
+                if (!incomingLayout && total > 0) {
+                  const plazasArrayLocal = Array.from({ length: total }, (_, i) => i + 1);
+                  const cols = Math.ceil(Math.sqrt(plazasArrayLocal.length));
+                  const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
+                  const newPos = plazasArrayLocal.map((num, idx) => {
+                    const row = Math.floor(idx / cols);
+                    const col = idx % cols;
+                    return { num, x: col * spacing, y: row * spacing };
+                  });
+                  setPlazasPos(newPos);
+                  setSelectedPlazas([]);
+                  setShowMapa(true);
+                  setMapaGuardado(false);
+                }
+              }
+            } catch (e) {
+              console.warn('No se pudo precargar el layout desde localStorage:', e);
+            }
+          }
+          // Mapear horarios recibidos a estructura de UI
+          const diasNombre = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+          if (Array.isArray(horarios) && horarios.length > 0) {
+            const byDay = new Map();
+            horarios.forEach(h => {
+              const name = diasNombre[(h.dia_semana ?? 1) - 1] || diasNombre[0];
+              if (!byDay.has(name)) byDay.set(name, []);
+              byDay.get(name).push({ start: h.apertura, end: h.cierre });
+            });
+            const uiDays = Array.from(byDay.entries()).map(([name, ranges]) => ({
+              id: crypto.randomUUID(),
+              name,
+              ranges: ranges.map(r => ({ id: crypto.randomUUID(), start: r.start, end: r.end }))
+            }));
+            setDays(uiDays);
+          }
+        }
+      } catch (e) {
+        console.error('Error precargando espacio:', e);
+      }
+    };
+    cargarDatos().finally(() => {
+      // Permitir nuevamente que el efecto de reseteo actúe ante cambios del usuario
+      isPrefillingRef.current = false;
+    });
+  }, [editingId]);
 
   // Efecto: resetear vista previa del mapa cuando cambian campos clave
   useEffect(() => {
+    if (isPrefillingRef.current) return;
     setShowMapa(false);
     setPlazasPos([]);
     setMapaGuardado(false);
@@ -168,17 +300,29 @@ const SubirEstacionamiento = () => {
     };
 
     try {
-      const resp = await apiClient.post('/espacios', body);
-      if (resp.status === 201 && resp.data && (resp.data.success || resp.data.id_espacio)) {
-        setMensaje('¡Espacio creado correctamente!');
-        setTipoMensaje('exito');
+      if (editingId) {
+        const resp = await apiClient.put(`/espacios/${editingId}`, body);
+        if (resp.data?.success) {
+          setMensaje('¡Espacio actualizado correctamente!');
+          setTipoMensaje('exito');
+        } else {
+          setMensaje('No se pudo actualizar el espacio.');
+          setTipoMensaje('error');
+          return;
+        }
       } else {
-        setMensaje('No se pudo crear el espacio.');
-        setTipoMensaje('error');
-        return;
+        const resp = await apiClient.post('/espacios', body);
+        if (resp.status === 201 && resp.data && (resp.data.success || resp.data.id_espacio)) {
+          setMensaje('¡Espacio creado correctamente!');
+          setTipoMensaje('exito');
+        } else {
+          setMensaje('No se pudo crear el espacio.');
+          setTipoMensaje('error');
+          return;
+        }
       }
     } catch (err) {
-      console.error('Error al crear el espacio:', err);
+      console.error('Error al guardar el espacio:', err);
       const data = err?.response?.data;
       let msg = data?.error || 'Error en el servidor';
       if (Array.isArray(data?.errors) && data.errors.length > 0) {
@@ -236,8 +380,9 @@ const SubirEstacionamiento = () => {
   const handleGuardarMapa = () => {
     const mapaData = {
       estacionamiento: {
+        idEspacio: editingId ? Number(editingId) : null,
         nombre,
-        ubicacion,
+        ubicacion: ubicacion || addressInput,
         plazas: Number(plazas),
         tipo,
         tipoEstructura,
@@ -255,12 +400,46 @@ const SubirEstacionamiento = () => {
     };
 
     const mapasGuardados = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
-    mapasGuardados.push(mapaData);
+    // Buscar un mapa existente para reemplazar
+    const idx = (() => {
+      const targetNombre = (mapaData.estacionamiento.nombre || '').trim().toLowerCase();
+      const targetUbic = (mapaData.estacionamiento.ubicacion || '').trim().toLowerCase();
+      const targetPlazas = Number(mapaData.estacionamiento.plazas);
+      const targetCoords = Array.isArray(mapaData.estacionamiento.coordenadas) ? mapaData.estacionamiento.coordenadas : [];
+      const targetId = mapaData.estacionamiento.idEspacio ? Number(mapaData.estacionamiento.idEspacio) : null;
+      const eps = 1e-5;
+      return mapasGuardados.findIndex((m) => {
+        const e = m?.estacionamiento || {};
+        // 1) Por idEspacio si ambos lo tienen
+        if (targetId && e.idEspacio && Number(e.idEspacio) === targetId) return true;
+        // 2) Por nombre + ubicación + plazas (case-insensitive)
+        const byNameUbi = ((e.nombre || '').trim().toLowerCase()) === targetNombre &&
+                          ((e.ubicacion || '').trim().toLowerCase()) === targetUbic &&
+                          Number(e.plazas) === targetPlazas;
+        if (byNameUbi) return true;
+        // 3) Por coordenadas + plazas si existen
+        const c = Array.isArray(e.coordenadas) ? e.coordenadas : [];
+        if (c.length === 2 && targetCoords.length === 2) {
+          const dLat = Math.abs(Number(c[0]) - Number(targetCoords[0]));
+          const dLon = Math.abs(Number(c[1]) - Number(targetCoords[1]));
+          if (dLat < eps && dLon < eps && Number(e.plazas) === targetPlazas) return true;
+        }
+        return false;
+      });
+    })();
+
+    if (idx >= 0) {
+      mapasGuardados[idx] = mapaData;
+    } else {
+      mapasGuardados.push(mapaData);
+    }
     localStorage.setItem('findmyspace_mapas', JSON.stringify(mapasGuardados));
 
     setMapaGuardado(true);
     setMensaje('¡Mapa guardado exitosamente en tu sesión!');
     setTipoMensaje('exito');
+    // Avanzar a la fase siguiente después de un breve efecto
+    setTimeout(() => setFase('tarifas'), 400);
   };
 
   return (
@@ -268,9 +447,24 @@ const SubirEstacionamiento = () => {
       <BannerUser />
       <div className={styles.pageContainer}>
         <div className={styles.contentContainer}>
-          <div className={styles.formCard}>
-            <h1 className={styles.pageTitle}>Nuevo Estacionamiento</h1>
-            <form onSubmit={handleShowMapa}>
+          {/* Fase tarifas (mock) */}
+          {fase === 'tarifas' ? (
+            <div className={styles.tarifasCard}>
+              <h1 className={styles.pageTitle}>Tarifas</h1>
+              <div className={styles.formGroup}>
+                <input type="text" className={styles.formInput} placeholder="Nombre" />
+              </div>
+              <div className={styles.formGroup}>
+                <input type="text" className={styles.formInput} placeholder="Ciudad" />
+              </div>
+              <p className={styles.helperText}>Formulario de ejemplo (no funcional).</p>
+            </div>
+          ) : (
+            <div className={styles.splitContainer}>
+              {/* Columna izquierda: formulario */}
+              <div className={styles.panelCard}>
+                <h1 className={styles.pageTitle}>{editingId ? 'Editar Estacionamiento' : 'Nuevo Estacionamiento'}</h1>
+                <form onSubmit={handleShowMapa}>
               <div className={styles.formGroup}>
                 <input
                   type="text"
@@ -507,56 +701,61 @@ const SubirEstacionamiento = () => {
                 </div>
               </div>
 
-              <button type="submit" className={styles.submitButton}>
-                Generar mapa
-              </button>
-            </form>
-
-            {mensaje && (
-              <div className={`${styles.message} ${tipoMensaje === 'exito' ? styles.success : styles.error}`}>
-                {tipoMensaje === 'exito' ? '✅' : '❌'} {mensaje}
-              </div>
-            )}
-
-            {showMapa && plazasPos.length > 0 && (
-              <>
-                <div
-                  ref={areaRef}
-                  className={styles.mapArea}
-                  style={{ width: AREA_SIZE, height: AREA_SIZE, margin: '32px auto' }}
-                >
-                  {plazasPos.map((plaza, idx) => (
-                    <div
-                      key={plaza.num}
-                      className={`${styles.plaza} ${selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
-                      style={{ left: plaza.x, top: plaza.y, width: PLAZA_SIZE, height: PLAZA_SIZE }}
-                      title={`Plaza ${plaza.num}`}
-                      onClick={() => handlePlazaClick(plaza.num)}
-                      onMouseDown={e => handleMouseDown(e, idx)}
-                    >
-                      {plaza.num}
-                    </div>
-                  ))}
-                </div>
-
-                {!mapaGuardado && (
-                  <button
-                    onClick={handleGuardarMapa}
-                    className={styles.saveMapButton}
-                    style={{ marginTop: '16px' }}
-                  >
-                    Guardar Mapa
+                  <button type="submit" className={styles.submitButton}>
+                    {editingId ? 'Guardar cambios' : 'Generar mapa'}
                   </button>
-                )}
+                </form>
 
-                {mapaGuardado && (
-                  <div className={styles.mapSavedMessage}>
-                    Mapa guardado en tu sesión
+                {mensaje && (
+                  <div className={`${styles.message} ${tipoMensaje === 'exito' ? styles.success : styles.error}`}>
+                    {mensaje}
                   </div>
                 )}
-              </>
-            )}
-          </div>
+              </div>
+              {/* Columna derecha: mapa */}
+              <div className={`${styles.panelCard} ${styles.mapPanel}`}>
+                <h2 className={styles.sectionTitle}>Mapa</h2>
+                {showMapa && plazasPos.length > 0 ? (
+                  <>
+                    <div
+                      ref={areaRef}
+                      className={styles.mapArea}
+                      style={{ width: AREA_SIZE, height: AREA_SIZE, margin: '0 auto' }}
+                    >
+                      {plazasPos.map((plaza, idx) => (
+                        <div
+                          key={plaza.num}
+                          className={`${styles.plaza} ${selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
+                          style={{ left: plaza.x, top: plaza.y, width: PLAZA_SIZE, height: PLAZA_SIZE }}
+                          title={`Plaza ${plaza.num}`}
+                          onClick={() => handlePlazaClick(plaza.num)}
+                          onMouseDown={e => handleMouseDown(e, idx)}
+                        >
+                          {plaza.num}
+                        </div>
+                      ))}
+                    </div>
+                    {!mapaGuardado && (
+                      <button
+                        onClick={handleGuardarMapa}
+                        className={styles.saveMapButton}
+                        style={{ marginTop: '16px' }}
+                      >
+                        Guardar Mapa
+                      </button>
+                    )}
+                    {mapaGuardado && (
+                      <div className={styles.mapSavedMessage}>
+                        Mapa guardado en tu sesión
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className={styles.helperText}>Completa el formulario y genera el mapa para empezar.</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

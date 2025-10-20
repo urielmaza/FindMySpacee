@@ -13,7 +13,7 @@
 /* Contenedor de contenido del formulario */
 .contentContainer {
   width: 100%;
-  max-width: 420px;
+  max-width: 1100px; /* más ancho para vista dividida */
   align-self: center;
 }
 
@@ -27,6 +27,30 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Contenedor en dos columnas */
+.splitContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.panelCard {
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color, #e1e8ed);
+}
+
+.mapPanel {
+  animation: slideInRight 500ms ease both;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* Título del formulario */
@@ -249,15 +273,15 @@
 }
 
 .message.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background-color: transparent;
+  color: #1e7e34; /* verde más legible */
+  border: none;
 }
 
 .message.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background-color: transparent;
+  color: #c62828; /* rojo legible en claro */
+  border: none;
 }
 
 /* Área del mapa */
@@ -304,18 +328,23 @@
   width: 100%;
   margin-top: 12px;
   padding: 12px 0;
-  font-family: 'cursive', sans-serif;
-  font-size: 1rem;
-  background-color: #28a745;
+  background: linear-gradient(135deg, #000000, #8304b6);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: bold;
+  transition: all 0.3s ease;
 }
 
 .saveMapButton:hover {
-  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(44,62,80,0.3);
+}
+
+.saveMapButton:active {
+  transform: translateY(0);
 }
 
 /* Mensaje de mapa guardado */
@@ -326,6 +355,23 @@
   font-family: 'cursive', sans-serif;
   font-size: 0.95rem;
   color: #28a745;
+}
+
+/* Tarjeta de tarifas (siguiente paso) */
+.tarifasCard {
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color, #e1e8ed);
+  max-width: 720px;
+  margin: 0 auto;
+  animation: fadeIn 300ms ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Lista de sugerencias autocomplete */
@@ -363,9 +409,15 @@
   }
 }
 
+@media (max-width: 900px) {
+  .splitContainer {
+    grid-template-columns: 1fr; /* apilar en pantallas pequeñas */
+  }
+}
+
 /* Modo oscuro */
 :global(body.dark-mode) .pageContainer {
-  --bg-color: #0f0f0f;
+  --bg-color: #2c2c2e;
   --text-color: #e6e6e6;
   --primary-color: #00E5FF;
   --card-bg: #1a1a1a;
@@ -397,6 +449,11 @@
 }
 
 :global(body.dark-mode) .submitButton {
+  background: linear-gradient(135deg, #000000, #00E5FF);
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .saveMapButton {
   background: linear-gradient(135deg, #000000, #00E5FF);
   color: #ffffff;
 }
@@ -444,13 +501,13 @@
 }
 
 :global(body.dark-mode) .message.success {
-  background-color: rgba(40, 167, 69, 0.15);
-  color: #b6f7c1;
-  border-color: rgba(40, 167, 69, 0.3);
+  background-color: transparent;
+  color: #2ecc71; /* verde más brillante para dark */
+  border: none;
 }
 
 :global(body.dark-mode) .message.error {
-  background-color: rgba(220, 53, 69, 0.15);
-  color: #f5b5bc;
-  border-color: rgba(220, 53, 69, 0.3);
+  background-color: transparent;
+  color: #ff6b6b; /* rojo vibrante para dark */
+  border: none;
 }
