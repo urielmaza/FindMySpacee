@@ -21,7 +21,7 @@
   font-weight: 700;
   text-align: center;
   margin: 0 auto 3rem auto;
-  color: var(--primary-color, #2c3e50);
+  color: var(--primary-color, #000000);
   max-width: 800px;
   padding: 0 20px;
 }
@@ -46,11 +46,10 @@
 
 .loadingText {
   font-size: 1.3rem;
-  color: var(--text-secondary, #666666);
+  color: var(--text-secondary, #000000);
   margin-bottom: 2rem;
   font-weight: 500;
 }
-
 .progressBar {
   width: 100%;
   height: 12px;
@@ -63,7 +62,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #3498db, #2980b9);
+  background: linear-gradient(90deg, #8304b6, #000000);
   border-radius: 8px;
   transition: width 0.5s ease;
   position: relative;
@@ -88,7 +87,7 @@
 
 .progressText {
   font-size: 1rem;
-  color: var(--primary-color, #3498db);
+  color: var(--primary-color, #000000);
   font-weight: 600;
 }
 
@@ -194,7 +193,11 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3498db, #2980b9);
+  background: linear-gradient(90deg, #8304b6, #000000);
+  /* Efecto de agua como el botón agregar */
+  background-size: 300% 300%;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
 
 /* Header de la tarjeta */
@@ -210,8 +213,8 @@
 }
 
 .vehiculoType {
-  background: var(--type-bg, #f0f8ff);
-  color: var(--primary-color, #2c3e50);
+  background: var(--type-bg, #ebebeb);
+  color: var(--primary-color, rgb(0, 0, 0));
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.85rem;
@@ -227,7 +230,7 @@
 .vehiculoMarca {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--primary-color, #2c3e50);
+  color: var(--primary-color, #000000);
   margin: 0 0 0.5rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -235,7 +238,7 @@
 
 .vehiculoModelo {
   font-size: 1.1rem;
-  color: var(--text-secondary, #666666);
+  color: var(--text-secondary, #353535);
   margin: 0 0 1rem 0;
   font-weight: 500;
 }
@@ -269,21 +272,22 @@
 }
 
 .editButton {
-  background: var(--edit-bg, #e8f4fd);
-  color: var(--edit-color, #1976d2);
+  background: #8304b6; /* violeta en modo claro */
+  color: #ffffff; /* texto blanco para buen contraste */
 }
 
 .editButton:hover {
-  background: var(--edit-hover, #bbdefb);
+  background: #6f0398; /* violeta un poco más oscuro en hover */
 }
 
 .deleteButton {
-  background: var(--delete-bg, #ffebee);
-  color: var(--delete-color, #d32f2f);
+  background: #ff4444; /* rojo vivo en modo claro */
+  color: #000000; /* texto negro en modo claro */
 }
 
 .deleteButton:hover {
-  background: var(--delete-hover, #ffcdd2);
+  background: #e53935; /* rojo más oscuro al hover */
+  color: #000000;
 }
 
 /* Contenedor de acciones */
@@ -297,20 +301,76 @@
 }
 
 .addButton {
-  background: linear-gradient(135deg, #2c3e50, #3498db);
-  color: white;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* Gradiente con movimiento tipo agua */
+  background: linear-gradient(120deg, #000000 0%, #8304b6 50%, #000000 100%);
+  background-size: 300% 300%;
+  color: #ffffff;
   border: none;
-  padding: 14px 28px;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+  box-shadow: none;
+  isolation: isolate;
+  margin-bottom: 24px; /* separa el botón de la carta/GRID */
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
 
 .addButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(44, 62, 80, 0.3);
+  transform: translateY(-1px);
+  box-shadow: none;
+  filter: brightness(1.05);
+}
+
+.addButton:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.addButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 0 0 5px rgba(131, 4, 182, 0.45);
+}
+
+/* Animación de flujo para el gradiente del botón (efecto agua) */
+@keyframes addButtonFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.addButtonIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Sin borde ni fondo para el ícono */
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* Reducir tamaño del SVG del ícono */
+.addButtonIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.addButtonLabel {
+  letter-spacing: 0.2px;
 }
 
 .statsContainer {
@@ -342,8 +402,22 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
+/* Específico: en modo oscuro la tarjeta de vehículo iguala el negro del fondo */
+:global(body.dark-mode) .vehiculoCard {
+  background: #1a1a1a;
+  border-color: #404040;
+}
+
+:global(body.dark-mode) .vehiculoCard:hover {
+  background: #222222; /* leve elevación al hover */
+}
+
 :global(body.dark-mode) .vehiculoMarca {
   color: #ffffff;
+}
+
+:global(body.dark-mode) .vehiculoModelo {
+  color: #d0d0d0; /* gris más claro para modo oscuro */
 }
 
 :global(body.dark-mode) .vehiculoType {
@@ -358,13 +432,51 @@
 }
 
 :global(body.dark-mode) .editButton {
-  background: #2d3748;
-  color: #90cdf4;
+  background: #33ECFF; /* celeste más claro en modo oscuro */
+  color: #0b0b0b; /* texto oscuro para contraste adecuado */
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+:global(body.dark-mode) .editButton:hover {
+  background: #00CFE3; /* celeste un poco más oscuro en hover */
 }
 
 :global(body.dark-mode) .deleteButton {
-  background: #2d3748;
-  color: #fc8181;
+  background: #ff4444; /* rojo más claro en modo oscuro, similar a modo claro */
+  color: #ffffff; /* texto blanco en modo oscuro */
+}
+
+:global(body.dark-mode) .deleteButton:hover {
+  background: #e53935; /* rojo más oscuro al hover, alineado con modo claro */
+}
+
+:global(body.dark-mode) .statsText {
+  color: #d0d0d0; /* gris más claro para el contador de vehículos */
+}
+
+/* Acentos en modo oscuro: reemplazar violeta por #00E5FF */
+:global(body.dark-mode) .progressFill {
+  background: linear-gradient(90deg, #00E5FF, #000000);
+}
+
+:global(body.dark-mode) .vehiculoCard::before {
+  background: linear-gradient(90deg, #00E5FF, #000000);
+  /* Mantener efecto de agua en dark mode */
+  background-size: 300% 300%;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
+}
+
+:global(body.dark-mode) .addButton {
+  background: linear-gradient(120deg, #000000 0%, #00E5FF 50%, #000000 100%);
+  /* Reaplicar propiedades necesarias para el efecto de agua en dark mode */
+  background-size: 300% 300%;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
+}
+
+:global(body.dark-mode) .addButton:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 0 0 5px rgba(0, 229, 255, 0.45);
 }
 
 /* Responsive Design */
