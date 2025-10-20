@@ -19,7 +19,6 @@
 
 /* Toggle modo oscuro */
 .darkModeToggle {
-  /* Smaller size, back to original placement in footer */
   width: 64px;
   height: 28px;
   background-color: #e0e0e0;
@@ -29,8 +28,7 @@
   align-items: center;
   padding: 0 4px;
   transition: background-color 0.5s ease, opacity 0.4s ease, transform 0.4s ease;
-  /* Move to the right of the footer container */
-  margin: 0 16px 20px auto;
+  margin: 0 12px 20px auto; /* alineado a la derecha dentro del footer */
   opacity: 0;
   transform: translateX(-20px);
   pointer-events: none;
@@ -48,8 +46,8 @@
 }
 
 .toggleCircle {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   background-color: white;
   border-radius: 50%;
   display: flex;
@@ -62,8 +60,8 @@
 }
 
 .toggleCircleActive {
-  /* Move to the far right inside the smaller track */
-  transform: translateX(34px);
+  /* Movimiento calculado: 64 (ancho) - 10 (padding) - 24 (círculo) = 30 */
+  transform: translateX(30px);
   background-color: #2a2a2c;
 }
 
@@ -219,6 +217,10 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+:global(body.dark-mode) .sidebarFooter {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .sidebarFooter {
   padding: 20px 0 30px 0;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
@@ -246,6 +248,7 @@
   color: #ffffff;
 }
 
+
 .navButton:hover {
   background: rgba(255, 255, 255, 0.1);
   border-left-color: #a4c4a5;
@@ -254,7 +257,7 @@
 /* Modo oscuro para hover */
 :global(body.dark-mode) .navButton:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-left-color: #a4c4a5;
+  border-left-color: #00E5FF; /* celeste flúor en modo oscuro */
 }
 
 .navIcon {
@@ -346,19 +349,18 @@
   }
   
   .darkModeToggle {
-    width: 56px;
-    height: 24px;
-    padding: 0 4px;
-    margin: 0 12px 16px auto;
+    width: 64px;
+    height: 28px;
+    margin: 0 10px 20px auto; /* seguir a la derecha en móvil */
   }
   
   .toggleCircle {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
   
   .toggleCircleActive {
-    transform: translateX(28px);
+    transform: translateX(30px);
   }
   
   .hamburger {
