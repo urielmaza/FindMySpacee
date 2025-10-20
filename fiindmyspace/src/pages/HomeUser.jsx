@@ -115,7 +115,7 @@ const HomeUser = () => {
           <div 
             className={styles.featureCard} 
             style={{'--delay': '0.2s'}}
-            onClick={() => handleCardClick('/cargar-vehiculo')}
+            onClickv   ={() => handleCardClick('/cargar-vehiculo')}
           >
             <span className={styles.featureIcon}>
               <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
