@@ -1,9 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import BannerUser from '../components/BannerUser';
 import { getUserSession } from '../utils/auth';
 import styles from './SubirEstacionamiento.module.css';
+import apiClient from '../apiClient';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Nota: Solo frontend por ahora, sin llamadas de red
+// const API_URL = import.meta.env.VITE_API_URL;
 
 const AREA_SIZE = 400;
 const PLAZA_SIZE = 40;
@@ -17,12 +19,29 @@ const SubirEstacionamiento = () => {
   const [cantidadPisos, setCantidadPisos] = useState('');
   const [tieneSubsuelo, setTieneSubsuelo] = useState('');
   const [precio, setPrecio] = useState('');
-  const [apertura, setApertura] = useState('');
-  const [cierre, setCierre] = useState('');
+  // Nueva estructura de horarios dinámicos por día
+  // days: [{ id, name, ranges: [{ id, start, end }] }]
+  const [days, setDays] = useState([]);
+  const [newDay, setNewDay] = useState('');
+
+  // Orden fijo de la semana
+  const dayOrder = useMemo(() => ({
+    'Lunes': 0,
+    'Martes': 1,
+    'Miércoles': 2,
+    'Jueves': 3,
+    'Viernes': 4,
+    'Sábado': 5,
+    'Domingo': 6
+  }), []);
+
+  const sortedDays = useMemo(() => {
+    return [...days].sort((a, b) => (dayOrder[a.name] ?? 99) - (dayOrder[b.name] ?? 99));
+  }, [days, dayOrder]);
 
   const [addressInput, setAddressInput] = useState('');
   const [resolvedAddress, setResolvedAddress] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState([]); // UI-only, sin fetch
   const [selectedCoords, setSelectedCoords] = useState(null);
 
   const [selectedPlazas, setSelectedPlazas] = useState([]);
@@ -45,17 +64,34 @@ const SubirEstacionamiento = () => {
     ? Array.from({ length: Number(plazas) }, (_, i) => i + 1)
     : [];
 
+  // Efecto: título del documento
+  useEffect(() => {
+    document.title = 'Nuevo Estacionamiento - FindMySpace';
+  }, []);
+
+  // Efecto: resetear vista previa del mapa cuando cambian campos clave
+  useEffect(() => {
+    setShowMapa(false);
+    setPlazasPos([]);
+    setMapaGuardado(false);
+  }, [plazas, tipo, tipoEstructura, precio]);
+
   const handleAddressChange = async (e) => {
     const value = e.target.value;
     setAddressInput(value);
     setResolvedAddress('');
     setSuggestions([]);
-
-    if (value.length > 2) {
-      const resp = await fetch(`${API_URL}/api/autocomplete?text=${encodeURIComponent(value)}`);
-      const data = await resp.json();
-      if (Array.isArray(data)) {
-        setSuggestions(data);
+    if (value && value.length > 2) {
+      try {
+        const resp = await apiClient.get('/autocomplete', { params: { text: value } });
+        if (Array.isArray(resp.data)) {
+          setSuggestions(resp.data);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (err) {
+        console.error('Error cargando sugerencias:', err);
+        setSuggestions([]);
       }
     }
   };
@@ -81,8 +117,9 @@ const SubirEstacionamiento = () => {
   const handleShowMapa = async (e) => {
     e.preventDefault();
 
-    if (!nombre || !ubicacion || !plazas || !tipo || !tipoEstructura || !apertura || !cierre) {
-      setMensaje('Error al enviar: completa todos los campos.');
+    // Validación básica solo de UI
+    if (!nombre || !ubicacion || !plazas || !tipo || !tipoEstructura) {
+      setMensaje('Completa los campos obligatorios.');
       setTipoMensaje('error');
       return;
     }
@@ -102,38 +139,54 @@ const SubirEstacionamiento = () => {
       return;
     }
 
-    const token = localStorage.getItem('token');
+    // Construir payload para backend
+    const horariosPayload = sortedDays
+      .map(d => ({
+        dia: d.name,
+        franjas: (d.ranges || [])
+          .filter(r => r.start && r.end)
+          .map(r => ({ apertura: r.start, cierre: r.end }))
+      }))
+      .filter(d => d.franjas.length > 0);
+
+    const lat = selectedCoords ? Number(Number(selectedCoords[0]).toFixed(8)) : null;
+    const lon = selectedCoords ? Number(Number(selectedCoords[1]).toFixed(8)) : null;
+
+    const body = {
+      id_cliente: idCliente || null,
+      nombre_estacionamiento: nombre,
+      ubicacion: ubicacion || addressInput,
+      latitud: lat,
+      longitud: lon,
+      cantidad_plazas: Number(plazas),
+      precio_por_hora: tipo === 'privado' ? Number(precio || 0) : 0,
+      tipo_de_estacionamiento: tipo,
+      tipo_estructura: tipoEstructura || null,
+      cantidad_pisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos || 1) : 1,
+      tiene_subsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si' || tieneSubsuelo === true || tieneSubsuelo === 1) : false,
+      horarios: horariosPayload
+    };
 
     try {
-      const resp = await fetch(`${API_URL}/api/espacios`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          id_cliente: idCliente,
-          nombre_estacionamiento: nombre,
-          ubicacion,
-          latitud: selectedCoords ? selectedCoords[0] : null,
-          longitud: selectedCoords ? selectedCoords[1] : null,
-          cantidad_plazas: Number(plazas),
-          tipo_de_estacionamiento: tipo,
-          tipo_estructura: tipoEstructura,
-          cantidad_pisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos) : 1,
-          tiene_subsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
-          precio_por_hora: tipo === 'privado' ? parseFloat(precio) : 0,
-          horario_apertura: apertura,
-          horario_cierre: cierre
-        })
-      });
-
-      if (!resp.ok) throw new Error('Error al guardar en la base de datos');
-
-      setMensaje('¡Se envió correctamente!');
-      setTipoMensaje('exito');
+      const resp = await apiClient.post('/espacios', body);
+      if (resp.status === 201 && resp.data && (resp.data.success || resp.data.id_espacio)) {
+        setMensaje('¡Espacio creado correctamente!');
+        setTipoMensaje('exito');
+      } else {
+        setMensaje('No se pudo crear el espacio.');
+        setTipoMensaje('error');
+        return;
+      }
     } catch (err) {
-      setMensaje('Error al enviar: no se pudo guardar en la base de datos.');
+      console.error('Error al crear el espacio:', err);
+      const data = err?.response?.data;
+      let msg = data?.error || 'Error en el servidor';
+      if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        msg += ': ' + data.errors.join(', ');
+      } else if (data?.detail) {
+        msg += ` (${data.detail})`;
+      }
+      setMensaje(msg);
       setTipoMensaje('error');
       return;
     }
@@ -191,8 +244,10 @@ const SubirEstacionamiento = () => {
         cantidadPisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos) : 1,
         tieneSubsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
         precio: tipo === 'privado' ? parseFloat(precio) : 0,
-        apertura,
-        cierre,
+        horarios: sortedDays.map(d => ({
+          dia: d.name,
+          franjas: d.ranges.map(r => ({ apertura: r.start, cierre: r.end }))
+        })),
         coordenadas: selectedCoords,
         fechaCreacion: new Date().toISOString()
       },
@@ -238,33 +293,11 @@ const SubirEstacionamiento = () => {
                   autoComplete="off"
                 />
                 {suggestions.length > 0 && (
-                  <ul
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: 40,
-                      background: '#fff',
-                      border: '1px solid #ccc',
-                      borderRadius: 4,
-                      zIndex: 10,
-                      listStyle: 'none',
-                      margin: 0,
-                      padding: 0,
-                      maxHeight: 180,
-                      overflowY: 'auto',
-                      width: '100%',
-                    }}
-                  >
+                  <ul className={styles.suggestionsList}>
                     {suggestions.map(sug => (
                       <li
                         key={sug.properties.place_id}
                         onClick={() => handleSuggestionClick(sug)}
-                        style={{
-                          padding: '8px 12px',
-                          cursor: 'pointer',
-                          borderBottom: '1px solid #eee',
-                        }}
                       >
                         {sug.properties.formatted}
                       </li>
@@ -369,25 +402,109 @@ const SubirEstacionamiento = () => {
               )}
 
               <div className={styles.formGroup}>
-                <input
-                  type="time"
-                  placeholder="Horario apertura"
-                  value={apertura}
-                  onChange={e => setApertura(e.target.value)}
-                  className={styles.formInput}
-                  required
-                />
-              </div>
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>Franja horaria</h2>
+                  <div className={styles.addDayRow}>
+                    <select
+                      value={newDay}
+                      onChange={e => setNewDay(e.target.value)}
+                      className={styles.formSelect}
+                    >
+                      <option value="">Selecciona un día</option>
+                      {['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']
+                        .filter(d => !days.some(x => x.name === d))
+                        .map(d => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                    </select>
+                    <button
+                      type="button"
+                      className={styles.addButton}
+                      onClick={() => {
+                        if (!newDay) return;
+                        setDays(prev => ([...prev, { id: crypto.randomUUID(), name: newDay, ranges: [{ id: crypto.randomUUID(), start: '', end: '' }] }]));
+                        setNewDay('');
+                      }}
+                    >
+                      Agregar día
+                    </button>
+                  </div>
+                </div>
 
-              <div className={styles.formGroup}>
-                <input
-                  type="time"
-                  placeholder="Horario cierre"
-                  value={cierre}
-                  onChange={e => setCierre(e.target.value)}
-                  className={styles.formInput}
-                  required
-                />
+                {days.length === 0 && (
+                  <p className={styles.helperText}>Agrega uno o más días y define sus franjas horarias.</p>
+                )}
+
+                <div className={styles.dayCards}>
+                  {sortedDays.map((day) => (
+                    <div key={day.id} className={styles.dayCard}>
+                      <div className={styles.dayHeader}>
+                        <h3 className={styles.dayTitle}>{day.name}</h3>
+                        <button
+                          type="button"
+                          className={styles.removeDayButton}
+                          onClick={() => setDays(prev => prev.filter(d => d.id !== day.id))}
+                          aria-label={`Eliminar ${day.name}`}
+                        >
+                          Eliminar día
+                        </button>
+                      </div>
+
+                      <div className={styles.rangesList}>
+                        {day.ranges.map((rg, idx) => (
+                          <div key={rg.id} className={styles.rangeRow}>
+                            <div className={styles.rangeInputs}>
+                              <input
+                                type="time"
+                                value={rg.start}
+                                onChange={(e) => setDays(prev => prev.map(d => d.id === day.id ? ({
+                                  ...d,
+                                  ranges: d.ranges.map(r => r.id === rg.id ? ({ ...r, start: e.target.value }) : r)
+                                }) : d))}
+                                className={styles.formInput}
+                                aria-label={`Apertura ${day.name} - ${idx + 1}`}
+                              />
+                              <span className={styles.rangeSeparator}>a</span>
+                              <input
+                                type="time"
+                                value={rg.end}
+                                onChange={(e) => setDays(prev => prev.map(d => d.id === day.id ? ({
+                                  ...d,
+                                  ranges: d.ranges.map(r => r.id === rg.id ? ({ ...r, end: e.target.value }) : r)
+                                }) : d))}
+                                className={styles.formInput}
+                                aria-label={`Cierre ${day.name} - ${idx + 1}`}
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              className={styles.removeRangeButton}
+                              onClick={() => setDays(prev => prev.map(d => d.id === day.id ? ({
+                                ...d,
+                                ranges: d.ranges.filter(r => r.id !== rg.id)
+                              }) : d))}
+                              disabled={day.ranges.length <= 1}
+                              title={day.ranges.length <= 1 ? 'Debe haber al menos una franja' : 'Eliminar franja'}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        className={styles.addRangeButton}
+                        onClick={() => setDays(prev => prev.map(d => d.id === day.id ? ({
+                          ...d,
+                          ranges: [...d.ranges, { id: crypto.randomUUID(), start: '', end: '' }]
+                        }) : d))}
+                      >
+                        + Agregar franja
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <button type="submit" className={styles.submitButton}>
@@ -396,18 +513,7 @@ const SubirEstacionamiento = () => {
             </form>
 
             {mensaje && (
-              <div
-                style={{
-                  marginTop: '1rem',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  textAlign: 'center',
-                  fontWeight: '600',
-                  backgroundColor: tipoMensaje === 'exito' ? '#d4edda' : '#f8d7da',
-                  color: tipoMensaje === 'exito' ? '#155724' : '#721c24',
-                  border: `1px solid ${tipoMensaje === 'exito' ? '#c3e6cb' : '#f5c6cb'}`
-                }}
-              >
+              <div className={`${styles.message} ${tipoMensaje === 'exito' ? styles.success : styles.error}`}>
                 {tipoMensaje === 'exito' ? '✅' : '❌'} {mensaje}
               </div>
             )}
@@ -416,42 +522,14 @@ const SubirEstacionamiento = () => {
               <>
                 <div
                   ref={areaRef}
-                  style={{
-                    width: AREA_SIZE,
-                    height: AREA_SIZE,
-                    margin: '32px auto',
-                    background: '#f7f7f7',
-                    border: '2px solid #2d7cff',
-                    borderRadius: 12,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    touchAction: 'none'
-                  }}
+                  className={styles.mapArea}
+                  style={{ width: AREA_SIZE, height: AREA_SIZE, margin: '32px auto' }}
                 >
                   {plazasPos.map((plaza, idx) => (
                     <div
                       key={plaza.num}
-                      style={{
-                        position: 'absolute',
-                        left: plaza.x,
-                        top: plaza.y,
-                        width: PLAZA_SIZE,
-                        height: PLAZA_SIZE,
-                        background: selectedPlazas.includes(plaza.num) ? '#2d7cff' : '#fff',
-                        color: selectedPlazas.includes(plaza.num) ? '#fff' : '#222',
-                        border: '2px solid #2d7cff',
-                        borderRadius: 6,
-                        cursor: 'grab',
-                        fontWeight: 'bold',
-                        fontFamily: 'cursive',
-                        fontSize: 18,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        userSelect: 'none',
-                        boxShadow: '0 2px 8px #0002',
-                        zIndex: 2
-                      }}
+                      className={`${styles.plaza} ${selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
+                      style={{ left: plaza.x, top: plaza.y, width: PLAZA_SIZE, height: PLAZA_SIZE }}
                       title={`Plaza ${plaza.num}`}
                       onClick={() => handlePlazaClick(plaza.num)}
                       onMouseDown={e => handleMouseDown(e, idx)}
@@ -464,24 +542,15 @@ const SubirEstacionamiento = () => {
                 {!mapaGuardado && (
                   <button
                     onClick={handleGuardarMapa}
-                    className={styles.submitButton}
-                    style={{ backgroundColor: '#28a745', marginTop: '16px' }}
+                    className={styles.saveMapButton}
+                    style={{ marginTop: '16px' }}
                   >
                     Guardar Mapa
                   </button>
                 )}
 
                 {mapaGuardado && (
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      margin: '16px 0',
-                      color: '#28a745',
-                      fontWeight: 'bold',
-                      fontFamily: 'cursive',
-                      fontSize: 16
-                    }}
-                  >
+                  <div className={styles.mapSavedMessage}>
                     Mapa guardado en tu sesión
                   </div>
                 )}
