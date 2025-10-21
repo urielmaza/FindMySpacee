@@ -8,8 +8,25 @@ const MisEstacionamientos = () => {
 
   // Cargar mapas guardados al montar el componente
   useEffect(() => {
-    const mapas = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
-    setMapasGuardados(mapas);
+    try {
+      const raw = localStorage.getItem('findmyspace_mapas');
+      if (!raw) {
+        setMapasGuardados([]);
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      const sanitized = Array.isArray(parsed)
+        ? parsed.filter((item) => {
+            if (!item || typeof item !== 'object') return false;
+            const mapa = item.mapa || {};
+            return Array.isArray(mapa.plazasPos);
+          })
+        : [];
+      setMapasGuardados(sanitized);
+    } catch (e) {
+      console.error('Error leyendo mapas guardados:', e);
+      setMapasGuardados([]);
+    }
   }, []);
 
   // Función para eliminar un mapa
@@ -47,13 +64,18 @@ const MisEstacionamientos = () => {
           ) : (
             <div className={styles.mapasGrid}>
               {mapasGuardados.map((mapaData, index) => {
-                const { estacionamiento, mapa } = mapaData;
+                const estacionamiento = mapaData?.estacionamiento || {};
+                const mapa = mapaData?.mapa || {};
+                const areaSize = Number(mapa.areaSize) || 400;
+                const plazaSize = Number(mapa.plazaSize) || 40;
+                const plazasPos = Array.isArray(mapa.plazasPos) ? mapa.plazasPos : [];
+                const selectedPlazas = Array.isArray(mapa.selectedPlazas) ? mapa.selectedPlazas : [];
                 return (
                   <div key={index} className={styles.mapaCard}>
                     {/* Header de la tarjeta */}
                     <div className={styles.cardHeader}>
                       <h3 className={styles.nombreEstacionamiento}>
-                        {estacionamiento.nombre}
+                        {estacionamiento.nombre || 'Estacionamiento'}
                       </h3>
                       <button 
                         className={styles.deleteButton}
@@ -66,14 +88,18 @@ const MisEstacionamientos = () => {
 
                     {/* Información del estacionamiento */}
                     <div className={styles.infoEstacionamiento}>
-                      <p><strong>📍 Ubicación:</strong> {estacionamiento.ubicacion}</p>
-                      <p><strong>🚗 Plazas:</strong> {estacionamiento.plazas}</p>
-                      <p><strong>🏢 Tipo:</strong> {estacionamiento.tipo} - {estacionamiento.tipoEstructura}</p>
-                      {estacionamiento.tipo === 'privado' && (
+                      <p><strong>📍 Ubicación:</strong> {estacionamiento.ubicacion || '—'}</p>
+                      <p><strong>🚗 Plazas:</strong> {estacionamiento.plazas ?? '—'}</p>
+                      <p><strong>🏢 Tipo:</strong> {(estacionamiento.tipo || '—')} - {(estacionamiento.tipoEstructura || '—')}</p>
+                      {estacionamiento.tipo === 'privado' && typeof estacionamiento.precio !== 'undefined' && (
                         <p><strong>💰 Precio:</strong> ${estacionamiento.precio}/hora</p>
                       )}
-                      <p><strong>🕒 Horario:</strong> {estacionamiento.apertura} - {estacionamiento.cierre}</p>
-                      <p><strong>📅 Creado:</strong> {formatearFecha(estacionamiento.fechaCreacion)}</p>
+                      {estacionamiento.apertura && estacionamiento.cierre && (
+                        <p><strong>🕒 Horario:</strong> {estacionamiento.apertura} - {estacionamiento.cierre}</p>
+                      )}
+                      {estacionamiento.fechaCreacion && (
+                        <p><strong>📅 Creado:</strong> {formatearFecha(estacionamiento.fechaCreacion)}</p>
+                      )}
                     </div>
 
                     {/* Visualización del mapa */}
@@ -82,8 +108,8 @@ const MisEstacionamientos = () => {
                       <div 
                         className={styles.mapaContainer}
                         style={{
-                          width: mapa.areaSize * 0.6, // Escala reducida para la vista
-                          height: mapa.areaSize * 0.6,
+                          width: areaSize * 0.6, // Escala reducida para la vista
+                          height: areaSize * 0.6,
                           position: 'relative',
                           background: '#f7f7f7',
                           border: '2px solid #2d7cff',
@@ -91,7 +117,7 @@ const MisEstacionamientos = () => {
                           margin: '12px auto'
                         }}
                       >
-                        {mapa.plazasPos.map((plaza) => (
+                        {plazasPos.map((plaza) => (
                           <div
                             key={plaza.num}
                             className={styles.plazaVista}
@@ -99,10 +125,10 @@ const MisEstacionamientos = () => {
                               position: 'absolute',
                               left: plaza.x * 0.6, // Escala reducida
                               top: plaza.y * 0.6,
-                              width: mapa.plazaSize * 0.6,
-                              height: mapa.plazaSize * 0.6,
-                              background: mapa.selectedPlazas.includes(plaza.num) ? '#2d7cff' : '#fff',
-                              color: mapa.selectedPlazas.includes(plaza.num) ? '#fff' : '#222',
+                              width: plazaSize * 0.6,
+                              height: plazaSize * 0.6,
+                              background: selectedPlazas.includes(plaza.num) ? '#2d7cff' : '#fff',
+                              color: selectedPlazas.includes(plaza.num) ? '#fff' : '#222',
                               border: '1px solid #2d7cff',
                               borderRadius: 4,
                               fontSize: 10,

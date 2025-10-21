@@ -48,12 +48,21 @@ const CargarVehiculo = () => {
         } catch (error) {
           console.error('Error al obtener datos del usuario:', error);
         }
-  
+      };
+
+      fetchUserData();
+    }
+
+    // Llamada a la API para obtener las marcas
+    const fetchMarcas = async () => {
+      try {
+        const response = await apiClient.get('/marcas/all');
         if (response.data.success && response.data.data) {
           setMarcas(response.data.data);
         } else {
           console.error('Estructura de respuesta inesperada:', response.data);
           setMarcas([]); // Array vacío como fallback
+        }
       } catch (error) {
         console.error('Error al obtener las marcas:', error);
         setMarcas([]); // Array vacío en caso de error
@@ -147,20 +156,11 @@ const CargarVehiculo = () => {
     });
   };
 
-<<<<<<< HEAD
-  const handleProfileChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData({
-      ...profileData,
-      [name]: value,
-    });
-=======
   const handlePatenteTipoChange = (e) => {
     const value = e.target.value;
     setPatenteTipo(value);
     // Reiniciar la patente al cambiar de tipo para evitar inconsistencias
     setFormData((prev) => ({ ...prev, patente: '' }));
->>>>>>> 8ffdcd8700feb37e64dc908962a57c303bfe8f43
   };
 
   const handleSubmit = async (e) => {
