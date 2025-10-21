@@ -44,9 +44,15 @@ const Login = () => {
           
           if (res.ok) {
             setMessage('Login con Google exitoso');
+            // Guardar token si viene para futuras llamadas autenticadas
+            if (data.token) {
+              localStorage.setItem('token', data.token);
+            }
             const sessionData = {
               id_cliente: data.user.id_cliente,
-              email: data.user.email
+              email: data.user.email,
+              nombre: data.user.nombre || undefined,
+              apellido: data.user.apellido || undefined,
             };
             setUserSession(sessionData);
             setTimeout(() => navigate('/home-user'), 1000);
@@ -89,6 +95,9 @@ const Login = () => {
       if (res.ok) {
         setMessage(data.message);
         if (data.user && data.user.id_cliente) {
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+          }
           const sessionData = {
             id_cliente: data.user.id_cliente,
             email: data.user.email

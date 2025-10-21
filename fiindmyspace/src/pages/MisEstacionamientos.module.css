@@ -338,6 +338,18 @@
   filter: brightness(1.08);
 }
 
+/* Botón Agregar en modo oscuro: celeste como en MisVehiculos */
+:global(body.dark-mode) .addButton {
+  background: linear-gradient(120deg, #000000 0%, #00e1ff 50%, #000000 100%);
+  background-size: 300% 300%;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
+}
+
+:global(body.dark-mode) .addButton:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 0 0 5px rgba(0, 225, 255, 0.45);
+}
+
 /* Animación reusada de MisVehiculos */
 @keyframes addButtonFlow {
   0% { background-position: 0% 50%; }

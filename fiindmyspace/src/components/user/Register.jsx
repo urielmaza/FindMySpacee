@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import styles from './Register.module.css';
 import logo from '../../assets/logofindmyspaceB.png';
+import { setUserSession } from '../../utils/auth';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -41,8 +42,19 @@ const Register = () => {
           const data = await res.json();
           
           if (res.ok) {
-            setMessage('¡Registro con Google exitoso! Redirigiendo al login...');
-            setTimeout(() => navigate('/login?success=true'), 2000);
+            // Guardar sesión y redirigir directo al Home de usuario
+            const user = data.user || {};
+            if (data.token) {
+              localStorage.setItem('token', data.token);
+            }
+            setUserSession({
+              id_cliente: user.id_cliente,
+              email: user.email,
+              nombre: user.nombre,
+              apellido: user.apellido
+            });
+            setMessage('¡Registro con Google exitoso! Redirigiendo...');
+            navigate('/home-user');
           } else {
             setError(data.error || 'Error en registro con Google');
           }

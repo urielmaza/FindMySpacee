@@ -1,0 +1,159 @@
+.container {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg-color, #ffffff);
+  color: var(--text-color, #000000);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+.message {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+:global(body.dark-mode) .container {
+  --bg-color: #2c2c2e;
+  --text-color: #ffffff;
+}
+
+/* Tarjeta de formulario */
+.profileFormCard {
+  width: 100%;
+  max-width: 520px;
+  background: var(--card-bg, #ffffff);
+  color: var(--text-color, #000000);
+  border: 1px solid var(--border-color, #e1e8ed);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+.profileFormTitle {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profileAvatarButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #692497; /* violeta de marca */
+  background: #F3F3F3;
+  color: #000;
+  font-weight: 700;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.05s ease;
+  box-shadow: 0 2px 8px rgba(105, 36, 151, 0.15);
+}
+
+.profileAvatarButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(105, 36, 151, 0.25);
+}
+
+:global(body.dark-mode) .profileAvatarButton {
+  background: #404040;
+  color: #fff;
+  border-color: #00e1ff;
+  box-shadow: 0 2px 8px rgba(0, 225, 255, 0.18);
+}
+
+:global(body.dark-mode) .profileAvatarButton:hover {
+  box-shadow: 0 4px 14px rgba(0, 225, 255, 0.30);
+}
+
+.profileFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.profileFormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profileFormCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profileFormLabel {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.profileFormInput {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color, #d9d9d9);
+  border-radius: 10px;
+  font-size: 1rem;
+  background: var(--input-bg, #ffffff);
+  color: var(--text-color, #000000);
+}
+
+.profileFormInput:focus {
+  outline: none;
+  border-color: #692497;
+  box-shadow: 0 0 0 3px rgba(105,36,151,0.12);
+}
+
+.profileFormButton {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(135deg, #000000, #692497);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profileFormButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+}
+
+@media (max-width: 600px) {
+  .profileFormRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Modo oscuro */
+:global(body.dark-mode) .profileFormCard {
+  --card-bg: #1a1a1a;
+  --border-color: #2a2a2a;
+  --input-bg: #101010;
+}
+
+:global(body.dark-mode) .profileFormInput:focus {
+  border-color: #00e1ff;
+  box-shadow: 0 0 0 3px rgba(0,225,255,0.15);
+}
+
+:global(body.dark-mode) .profileFormButton {
+  background: linear-gradient(135deg, #000000, #00e1ff);
+  color: #0a0a0a;
+}

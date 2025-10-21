@@ -33,7 +33,7 @@ const HomeUser = () => {
 
   const handleGoProfile = () => {
     setIsAvatarOpen(false);
-    navigate('/mi-perfil');
+    navigate('/profile');
   };
 
   const handleLogout = async () => logoutAndPreserve(navigate);

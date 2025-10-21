@@ -12,6 +12,7 @@ import MisVehiculos from './pages/MisVehiculos'; // Nueva importación
 import MisEstacionamientos from './pages/MisEstacionamientos'; // Nueva importación
 import AuthCallback from './pages/AuthCallback'; // Nueva importación
 import styles from './App.module.css'; // Asegúrate de tener este archivo CSS
+import Profile from './pages/Profile';
 
 function App() {
   const location = useLocation();
@@ -33,6 +34,7 @@ function App() {
           <Route path="/mis-vehiculos" element={<MisVehiculos />} />
           <Route path="/mis-estacionamientos" element={<MisEstacionamientos />} />
           <Route path="/home-user" element={<HomeUser />} />
+          <Route path="/profile" element={<Profile />} />
           {/* Ruta para manejar rutas no definidas */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
