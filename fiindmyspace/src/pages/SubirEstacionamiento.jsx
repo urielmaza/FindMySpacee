@@ -51,7 +51,6 @@ const SubirEstacionamiento = () => {
   const [showMapa, setShowMapa] = useState(false);
   const [plazasPos, setPlazasPos] = useState([]);
   const [mapaGuardado, setMapaGuardado] = useState(false);
-  const [fase, setFase] = useState('form'); // 'form' | 'tarifas'
 
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
@@ -520,8 +519,6 @@ const SubirEstacionamiento = () => {
     setMapaGuardado(true);
     setMensaje('¡Mapa guardado exitosamente en tu sesión!');
     setTipoMensaje('exito');
-    // Avanzar a la fase siguiente después de un breve efecto
-    setTimeout(() => setFase('tarifas'), 400);
   };
 
   return (
@@ -529,19 +526,6 @@ const SubirEstacionamiento = () => {
       <BannerUser />
       <div className={styles.pageContainer}>
         <div className={styles.contentContainer}>
-          {/* Fase tarifas (mock) */}
-          {fase === 'tarifas' ? (
-            <div className={styles.tarifasCard}>
-              <h1 className={styles.pageTitle}>Tarifas</h1>
-              <div className={styles.formGroup}>
-                <input type="text" className={styles.formInput} placeholder="Nombre" />
-              </div>
-              <div className={styles.formGroup}>
-                <input type="text" className={styles.formInput} placeholder="Ciudad" />
-              </div>
-              <p className={styles.helperText}>Formulario de ejemplo (no funcional).</p>
-            </div>
-          ) : (
             <div className={`${styles.splitContainer} ${!showMapa ? styles.singleColumn : ''}`}>
               {/* Columna izquierda: formulario */}
               <div className={styles.panelCard}>
@@ -651,7 +635,6 @@ const SubirEstacionamiento = () => {
                   value={tipo}
                   onChange={e => {
                     setTipo(e.target.value);
-                    if (e.target.value === 'publico') setPrecio('');
                   }}
                   className={styles.formSelect}
                   required
@@ -941,7 +924,6 @@ const SubirEstacionamiento = () => {
                 </div>
               )}
             </div>
-          )}
         </div>
       </div>
     </>

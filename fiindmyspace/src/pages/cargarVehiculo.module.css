@@ -24,7 +24,7 @@
   font-weight: 700;
   text-align: center;
   margin: 0 auto 3rem auto;
-  color: var(--primary-color, #2c3e50);
+  color: #000000; /* negro en modo claro */
   max-width: 800px;
   padding: 0 20px;
 }
@@ -112,7 +112,7 @@
 .submitButton {
   width: 100%;
   padding: 14px 0;
-  background: linear-gradient(135deg, #2c3e50, #3498db);
+  background: linear-gradient(135deg, #000000, #8304b6); /* violeta como SubirEstacionamiento */
   color: white;
   border: none;
   border-radius: 8px;
@@ -173,6 +173,11 @@
 
 :global(body.dark-mode) .formInput::placeholder {
   color: #888888;
+}
+
+:global(body.dark-mode) .submitButton {
+  background: linear-gradient(135deg, #000000, #00E5FF); /* celeste en modo oscuro */
+  color: #ffffff;
 }
 
 /* Responsive Design */
