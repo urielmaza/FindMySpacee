@@ -34,6 +34,12 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
+  transition: grid-template-columns 300ms ease;
+}
+
+/* Cuando todavía no hay mapa, usar 1 columna para ocupar todo el ancho */
+.singleColumn {
+  grid-template-columns: 1fr !important;
 }
 
 .panelCard {
@@ -178,6 +184,97 @@
 .helperText {
   margin: 8px 0;
   color: var(--text-secondary, #666);
+}
+
+/* ====== Nuevos estilos: Modalidades, tabla de precios y métodos de pago ====== */
+.checkboxGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.checkboxItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 2px solid var(--border-color, #e1e8ed);
+  border-radius: 8px;
+  background: var(--card-bg, #fff);
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.pricingTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-color, #e1e8ed);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pricingTable thead th {
+  background: #f8f9fa;
+  color: var(--text-color, #333);
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-color, #e1e8ed);
+}
+
+.pricingTable tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color, #e1e8ed);
+}
+
+.pricingTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.vehicleNameCell {
+  min-width: 180px;
+}
+
+.actionsCell {
+  text-align: right;
+  min-width: 120px;
+}
+
+.addRowBar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.addRowButton {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color, #e1e8ed);
+  background: #fff;
+  color: var(--text-color, #333);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all .2s ease;
+}
+
+.addRowButton:hover {
+  border-color: var(--primary-color, #2c3e50);
+  box-shadow: 0 0 0 3px rgba(44,62,80,0.08);
+}
+
+.removeRowButton {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid #ffd6d6;
+  background: #fff5f5;
+  color: #b71c1c;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 .dayCards {
@@ -461,6 +558,14 @@
 :global(body.dark-mode) .dayCard {
   background: var(--card-bg);
   border-color: var(--border-color);
+}
+
+:global(body.dark-mode) .checkboxItem {
+  background: transparent;
+}
+
+:global(body.dark-mode) .pricingTable thead th {
+  background: #151515;
 }
 
 :global(body.dark-mode) .addButton,

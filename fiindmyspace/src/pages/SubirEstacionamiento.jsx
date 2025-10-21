@@ -22,7 +22,6 @@ const SubirEstacionamiento = () => {
   const [tipoEstructura, setTipoEstructura] = useState('');
   const [cantidadPisos, setCantidadPisos] = useState('');
   const [tieneSubsuelo, setTieneSubsuelo] = useState('');
-  const [precio, setPrecio] = useState('');
   // Nueva estructura de horarios dinámicos por día
   // days: [{ id, name, ranges: [{ id, start, end }] }]
   const [days, setDays] = useState([]);
@@ -57,6 +56,36 @@ const SubirEstacionamiento = () => {
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
 
+  // ====== NUEVO: Modalidades de cobro dinámicas ======
+  // Claves canónicas para modalidades
+  const MODALIDADES_DEF = [
+    { key: 'hora', label: 'Por hora' },
+    { key: 'dia', label: 'Por día' },
+    { key: 'semana', label: 'Por semana' },
+    { key: 'mes', label: 'Por mes' },
+    { key: 'anio', label: 'Por año' }
+  ];
+  const [modalidades, setModalidades] = useState([]); // array de keys seleccionadas
+
+  // ====== NUEVO: Precios por tipo de vehículo ======
+  // Fila: { id, nombre, precios: { [modalidadKey]: string } }
+  const defaultVehiculos = useMemo(() => ([
+    { id: crypto.randomUUID(), nombre: 'Moto', precios: {} },
+    { id: crypto.randomUUID(), nombre: 'Auto', precios: {} },
+    { id: crypto.randomUUID(), nombre: 'Camioneta', precios: {} }
+  ]), []);
+  const [vehiculos, setVehiculos] = useState(defaultVehiculos);
+  const [nuevoVehiculoNombre, setNuevoVehiculoNombre] = useState('');
+
+  // ====== NUEVO: Métodos de pago ======
+  const METODOS_PAGO_DEF = [
+    { key: 'efectivo', label: 'Efectivo' },
+    { key: 'tarjeta', label: 'Tarjeta' },
+    { key: 'billetera', label: 'Billeteras virtuales' },
+    { key: 'transferencia', label: 'Transferencia bancaria' }
+  ];
+  const [metodosPago, setMetodosPago] = useState([]); // array de keys seleccionadas
+
   const dragPlaza = useRef(null);
   const offset = useRef({ x: 0, y: 0 });
   const areaRef = useRef(null);
@@ -88,7 +117,6 @@ const SubirEstacionamiento = () => {
         if (incomingLayout && Array.isArray(incomingLayout.plazasPos)) {
           setPlazasPos(incomingLayout.plazasPos || []);
           setSelectedPlazas(incomingLayout.selectedPlazas || []);
-          setShowMapa(true);
           setMapaGuardado(false);
         }
         const resp = await apiClient.get(`/espacios/${editingId}`);
@@ -103,7 +131,6 @@ const SubirEstacionamiento = () => {
             setTipoEstructura(espacio.tipo_estructura || '');
             setCantidadPisos(espacio.cantidad_pisos ? String(espacio.cantidad_pisos) : '');
             setTieneSubsuelo(espacio.tiene_subsuelo ? 'si' : 'no');
-            setPrecio(espacio.precio_por_hora ? String(espacio.precio_por_hora) : '');
             if (typeof espacio.latitud === 'number' && typeof espacio.longitud === 'number') {
               setSelectedCoords([espacio.latitud, espacio.longitud]);
             }
@@ -149,7 +176,6 @@ const SubirEstacionamiento = () => {
               if (!incomingLayout && match && match.mapa) {
                 setPlazasPos(match.mapa.plazasPos || []);
                 setSelectedPlazas(match.mapa.selectedPlazas || []);
-                setShowMapa(true);
                 setMapaGuardado(false);
               } else {
                 // Generar una grilla por defecto según la cantidad de plazas
@@ -165,7 +191,6 @@ const SubirEstacionamiento = () => {
                   });
                   setPlazasPos(newPos);
                   setSelectedPlazas([]);
-                  setShowMapa(true);
                   setMapaGuardado(false);
                 }
               }
@@ -206,7 +231,48 @@ const SubirEstacionamiento = () => {
     setShowMapa(false);
     setPlazasPos([]);
     setMapaGuardado(false);
-  }, [plazas, tipo, tipoEstructura, precio]);
+    }, [plazas, tipo, tipoEstructura]);
+
+  // Mantener coherencia de columnas (modalidades) en las filas de vehículos
+  useEffect(() => {
+    // Cuando cambian las modalidades, aseguramos que cada fila tenga las claves necesarias
+    setVehiculos(prev => prev.map(v => ({
+      ...v,
+      precios: modalidades.reduce((acc, mKey) => {
+        acc[mKey] = v.precios?.[mKey] ?? '';
+        return acc;
+      }, {})
+    })));
+  }, [modalidades]);
+
+  const toggleModalidad = (key) => {
+    setModalidades(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+
+  const handlePrecioChange = (vehiculoId, modalidadKey, value) => {
+    setVehiculos(prev => prev.map(v => (
+      v.id === vehiculoId ? { ...v, precios: { ...v.precios, [modalidadKey]: value } } : v
+    )));
+  };
+
+  const handleAddVehiculoRow = () => {
+    const nombre = (nuevoVehiculoNombre || '').trim();
+    const nuevo = {
+      id: crypto.randomUUID(),
+      nombre: nombre || `Tipo ${vehiculos.length + 1}`,
+      precios: modalidades.reduce((acc, k) => (acc[k] = '', acc), {})
+    };
+    setVehiculos(prev => [...prev, nuevo]);
+    setNuevoVehiculoNombre('');
+  };
+
+  const handleRemoveVehiculoRow = (id) => {
+    setVehiculos(prev => prev.filter(v => v.id !== id));
+  };
+
+  const toggleMetodoPago = (key) => {
+    setMetodosPago(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
 
   const handleAddressChange = async (e) => {
     const value = e.target.value;
@@ -255,11 +321,7 @@ const SubirEstacionamiento = () => {
       setTipoMensaje('error');
       return;
     }
-    if (tipo === 'privado' && !precio) {
-      setMensaje('Error al enviar: el precio es obligatorio para estacionamientos privados.');
-      setTipoMensaje('error');
-      return;
-    }
+    // Se elimina la obligación de precio por hora: ahora es un bloque dinámico (solo UI)
     if (tipoEstructura === 'cerrado' && !cantidadPisos) {
       setMensaje('Error al enviar: la cantidad de pisos es obligatoria para estacionamientos cerrados.');
       setTipoMensaje('error');
@@ -284,6 +346,24 @@ const SubirEstacionamiento = () => {
     const lat = selectedCoords ? Number(Number(selectedCoords[0]).toFixed(8)) : null;
     const lon = selectedCoords ? Number(Number(selectedCoords[1]).toFixed(8)) : null;
 
+    // Construir tarifas a partir de la tabla UI
+    const tarifas = [];
+    if (tipo === 'privado' && modalidades.length > 0 && vehiculos.length > 0) {
+      vehiculos.forEach(v => {
+        const nombreVeh = (v.nombre || '').trim();
+        if (!nombreVeh) return;
+        modalidades.forEach(mKey => {
+          const val = v.precios?.[mKey];
+          if (val !== undefined && val !== null && String(val).trim() !== '') {
+            const precioNum = Number(val);
+            if (!Number.isNaN(precioNum) && precioNum >= 0) {
+              tarifas.push({ tipo_vehiculo: nombreVeh, modalidad: mKey, precio: precioNum });
+            }
+          }
+        });
+      });
+    }
+
     const body = {
       id_cliente: idCliente || null,
       nombre_estacionamiento: nombre,
@@ -291,12 +371,14 @@ const SubirEstacionamiento = () => {
       latitud: lat,
       longitud: lon,
       cantidad_plazas: Number(plazas),
-      precio_por_hora: tipo === 'privado' ? Number(precio || 0) : 0,
       tipo_de_estacionamiento: tipo,
       tipo_estructura: tipoEstructura || null,
       cantidad_pisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos || 1) : 1,
       tiene_subsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si' || tieneSubsuelo === true || tieneSubsuelo === 1) : false,
-      horarios: horariosPayload
+      horarios: horariosPayload,
+      modalidades: tipo === 'privado' ? modalidades : [],
+      metodos_pago: tipo === 'privado' ? metodosPago : [],
+      tarifas: tipo === 'privado' ? tarifas : []
     };
 
     try {
@@ -345,7 +427,8 @@ const SubirEstacionamiento = () => {
       });
       setPlazasPos(newPos);
     }
-    setShowMapa(true);
+  // Mostrar el panel derecho (mapa) solo después de guardar exitosamente
+  setShowMapa(true);
     setMapaGuardado(false);
   };
 
@@ -388,7 +471,6 @@ const SubirEstacionamiento = () => {
         tipoEstructura,
         cantidadPisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos) : 1,
         tieneSubsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
-        precio: tipo === 'privado' ? parseFloat(precio) : 0,
         horarios: sortedDays.map(d => ({
           dia: d.name,
           franjas: d.ranges.map(r => ({ apertura: r.start, cierre: r.end }))
@@ -460,7 +542,7 @@ const SubirEstacionamiento = () => {
               <p className={styles.helperText}>Formulario de ejemplo (no funcional).</p>
             </div>
           ) : (
-            <div className={styles.splitContainer}>
+            <div className={`${styles.splitContainer} ${!showMapa ? styles.singleColumn : ''}`}>
               {/* Columna izquierda: formulario */}
               <div className={styles.panelCard}>
                 <h1 className={styles.pageTitle}>{editingId ? 'Editar Estacionamiento' : 'Nuevo Estacionamiento'}</h1>
@@ -580,19 +662,121 @@ const SubirEstacionamiento = () => {
                 </select>
               </div>
 
+              {/* Bloques dinámicos: solo visibles para estacionamiento Privado */}
               {tipo === 'privado' && (
-                <div className={styles.formGroup}>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="Precio por hora (ARS)"
-                    value={precio}
-                    onChange={e => setPrecio(e.target.value)}
-                    className={styles.formInput}
-                    required
-                  />
-                </div>
+                <>
+                  {/* Modalidades de cobro */}
+                  <div className={styles.formGroup}>
+                    <div className={styles.sectionHeader}>
+                      <h2 className={styles.sectionTitle}>Modalidades de cobro</h2>
+                      <p className={styles.helperText}>Selecciona una o más modalidades. La tabla de precios se adaptará automáticamente.</p>
+                    </div>
+                    <div className={styles.checkboxGroup}>
+                      {MODALIDADES_DEF.map(m => (
+                        <label key={m.key} className={styles.checkboxItem}>
+                          <input
+                            type="checkbox"
+                            checked={modalidades.includes(m.key)}
+                            onChange={() => toggleModalidad(m.key)}
+                          />
+                          <span>{m.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Precios por tipo de vehículo */}
+                  <div className={styles.formGroup}>
+                    <div className={styles.sectionHeader}>
+                      <h2 className={styles.sectionTitle}>Precios por tipo de vehículo</h2>
+                      <p className={styles.helperText}>Tabla demostrativa. Los valores no se envían ni se persisten (solo vista).</p>
+                    </div>
+
+                    {modalidades.length === 0 ? (
+                      <p className={styles.helperText}>Primero selecciona al menos una modalidad.</p>
+                    ) : (
+                      <div className={styles.tableWrapper}>
+                        <table className={styles.pricingTable}>
+                          <thead>
+                            <tr>
+                              <th>Tipo de vehículo</th>
+                              {modalidades.map(key => {
+                                const label = MODALIDADES_DEF.find(m => m.key === key)?.label || key;
+                                return <th key={key}>{label} (ARS)</th>;
+                              })}
+                              <th></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {vehiculos.map(v => (
+                              <tr key={v.id}>
+                                <td className={styles.vehicleNameCell}>
+                                  <input
+                                    type="text"
+                                    value={v.nombre}
+                                    onChange={(e) => setVehiculos(prev => prev.map(x => x.id === v.id ? { ...x, nombre: e.target.value } : x))}
+                                    className={styles.formInput}
+                                    placeholder="Ej: Moto"
+                                  />
+                                </td>
+                                {modalidades.map(mKey => (
+                                  <td key={mKey}>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      value={v.precios?.[mKey] ?? ''}
+                                      onChange={(e) => handlePrecioChange(v.id, mKey, e.target.value)}
+                                      className={styles.formInput}
+                                      placeholder="0.00"
+                                    />
+                                  </td>
+                                ))}
+                                <td className={styles.actionsCell}>
+                                  <button type="button" className={styles.removeRowButton} onClick={() => handleRemoveVehiculoRow(v.id)}>
+                                    Eliminar
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        <div className={styles.addRowBar}>
+                          <input
+                            type="text"
+                            value={nuevoVehiculoNombre}
+                            onChange={(e) => setNuevoVehiculoNombre(e.target.value)}
+                            className={styles.formInput}
+                            placeholder="Nuevo tipo de vehículo"
+                          />
+                          <button type="button" className={styles.addRowButton} onClick={handleAddVehiculoRow}>
+                            + Agregar tipo
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Métodos de pago */}
+                  <div className={styles.formGroup}>
+                    <div className={styles.sectionHeader}>
+                      <h2 className={styles.sectionTitle}>Métodos de pago</h2>
+                      <p className={styles.helperText}>Selecciona los métodos aceptados. Solo demostrativo.</p>
+                    </div>
+                    <div className={styles.checkboxGroup}>
+                      {METODOS_PAGO_DEF.map(p => (
+                        <label key={p.key} className={styles.checkboxItem}>
+                          <input
+                            type="checkbox"
+                            checked={metodosPago.includes(p.key)}
+                            onChange={() => toggleMetodoPago(p.key)}
+                          />
+                          <span>{p.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className={styles.formGroup}>
@@ -712,48 +896,50 @@ const SubirEstacionamiento = () => {
                   </div>
                 )}
               </div>
-              {/* Columna derecha: mapa */}
-              <div className={`${styles.panelCard} ${styles.mapPanel}`}>
-                <h2 className={styles.sectionTitle}>Mapa</h2>
-                {showMapa && plazasPos.length > 0 ? (
-                  <>
-                    <div
-                      ref={areaRef}
-                      className={styles.mapArea}
-                      style={{ width: AREA_SIZE, height: AREA_SIZE, margin: '0 auto' }}
-                    >
-                      {plazasPos.map((plaza, idx) => (
-                        <div
-                          key={plaza.num}
-                          className={`${styles.plaza} ${selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
-                          style={{ left: plaza.x, top: plaza.y, width: PLAZA_SIZE, height: PLAZA_SIZE }}
-                          title={`Plaza ${plaza.num}`}
-                          onClick={() => handlePlazaClick(plaza.num)}
-                          onMouseDown={e => handleMouseDown(e, idx)}
-                        >
-                          {plaza.num}
-                        </div>
-                      ))}
-                    </div>
-                    {!mapaGuardado && (
-                      <button
-                        onClick={handleGuardarMapa}
-                        className={styles.saveMapButton}
-                        style={{ marginTop: '16px' }}
+              {/* Columna derecha: mapa, solo aparece tras guardar exitosamente */}
+              {showMapa && (
+                <div className={`${styles.panelCard} ${styles.mapPanel}`}>
+                  <h2 className={styles.sectionTitle}>Mapa</h2>
+                  {plazasPos.length > 0 ? (
+                    <>
+                      <div
+                        ref={areaRef}
+                        className={styles.mapArea}
+                        style={{ width: AREA_SIZE, height: AREA_SIZE, margin: '0 auto' }}
                       >
-                        Guardar Mapa
-                      </button>
-                    )}
-                    {mapaGuardado && (
-                      <div className={styles.mapSavedMessage}>
-                        Mapa guardado en tu sesión
+                        {plazasPos.map((plaza, idx) => (
+                          <div
+                            key={plaza.num}
+                            className={`${styles.plaza} ${selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
+                            style={{ left: plaza.x, top: plaza.y, width: PLAZA_SIZE, height: PLAZA_SIZE }}
+                            title={`Plaza ${plaza.num}`}
+                            onClick={() => handlePlazaClick(plaza.num)}
+                            onMouseDown={e => handleMouseDown(e, idx)}
+                          >
+                            {plaza.num}
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <p className={styles.helperText}>Completa el formulario y genera el mapa para empezar.</p>
-                )}
-              </div>
+                      {!mapaGuardado && (
+                        <button
+                          onClick={handleGuardarMapa}
+                          className={styles.saveMapButton}
+                          style={{ marginTop: '16px' }}
+                        >
+                          Guardar Mapa
+                        </button>
+                      )}
+                      {mapaGuardado && (
+                        <div className={styles.mapSavedMessage}>
+                          Mapa guardado en tu sesión
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className={styles.helperText}>No hay plazas disponibles para mostrar.</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
