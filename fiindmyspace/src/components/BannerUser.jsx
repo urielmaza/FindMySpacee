@@ -110,7 +110,7 @@ const BannerUser = ({ onMenuToggle }) => {
                 <path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v2H2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1zM2 10h20v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
               </svg>
             </span>
-            <span className={styles.navText}>Mis Reservas</span>
+            <span className={styles.navText}>Mis reservas</span>
           </button>
           <button onClick={() => handleNavigation('/mis-vehiculos')} className={styles.navButton}>
             <span className={styles.navIcon}>
@@ -155,7 +155,7 @@ const BannerUser = ({ onMenuToggle }) => {
                   </g>
                 </svg>
               </span>
-              <span className={styles.navText}>Mis Estacionamientos</span>
+              <span className={styles.navText}>Mis estacionamientos</span>
             </button>
           )}
          
