@@ -16,6 +16,7 @@ const Profile = () => {
   const [showGoHome, setShowGoHome] = useState(false);
   const [hasPassword, setHasPassword] = useState(false);
   const [providerGoogle, setProviderGoogle] = useState(false);
+  const [tipoCliente, setTipoCliente] = useState('cliente');
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [savingPw, setSavingPw] = useState(false);
@@ -39,6 +40,7 @@ const Profile = () => {
           if (data.user.nombre) setNombre(data.user.nombre);
           if (data.user.apellido) setApellido(data.user.apellido);
           if (data.user.email) setEmail(data.user.email);
+          if (data.user.tipo_cliente) setTipoCliente(data.user.tipo_cliente);
         }
       } catch (e) {
         // Si falla (sin token), mantenemos los valores de sesión
@@ -53,7 +55,7 @@ const Profile = () => {
     try {
   // No enviamos email porque no es editable
   const payload = { id_cliente: idCliente, nombre, apellido };
-      const { data } = await apiClient.put('/profile', payload);
+  const { data } = await apiClient.put('/profile', { ...payload, tipo_cliente: tipoCliente });
       if (data && data.success) {
         setMessage('Perfil actualizado correctamente');
         const session = getUserSession() || {};
@@ -213,6 +215,17 @@ const Profile = () => {
               </>
             )}
           </div>
+
+          {/* Tipo de usuario */}
+          {!editPwMode && (
+            <div className="profileFormGroup">
+              <label className="profileFormLabel" htmlFor="tipoUsuario">Tipo de usuario</label>
+              <select id="tipoUsuario" className="profileFormInput" value={tipoCliente} onChange={(e) => setTipoCliente(e.target.value)}>
+                <option value="cliente">Cliente</option>
+                <option value="propietario">Propietario</option>
+              </select>
+            </div>
+          )}
 
           {!editPwMode && (
             <button type="button" className="profileFormButton" onClick={handleGuardarDatos} disabled={saving}>

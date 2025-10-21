@@ -11,6 +11,7 @@ const HomeUser = () => {
   const userEmail = userSession ? userSession.email : 'Usuario';
 
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+  const [tipoCliente, setTipoCliente] = useState('cliente');
   const avatarRef = useRef(null);
 
   const handleCardClick = (route) => {
@@ -29,6 +30,20 @@ const HomeUser = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    // Cargar tipo_cliente del backend
+    (async () => {
+      try {
+        const { data } = await apiClient.get('/profile');
+        if (data && data.success && data.user && data.user.tipo_cliente) {
+          setTipoCliente(data.user.tipo_cliente);
+        }
+      } catch (e) {
+        // Si no hay token/permiso, usar fallback de sesión si existiera en el futuro
+      }
+    })();
   }, []);
 
   const handleGoProfile = () => {
@@ -84,25 +99,27 @@ const HomeUser = () => {
             </p>
           </div>
           
-          <div 
-            className={styles.featureCard} 
-            style={{'--delay': '0.1s'}}
-            onClick={() => handleCardClick('/subir-estacionamiento')}
-          >
-            <span className={styles.featureIcon}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.341 6.484A10 10 0 0 1 10.266 21.85"/>
-                <path d="M3.659 17.516A10 10 0 0 1 13.74 2.152"/>
-                <circle cx="12" cy="12" r="3"/>
-                <circle cx="19" cy="5" r="2"/>
-                <circle cx="5" cy="19" r="2"/>
-              </svg>
-            </span>
-            <h3 className={styles.featureTitle}>Carga tu Estacionamiento</h3>
-            <p className={styles.featureDescription}>
-              Monetiza tu espacio disponible y gana dinero
-            </p>
-          </div>
+          {tipoCliente === 'propietario' && (
+            <div 
+              className={styles.featureCard} 
+              style={{'--delay': '0.1s'}}
+              onClick={() => handleCardClick('/subir-estacionamiento')}
+            >
+              <span className={styles.featureIcon}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.341 6.484A10 10 0 0 1 10.266 21.85"/>
+                  <path d="M3.659 17.516A10 10 0 0 1 13.74 2.152"/>
+                  <circle cx="12" cy="12" r="3"/>
+                  <circle cx="19" cy="5" r="2"/>
+                  <circle cx="5" cy="19" r="2"/>
+                </svg>
+              </span>
+              <h3 className={styles.featureTitle}>Carga tu Estacionamiento</h3>
+              <p className={styles.featureDescription}>
+                Monetiza tu espacio disponible y gana dinero
+              </p>
+            </div>
+          )}
           
           <div 
             className={styles.featureCard} 
