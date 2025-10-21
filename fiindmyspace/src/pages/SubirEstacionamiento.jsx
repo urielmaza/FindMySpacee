@@ -46,6 +46,7 @@ const SubirEstacionamiento = () => {
   const [resolvedAddress, setResolvedAddress] = useState('');
   const [suggestions, setSuggestions] = useState([]); // UI-only, sin fetch
   const [selectedCoords, setSelectedCoords] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   const [selectedPlazas, setSelectedPlazas] = useState([]);
   const [showMapa, setShowMapa] = useState(false);
@@ -303,6 +304,44 @@ const SubirEstacionamiento = () => {
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('La geolocalización no es compatible con tu navegador.');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const resp = await apiClient.get('/reverse-geocode', { params: { lat: latitude, lon: longitude } });
+          const data = resp.data;
+          if (data && data.success) {
+            const address = data.address || '';
+            setAddressInput(address);
+            setResolvedAddress(address);
+            setUbicacion(address);
+            setSelectedCoords([latitude, longitude]);
+            setSuggestions([]);
+          } else {
+            alert(data?.error || 'No se pudo obtener la dirección de tu ubicación.');
+          }
+        } catch (error) {
+          console.error('Error al obtener la dirección:', error);
+          alert('Hubo un error al obtener tu ubicación.');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        console.error('Error al obtener la ubicación:', error);
+        setIsLocating(false);
+        alert('No se pudo obtener tu ubicación. Asegúrate de permitir el acceso.');
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+    );
+  };
+
   const handlePlazaClick = (num) => {
     setSelectedPlazas((prev) =>
       prev.includes(num)
@@ -543,17 +582,47 @@ const SubirEstacionamiento = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <input
-                  type="text"
-                  placeholder="Ubicación"
-                  value={addressInput}
-                  onChange={handleAddressChange}
-                  className={styles.formInput}
-                  required
-                  autoComplete="off"
-                />
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Ubicación"
+                    value={addressInput}
+                    onChange={handleAddressChange}
+                    className={styles.formInput}
+                    required
+                    autoComplete="off"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    disabled={isLocating}
+                    style={{
+                      padding: '8px 12px',
+                      fontSize: 14,
+                      cursor: isLocating ? 'not-allowed' : 'pointer',
+                      backgroundColor: isLocating ? '#9bbcfb' : '#2d7cff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 8
+                    }}
+                  >
+                    {isLocating ? 'Obteniendo…' : 'Usar mi ubicación'}
+                  </button>
+                </div>
                 {suggestions.length > 0 && (
                   <ul className={styles.suggestionsList}>
+                    <li
+                      onClick={handleUseCurrentLocation}
+                      style={{
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #eee',
+                        color: '#007bff',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      📍 Usar mi ubicación actual
+                    </li>
                     {suggestions.map(sug => (
                       <li
                         key={sug.properties.place_id}

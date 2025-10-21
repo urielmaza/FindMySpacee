@@ -326,19 +326,19 @@ const CargarVehiculo = () => {
             </form>
             
             {message && (
-              <div 
+              <div
                 style={{
                   marginTop: '1rem',
                   padding: '12px',
                   borderRadius: '8px',
                   textAlign: 'center',
                   fontWeight: '600',
-                  backgroundColor: messageType === 'success' ? '#d4edda' : '#f8d7da',
-                  color: messageType === 'success' ? '#155724' : '#721c24',
-                  border: `1px solid ${messageType === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+                  backgroundColor: messageType === 'success' ? 'transparent' : '#f8d7da',
+                  color: messageType === 'success' ? '#1e7e34' : '#721c24',
+                  border: messageType === 'success' ? 'none' : '1px solid #f5c6cb'
                 }}
               >
-                {messageType === 'success' ? '✅' : '❌'} {message}
+                {message}
               </div>
             )}
           </div>

@@ -573,13 +573,6 @@ const Home = () => {
             <div className={`${styles.footerBottomLeft} ${styles.revealLeftBase}`} data-reveal data-reveal-variant="slow">
               <p>&copy; 2025 FindMySpace. Todos los derechos reservados.</p>
             </div>
-            <div className={`${styles.footerBottomRight} ${styles.revealRightBase}`} data-reveal data-reveal-variant="slow">
-              <a href="/privacidad" className={styles.footerLegalLink}>Política de privacidad</a>
-              <span className={styles.separator}>|</span>
-              <a href="/terminos" className={styles.footerLegalLink}>Términos de servicio</a>
-              <span className={styles.separator}>|</span>
-              <a href="/cookies" className={styles.footerLegalLink}>Política de cookies</a>
-            </div>
           </div>
         </div>
       </div>
