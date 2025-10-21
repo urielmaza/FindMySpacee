@@ -12,6 +12,8 @@ const CargarVehiculo = () => {
   const [marcas, setMarcas] = useState([]);
   // Tipo de patente: '6' => AAA 123 (7 con espacio); '7' => AA 123 BB (9 con espacios)
   const [patenteTipo, setPatenteTipo] = useState('6');
+  // Límite para nombres de modelo
+  const MAX_MODELO_LEN = 30;
   const [formData, setFormData] = useState({
     marca: '',
     modelo: '',
@@ -150,6 +152,13 @@ const CargarVehiculo = () => {
         return;
       }
     }
+    // Limitar el largo del modelo y evitar overflow por tecla mantenida
+    if (name === 'modelo') {
+      const trimmed = value.slice(0, MAX_MODELO_LEN);
+      setFormData({ ...formData, modelo: trimmed });
+      return;
+    }
+
     setFormData({
       ...formData,
       [name]: value,
@@ -285,6 +294,9 @@ const CargarVehiculo = () => {
                   onChange={handleInputChange}
                   className={styles.formInput}
                   placeholder="Ej: Corolla, Civic, etc."
+                  minLength={1}
+                  maxLength={MAX_MODELO_LEN}
+                  title={`Máximo ${MAX_MODELO_LEN} caracteres`}
                   required
                 />
               </div>
