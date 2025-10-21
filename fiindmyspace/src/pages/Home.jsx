@@ -8,6 +8,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [activeFaq, setActiveFaq] = useState(null);
   const [heroVisible, setHeroVisible] = useState(false);
+  const [revealedFaqs, setRevealedFaqs] = useState(new Set());
 
   const toggleFaq = (index) => {
     setActiveFaq(activeFaq === index ? null : index);
@@ -138,6 +139,39 @@ const Home = () => {
     );
 
     elements.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  // Reveal por ítem en FAQs: cada item se revela al entrar en viewport y queda visible
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const items = Array.from(document.querySelectorAll('[data-faq-item="true"]'));
+    if (!items.length) return;
+
+    if (prefersReducedMotion) {
+      // Revelar todos inmediatamente si reduce motion
+      setRevealedFaqs(new Set(items.map((el) => Number(el.getAttribute('data-faq-index')))));
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = Number(entry.target.getAttribute('data-faq-index'));
+            setRevealedFaqs((prev) => {
+              const next = new Set(prev);
+              next.add(idx);
+              return next;
+            });
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { root: null, rootMargin: '0px 0px -10% 0px', threshold: 0.15 }
+    );
+
+    items.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
@@ -384,8 +418,8 @@ const Home = () => {
           <h2 className={`${styles.faqsTitle} ${styles.revealLeftBase}`} data-reveal data-reveal-variant="slow">Preguntas frecuentes</h2>
           <p className={`${styles.faqsSubtitle} ${styles.revealRightBase}`} data-reveal data-reveal-variant="slow">Todo lo que necesitás saber para empezar a encontrar tu estacionamiento perfecto con FindMySpace.</p>
           
-          <div className={`${styles.faqsContainer} ${styles.revealParentFaqs}`} data-reveal data-chain data-reveal-variant="slow">
-            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 0 ? styles.active : ''}`}>
+          <div className={`${styles.faqsContainer} ${styles.revealParentFaqs}`} data-reveal data-reveal-variant="slow">
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${revealedFaqs.has(0) ? styles.revealSlowVisible : ''} ${activeFaq === 0 ? styles.active : ''}`} data-faq-item="true" data-faq-index="0">
               <div className={styles.faqQuestion} onClick={() => toggleFaq(0)}>
                 <span>¿Hay versión gratuita?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -397,7 +431,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 1 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${revealedFaqs.has(1) ? styles.revealSlowVisible : ''} ${activeFaq === 1 ? styles.active : ''}`} data-faq-item="true" data-faq-index="1">
               <div className={styles.faqQuestion} onClick={() => toggleFaq(1)}>
                 <span>¿Es seguro dejar mi vehículo?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -409,7 +443,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 2 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${revealedFaqs.has(2) ? styles.revealSlowVisible : ''} ${activeFaq === 2 ? styles.active : ''}`} data-faq-item="true" data-faq-index="2">
               <div className={styles.faqQuestion} onClick={() => toggleFaq(2)}>
                 <span>¿Qué métodos de pago aceptan?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -421,7 +455,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 3 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${revealedFaqs.has(3) ? styles.revealSlowVisible : ''} ${activeFaq === 3 ? styles.active : ''}`} data-faq-item="true" data-faq-index="3">
               <div className={styles.faqQuestion} onClick={() => toggleFaq(3)}>
                 <span>¿Puedo cancelar mi reserva?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -433,7 +467,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 4 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${revealedFaqs.has(4) ? styles.revealSlowVisible : ''} ${activeFaq === 4 ? styles.active : ''}`} data-faq-item="true" data-faq-index="4">
               <div className={styles.faqQuestion} onClick={() => toggleFaq(4)}>
                 <span>¿Cómo publico mi estacionamiento?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -445,7 +479,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className={`${styles.faqItem} ${styles.revealUpBase} ${activeFaq === 5 ? styles.active : ''}`}>
+            <div className={`${styles.faqItem} ${styles.revealUpBase} ${revealedFaqs.has(5) ? styles.revealSlowVisible : ''} ${activeFaq === 5 ? styles.active : ''}`} data-faq-item="true" data-faq-index="5">
               <div className={styles.faqQuestion} onClick={() => toggleFaq(5)}>
                 <span>¿Qué soporte técnico ofrecen?</span>
                 <svg className={styles.faqIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
