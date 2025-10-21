@@ -439,7 +439,7 @@ const Home = () => {
                 </svg>
               </div>
               <div className={styles.faqAnswer}>
-                <p>Absolutamente. Todos los estacionamientos en nuestra plataforma son verificados y cuentan con medidas de seguridad. Además, ofrecemos seguro opcional para mayor tranquilidad y soporte 24/7 ante cualquier inconveniente.</p>
+                <p>Absolutamente. Todos los estacionamientos en nuestra plataforma son verificados y cuentan con medidas de seguridad.</p>
               </div>
             </div>
 
@@ -475,7 +475,7 @@ const Home = () => {
                 </svg>
               </div>
               <div className={styles.faqAnswer}>
-                <p>Es muy simple: regístrate como propietario, completa la información de tu estacionamiento (ubicación, fotos, precio), pasa nuestra verificación básica y ¡listo! Empezarás a recibir reservas en 24-48 horas.</p>
+                <p>Es muy simple: regístrate como propietario, completa la información de tu estacionamiento (nombre, ubicación, cantidad de plazas, etc.), pasa nuestra verificación básica y ¡listo! Empezarás a recibir reservas en 24-48 horas.</p>
               </div>
             </div>
 
@@ -487,7 +487,7 @@ const Home = () => {
                 </svg>
               </div>
               <div className={styles.faqAnswer}>
-                <p>Ofrecemos soporte 24/7 a través de chat en vivo, WhatsApp y email. También tenemos una sección de ayuda completa con tutoriales paso a paso y un centro de llamadas para emergencias.</p>
+                <p>Ofrecemos soporte 24/7 a través de chat en vivo, WhatsApp y email.</p>
               </div>
             </div>
           </div>
