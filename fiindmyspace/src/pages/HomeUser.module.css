@@ -125,6 +125,7 @@
   cursor: pointer;
   transition: box-shadow 0.2s ease, transform 0.05s ease;
   box-shadow: 0 2px 8px rgba(105, 36, 151, 0.15);
+  position: relative; /* para posicionar el badge */
 }
 
 .avatarButton:hover {
@@ -144,6 +145,31 @@
 }
 :global(body.dark-mode) .avatarButton:hover {
   box-shadow: 0 4px 14px rgba(0, 225, 255, 0.30);
+}
+
+/* Badge de perfil incompleto junto al avatar */
+.avatarBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffcc00; /* amarillo alerta suave */
+  color: #111;
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #F3F3F3; /* halo para separar del fondo */
+}
+
+:global(body.dark-mode) .avatarBadge {
+  background: #ffb703; /* variante para modo oscuro */
+  color: #111;
+  border-color: #404040;
 }
 
 .avatarMenu {

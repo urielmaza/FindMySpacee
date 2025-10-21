@@ -9,16 +9,20 @@ const HomeUser = () => {
   const navigate = useNavigate();
   const userSession = getUserSession(); 
   const userEmail = userSession ? userSession.email : 'Usuario';
+  const [nombre, setNombre] = useState(userSession?.nombre || '');
+  const [apellido, setApellido] = useState(userSession?.apellido || '');
 
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
-  const [tipoCliente, setTipoCliente] = useState('cliente');
+  const [tipoCliente, setTipoCliente] = useState('');
+  const [hasPassword, setHasPassword] = useState(true);
   const avatarRef = useRef(null);
 
   const handleCardClick = (route) => {
     navigate(route);
   };
 
-  const userInitial = userEmail ? (userEmail[0] || 'U').toUpperCase() : 'U';
+  const profileIncomplete = !nombre || !apellido || !tipoCliente || !hasPassword;
+  const userInitial = (userEmail ? (userEmail[0] || 'U').toUpperCase() : 'U');
 
   const toggleAvatarMenu = () => setIsAvatarOpen((v) => !v);
 
@@ -37,8 +41,11 @@ const HomeUser = () => {
     (async () => {
       try {
         const { data } = await apiClient.get('/profile');
-        if (data && data.success && data.user && data.user.tipo_cliente) {
-          setTipoCliente(data.user.tipo_cliente);
+        if (data && data.success && data.user) {
+          if (typeof data.user.tipo_cliente !== 'undefined') setTipoCliente(data.user.tipo_cliente || '');
+          if (typeof data.user.nombre === 'string') setNombre(data.user.nombre || '');
+          if (typeof data.user.apellido === 'string') setApellido(data.user.apellido || '');
+          if (typeof data.user.hasPassword !== 'undefined') setHasPassword(!!data.user.hasPassword);
         }
       } catch (e) {
         // Si no hay token/permiso, usar fallback de sesión si existiera en el futuro
@@ -69,8 +76,18 @@ const HomeUser = () => {
               aria-haspopup="menu"
               aria-expanded={isAvatarOpen}
               aria-controls="avatar-menu"
+              title={profileIncomplete ? 'Completa tu perfil' : 'Menú de usuario'}
             >
               {userInitial}
+              {profileIncomplete && (
+                <span
+                  className={styles.avatarBadge}
+                  aria-label="Perfil incompleto"
+                  title="Completa tu perfil"
+                >
+                  ?
+                </span>
+              )}
             </button>
             {isAvatarOpen && (
               <div id="avatar-menu" role="menu" className={styles.avatarMenu}>
