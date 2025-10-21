@@ -5,6 +5,9 @@ import { getUserSession, setUserSession } from '../utils/auth';
 import apiClient from '../apiClient';
 
 const Profile = () => {
+  // Límites razonables para nombre y apellido de persona
+  const MIN_NOMBRE_PERSONA = 2;
+  const MAX_NOMBRE_PERSONA = 19;
   const navigate = useNavigate();
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -53,13 +56,32 @@ const Profile = () => {
     setMessage('');
     setError('');
     try {
+      // Validaciones de longitud para nombre y apellido
+      const nombreClean = (nombre || '').trim();
+      const apellidoClean = (apellido || '').trim();
+      if (nombreClean.length < MIN_NOMBRE_PERSONA) {
+        setError(`El nombre debe tener al menos ${MIN_NOMBRE_PERSONA} caracteres.`);
+        return;
+      }
+      if (apellidoClean.length < MIN_NOMBRE_PERSONA) {
+        setError(`El apellido debe tener al menos ${MIN_NOMBRE_PERSONA} caracteres.`);
+        return;
+      }
+      if (nombreClean.length > MAX_NOMBRE_PERSONA) {
+        setError(`El nombre no puede superar ${MAX_NOMBRE_PERSONA} caracteres.`);
+        return;
+      }
+      if (apellidoClean.length > MAX_NOMBRE_PERSONA) {
+        setError(`El apellido no puede superar ${MAX_NOMBRE_PERSONA} caracteres.`);
+        return;
+      }
   // No enviamos email porque no es editable
-  const payload = { id_cliente: idCliente, nombre, apellido };
+  const payload = { id_cliente: idCliente, nombre: nombreClean, apellido: apellidoClean };
   const { data } = await apiClient.put('/profile', { ...payload, tipo_cliente: tipoCliente });
       if (data && data.success) {
         setMessage('Perfil actualizado correctamente');
         const session = getUserSession() || {};
-        const updated = { ...session, nombre, apellido, email };
+        const updated = { ...session, nombre: nombreClean, apellido: apellidoClean, email };
         setUserSession(updated);
         setShowGoHome(true);
       } else {
@@ -135,11 +157,33 @@ const Profile = () => {
               <div className="profileFormRow">
                 <div className="profileFormCol">
                   <label className="profileFormLabel" htmlFor="nombre">Nombre</label>
-                  <input id="nombre" type="text" className="profileFormInput" placeholder="Nombre" value={nombre} onChange={e => setNombre(e.target.value)} />
+                  <input
+                    id="nombre"
+                    type="text"
+                    className="profileFormInput"
+                    placeholder="Nombre"
+                    value={nombre}
+                    onChange={e => setNombre((e.target.value || '').slice(0, MAX_NOMBRE_PERSONA))}
+                    minLength={MIN_NOMBRE_PERSONA}
+                    maxLength={MAX_NOMBRE_PERSONA}
+                    title={`Entre ${MIN_NOMBRE_PERSONA} y ${MAX_NOMBRE_PERSONA} caracteres`}
+                    autoComplete="given-name"
+                  />
                 </div>
                 <div className="profileFormCol">
                   <label className="profileFormLabel" htmlFor="apellido">Apellido</label>
-                  <input id="apellido" type="text" className="profileFormInput" placeholder="Apellido" value={apellido} onChange={e => setApellido(e.target.value)} />
+                  <input
+                    id="apellido"
+                    type="text"
+                    className="profileFormInput"
+                    placeholder="Apellido"
+                    value={apellido}
+                    onChange={e => setApellido((e.target.value || '').slice(0, MAX_NOMBRE_PERSONA))}
+                    minLength={MIN_NOMBRE_PERSONA}
+                    maxLength={MAX_NOMBRE_PERSONA}
+                    title={`Entre ${MIN_NOMBRE_PERSONA} y ${MAX_NOMBRE_PERSONA} caracteres`}
+                    autoComplete="family-name"
+                  />
                 </div>
               </div>
               <div className="profileFormGroup">
