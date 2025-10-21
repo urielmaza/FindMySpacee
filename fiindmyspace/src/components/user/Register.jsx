@@ -83,8 +83,8 @@ const Register = () => {
     e.preventDefault();
     
     // Validación de email
-    if (email.length < 5 || email.length > 100) {
-      setError('El email debe tener entre 5 y 100 caracteres');
+    if (email.length < 5 || email.length > 30) {
+      setError('El email debe tener entre 5 y 30 caracteres');
       return;
     }
     
@@ -94,8 +94,8 @@ const Register = () => {
       return;
     }
     
-    if (pw.length > 50) {
-      setError('La contraseña no puede tener más de 50 caracteres');
+    if (pw.length > 30) {
+      setError('La contraseña no puede tener más de 30 caracteres');
       return;
     }
     
@@ -153,7 +153,7 @@ const Register = () => {
         <div className={styles.lineContainer}>
           <hr className={styles.line} />
           <div className={styles.circle}></div>
-          <hr className={styles. line} />
+          <hr className={styles.line} />
         </div>
 
         <div className={styles['flex-column']}>
@@ -166,9 +166,11 @@ const Register = () => {
             className={styles.input}
             placeholder="Ingresa tu Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value.slice(0, 30))}
             minLength={5}
-            maxLength={100}
+            maxLength={30}
+            autoComplete="email"
+            inputMode="email"
             required
           />
         </div>
@@ -183,9 +185,10 @@ const Register = () => {
             className={styles.input}
             placeholder="Ingresa tu contraseña (mín. 8 caracteres)"
             value={pw}
-            onChange={(e) => setPw(e.target.value)}
+            onChange={(e) => setPw(e.target.value.slice(0, 30))}
             minLength={8}
-            maxLength={50}
+            maxLength={30}
+            autoComplete="new-password"
             required
           />
           <FontAwesomeIcon
@@ -206,9 +209,10 @@ const Register = () => {
             className={styles.input}
             placeholder="Confirma tu contraseña (mín. 8 caracteres)"
             value={confirmPw}
-            onChange={(e) => setConfirmPw(e.target.value)}
+            onChange={(e) => setConfirmPw(e.target.value.slice(0, 30))}
             minLength={8}
-            maxLength={50}
+            maxLength={30}
+            autoComplete="new-password"
             required
           />
           <FontAwesomeIcon

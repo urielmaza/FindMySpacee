@@ -85,6 +85,15 @@ const Login = () => {
     setLoading(true);
     setError('');
     setMessage('');
+    // Validaciones rápidas antes de llamar a la API
+    if (email.length < 5 || email.length > 30) {
+      setLoading(false);
+      return setError('El email debe tener entre 5 y 30 caracteres');
+    }
+    if (pw.length < 8 || pw.length > 30) {
+      setLoading(false);
+      return setError('La contraseña debe tener entre 8 y 30 caracteres');
+    }
     try {
       const res = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
@@ -159,7 +168,11 @@ const Login = () => {
             className={styles.input}
             placeholder=" Ingresa tu Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value.slice(0, 30))}
+            minLength={5}
+            maxLength={30}
+            autoComplete="email"
+            inputMode="email"
             required
           />
         </div>
@@ -174,7 +187,10 @@ const Login = () => {
             className={styles.input}
             placeholder=" Ingresa tu contraseña"
             value={pw}
-            onChange={(e) => setPw(e.target.value)}
+            onChange={(e) => setPw(e.target.value.slice(0, 30))}
+            minLength={8}
+            maxLength={30}
+            autoComplete="current-password"
             required
           />
           <FontAwesomeIcon
