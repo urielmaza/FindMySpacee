@@ -7,45 +7,30 @@ import styles from './MisVehiculos.module.css';
 const MisVehiculos = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [vehiculos, setVehiculos] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [progress, setProgress] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, vehiculo: null });
 
   useEffect(() => {
     const fetchVehiculos = async () => {
       try {
-        // Simular progreso de carga
-        setProgress(20);
-        
         const userSession = getUserSession();
         if (!userSession) {
           setError('No se pudo obtener la sesión del usuario');
-          setLoading(false);
           return;
         }
-        setProgress(50);
 
         const url = `/vehiculos/usuario/${userSession.id_cliente}`;
         
         const response = await apiClient.get(url);
-        
-        setProgress(80);
         
         if (response.data.success) {
           setVehiculos(response.data.data);
         } else {
           setError('No se pudieron cargar los vehículos');
         }
-        
-        setProgress(100);
       } catch (error) {
         console.error('Error al obtener vehículos:', error);
         setError('Error al cargar los vehículos');
-      } finally {
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
       }
     };
 
@@ -145,28 +130,6 @@ const MisVehiculos = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <>
-        <BannerUser onMenuToggle={setIsMenuOpen} />
-        <div className={`${styles.pageContainer} ${isMenuOpen ? styles.pageContainerExpanded : ''}`}>
-          <div className={styles.contentContainer}>
-            <h1 className={styles.pageTitle}>Mis Vehículos</h1>
-            <div className={styles.loadingCard}>
-              <div className={styles.loadingText}>Cargando vehículos...</div>
-              <div className={styles.progressBar}>
-                <div 
-                  className={styles.progressFill}
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <div className={styles.progressText}>{progress}%</div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   if (error) {
     return (

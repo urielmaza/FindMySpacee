@@ -1,0 +1,33 @@
+/* Estilos mínimos para MisReservas */
+.pageContainer {
+	width: 100%;
+	min-height: 100vh;
+	background: #F3F3F3;
+	transition: padding-left 0.3s ease;
+	padding: 32px 20px;
+}
+
+.pageContainerExpanded {
+	padding-left: 280px; /* espacio para el sidebar abierto */
+}
+
+.contentContainer {
+	max-width: 1000px;
+	margin: 0 auto;
+}
+
+.pageTitle {
+	font-size: 2rem;
+	font-weight: 800;
+	color: #212529;
+	margin-bottom: 16px;
+}
+
+.simpleCard {
+	background: white;
+	border: 1px solid rgba(0,0,0,0.08);
+	border-radius: 12px;
+	padding: 24px;
+	box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+	font-size: 1.1rem;
+}

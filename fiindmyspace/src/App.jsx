@@ -10,8 +10,10 @@ import HomeUser from './pages/HomeUser';
 import CargarVehiculo from './pages/cargarVehiculo'; // Corrige la mayúscula
 import MisVehiculos from './pages/MisVehiculos'; // Nueva importación
 import MisEstacionamientos from './pages/MisEstacionamientos'; // Nueva importación
+import MisReservas from './pages/MisReservas'; // Nueva importación
 import AuthCallback from './pages/AuthCallback'; // Nueva importación
 import styles from './App.module.css'; // Asegúrate de tener este archivo CSS
+import Profile from './pages/Profile';
 
 function App() {
   const location = useLocation();
@@ -31,8 +33,10 @@ function App() {
           <Route path="/subir-estacionamiento" element={<SubirEstacionamiento />} />
           <Route path="/cargar-vehiculo" element={<CargarVehiculo />} />
           <Route path="/mis-vehiculos" element={<MisVehiculos />} />
+          <Route path="/mis-reservas" element={<MisReservas />} />
           <Route path="/mis-estacionamientos" element={<MisEstacionamientos />} />
           <Route path="/home-user" element={<HomeUser />} />
+          <Route path="/profile" element={<Profile />} />
           {/* Ruta para manejar rutas no definidas */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

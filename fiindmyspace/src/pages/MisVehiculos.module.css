@@ -122,7 +122,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #8304b6, #000000);
+  background: linear-gradient(90deg, #692497, #000000);
   border-radius: 8px;
   transition: width 0.5s ease;
   position: relative;
@@ -253,7 +253,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #8304b6, #000000);
+  background: linear-gradient(90deg, #692497, #000000);
   /* Efecto de agua como el botón agregar */
   background-size: 300% 300%;
   animation: addButtonFlow 7s ease-in-out infinite;
@@ -332,12 +332,12 @@
 }
 
 .editButton {
-  background: #8304b6; /* violeta en modo claro */
+  background: #692497; /* violeta en modo claro */
   color: #ffffff; /* texto blanco para buen contraste */
 }
 
 .editButton:hover {
-  background: #6f0398; /* violeta un poco más oscuro en hover */
+  background: #5b1f84; /* violeta un poco más oscuro en hover (derivado de #692497) */
 }
 
 .deleteButton {
@@ -446,7 +446,7 @@
 
 /* Estilos para modo oscuro */
 :global(body.dark-mode) .pageContainer {
-  background-color: #1a1a1a;
+  background-color: #2c2c2e;
   color: #ffffff;
 }
 
@@ -512,13 +512,13 @@
 }
 
 :global(body.dark-mode) .editButton {
-  background: #33ECFF; /* celeste más claro en modo oscuro */
+  background: #00e1ff; /* celeste de marca en modo oscuro */
   color: #0b0b0b; /* texto oscuro para contraste adecuado */
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 :global(body.dark-mode) .editButton:hover {
-  background: #00CFE3; /* celeste un poco más oscuro en hover */
+  background: #00c3e6; /* celeste un poco más oscuro en hover, acorde a #00e1ff */
 }
 
 :global(body.dark-mode) .deleteButton {
@@ -536,19 +536,28 @@
 
 /* Acentos en modo oscuro: reemplazar violeta por #00E5FF */
 :global(body.dark-mode) .progressFill {
-  background: linear-gradient(90deg, #00E5FF, #000000);
+  background: linear-gradient(90deg, #00e1ff, #000000);
 }
 
 :global(body.dark-mode) .vehiculoCard::before {
-  background: linear-gradient(90deg, #00E5FF, #000000);
+  background: linear-gradient(90deg, #00e1ff, #000000);
   /* Mantener efecto de agua en dark mode */
   background-size: 300% 300%;
   animation: addButtonFlow 7s ease-in-out infinite;
   will-change: background-position;
 }
 
+/* Loading en modo oscuro: texto y porcentaje en blanco */
+:global(body.dark-mode) .loadingText {
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .progressText {
+  color: #ffffff;
+}
+
 :global(body.dark-mode) .addButton {
-  background: linear-gradient(120deg, #000000 0%, #00E5FF 50%, #000000 100%);
+  background: linear-gradient(120deg, #000000 0%, #00e1ff 50%, #000000 100%);
   /* Reaplicar propiedades necesarias para el efecto de agua en dark mode */
   background-size: 300% 300%;
   animation: addButtonFlow 7s ease-in-out infinite;
@@ -556,7 +565,7 @@
 }
 
 :global(body.dark-mode) .addButton:focus-visible {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 0 0 5px rgba(0, 229, 255, 0.45);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 0 0 5px rgba(0, 225, 255, 0.45);
 }
 
 /* Responsive Design */

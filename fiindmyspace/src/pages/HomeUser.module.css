@@ -114,7 +114,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 2px solid #B300FF; /* violeta fluor */
+  border: 2px solid #692497; /* violeta de marca */
   background: #F3F3F3; /* sigue el fondo */
   color: #000;
   font-weight: 700;
@@ -124,26 +124,52 @@
   justify-content: center;
   cursor: pointer;
   transition: box-shadow 0.2s ease, transform 0.05s ease;
-  box-shadow: 0 2px 8px rgba(179, 0, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(105, 36, 151, 0.15);
+  position: relative; /* para posicionar el badge */
 }
 
 .avatarButton:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(179, 0, 255, 0.25);
+  box-shadow: 0 4px 14px rgba(105, 36, 151, 0.25);
 }
 
 :global(body.dark-mode) .avatarButton {
   background: #404040;
   color: #fff;
-  border-color: #00E5FF; /* celeste flúor en modo oscuro */
+  border-color: #00e1ff; /* celeste de marca en modo oscuro */
 }
 
 /* Glow en modo oscuro para avatar */
 :global(body.dark-mode) .avatarButton {
-  box-shadow: 0 2px 8px rgba(0, 229, 255, 0.18);
+  box-shadow: 0 2px 8px rgba(0, 225, 255, 0.18);
 }
 :global(body.dark-mode) .avatarButton:hover {
-  box-shadow: 0 4px 14px rgba(0, 229, 255, 0.30);
+  box-shadow: 0 4px 14px rgba(0, 225, 255, 0.30);
+}
+
+/* Badge de perfil incompleto junto al avatar */
+.avatarBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffcc00; /* amarillo alerta suave */
+  color: #111;
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #F3F3F3; /* halo para separar del fondo */
+}
+
+:global(body.dark-mode) .avatarBadge {
+  background: #ffb703; /* variante para modo oscuro */
+  color: #111;
+  border-color: #404040;
 }
 
 .avatarMenu {
@@ -191,19 +217,19 @@
 .profileButton {
   background: #F3F3F3; /* igual al fondo de la página (modo claro) */
   color: #000000;
-  border: 2px solid #B300FF; /* violeta fluor */
+  border: 2px solid #692497; /* violeta de marca */
   padding: 8px 16px;
   border-radius: 999px; /* píldora */
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(179, 0, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(105, 36, 151, 0.15);
 }
 
 .profileButton:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(179, 0, 255, 0.25);
+  box-shadow: 0 4px 14px rgba(105, 36, 151, 0.25);
 }
 
 .profileButton:active {
@@ -215,13 +241,13 @@
 :global(body.dark-mode) .profileButton {
   background: #404040; /* igual al fondo de la página (modo oscuro) */
   color: #FFFFFF;
-  border-color: #00E5FF; /* celeste flúor en modo oscuro */
-  box-shadow: 0 2px 8px rgba(0, 229, 255, 0.18);
+  border-color: #00e1ff; /* celeste de marca en modo oscuro */
+  box-shadow: 0 2px 8px rgba(0, 225, 255, 0.18);
 }
 
 /* Hover glow en modo oscuro para profile button */
 :global(body.dark-mode) .profileButton:hover {
-  box-shadow: 0 4px 14px rgba(0, 229, 255, 0.30);
+  box-shadow: 0 4px 14px rgba(0, 225, 255, 0.30);
 }
 
 .featureCard {
@@ -277,7 +303,7 @@
 /* Modo Oscuro - Intercambio de colores del grid */
 :global(body.dark-mode) .container {
   --color: #F3F3F3; /* Intercambiado */
-  background-color: #404040; /* Intercambiado */
+  background-color: #2c2c2e; /* Unificado con el resto de páginas */
 }
 
 :global(body.dark-mode) .featureIcon {
