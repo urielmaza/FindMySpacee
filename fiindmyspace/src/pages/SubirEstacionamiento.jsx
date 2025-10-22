@@ -278,8 +278,13 @@ const SubirEstacionamiento = () => {
   };
 
   const handlePrecioChange = (vehiculoId, modalidadKey, value) => {
+    // Sanitize: permitir solo dígitos y punto decimal
+    const sanitized = value.replace(/[^0-9.]/g, '');
+    // Evitar múltiples puntos
+    const parts = sanitized.split('.');
+    const normalized = parts.length > 1 ? parts[0] + '.' + parts.slice(1).join('') : parts[0];
     setVehiculos(prev => prev.map(v => (
-      v.id === vehiculoId ? { ...v, precios: { ...v.precios, [modalidadKey]: value } } : v
+      v.id === vehiculoId ? { ...v, precios: { ...v.precios, [modalidadKey]: normalized } } : v
     )));
   };
 
@@ -450,7 +455,7 @@ const SubirEstacionamiento = () => {
       plazaSize: PLAZA_SIZE
     };
 
-    // Construir horarios para el backend
+    // Construir horarios para el backend y validar
     const horariosPayload = sortedDays
       .map(d => ({
         dia: d.name,
@@ -460,20 +465,34 @@ const SubirEstacionamiento = () => {
       }))
       .filter(d => d.franjas.length > 0);
 
-    console.log('Horarios enviados al backend:', horariosPayload); // Verificar el payload
-
-    // Construir tarifas a partir de la tabla de vehículos y modalidades seleccionadas
-    const tarifasPayload = [];
-    if (tipo === 'privado' && Array.isArray(vehiculos) && vehiculos.length > 0 && Array.isArray(modalidades)) {
-      vehiculos.forEach(v => {
-        modalidades.forEach(mKey => {
-          const val = v?.precios?.[mKey];
-          if (val !== undefined && val !== null && String(val).trim() !== '' && !Number.isNaN(Number(val))) {
-            tarifasPayload.push({ tipo_vehiculo: (v.nombre || '').trim() || 'Vehículo', modalidad: mKey, precio: Number(val) });
-          }
-        });
-      });
+    // Validación: debe haber al menos una franja válida
+    if (horariosPayload.length === 0) {
+      setMensaje('Error: Debes agregar al menos una franja horaria con hora de apertura y cierre.');
+      setTipoMensaje('error');
+      return;
     }
+
+    // Validación: cada franja apertura < cierre
+    for (const d of horariosPayload) {
+      for (const f of d.franjas) {
+        const [ha, ma] = f.apertura.split(':').map(Number);
+        const [hc, mc] = f.cierre.split(':').map(Number);
+        if (Number.isNaN(ha) || Number.isNaN(ma) || Number.isNaN(hc) || Number.isNaN(mc)) {
+          setMensaje(`Error: Horario inválido en ${d.dia}.`);
+          setTipoMensaje('error');
+          return;
+        }
+        const aperturaMin = ha * 60 + ma;
+        const cierreMin = hc * 60 + mc;
+        if (aperturaMin >= cierreMin) {
+          setMensaje(`Error: En ${d.dia} la hora de apertura debe ser anterior a la de cierre.`);
+          setTipoMensaje('error');
+          return;
+        }
+      }
+    }
+
+    console.log('Horarios enviados al backend:', horariosPayload); // Verificar el payload
     const body = {
       id_cliente: idCliente || null,
       nombre_estacionamiento: nombre,
@@ -598,7 +617,7 @@ const SubirEstacionamiento = () => {
                       onClick={handleUseCurrentLocation}
                       className={styles.locationOption}
                     >
-                      📍 Usar mi ubicación actual
+                       Usar mi ubicación actual
                     </li>
                     {suggestions.map(sug => (
                       <li
@@ -931,23 +950,29 @@ const SubirEstacionamiento = () => {
                   <h2 className={styles.sectionTitle}>Mapa</h2>
                   {plazasPos.length > 0 ? (
                     <>
-                      <div
-                        ref={areaRef}
-                        className={styles.mapArea}
-                        style={{ width: AREA_SIZE, height: AREA_SIZE, margin: '0 auto' }}
-                      >
-                        {plazasPos.map((plaza, idx) => (
-                          <div
-                            key={plaza.num}
-                            className={`${styles.plaza} ${selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
-                            style={{ left: plaza.x, top: plaza.y, width: PLAZA_SIZE, height: PLAZA_SIZE }}
-                            title={`Plaza ${plaza.num}`}
-                            onClick={() => handlePlazaClick(plaza.num)}
-                            onMouseDown={e => handleMouseDown(e, idx)}
-                          >
-                            {plaza.num}
-                          </div>
-                        ))}
+                      <div className={styles.mapWrapper} style={{ width: AREA_SIZE }}>
+                        <div
+                          ref={areaRef}
+                          className={styles.mapArea}
+                          style={{ width: AREA_SIZE, height: AREA_SIZE }}
+                        >
+                          {plazasPos.map((plaza, idx) => (
+                            <div
+                              key={plaza.num}
+                              className={`${styles.plaza} ${selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
+                              style={{ left: plaza.x, top: plaza.y, width: PLAZA_SIZE, height: PLAZA_SIZE }}
+                              title={`Plaza ${plaza.num}`}
+                              onClick={() => handlePlazaClick(plaza.num)}
+                              onMouseDown={e => handleMouseDown(e, idx)}
+                            >
+                              <span className={styles.plazaNumber}>{plaza.num}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className={styles.mapLegend}>
+                          <div className={styles.legendItem}><span className={styles.legendDot}></span> Plaza disponible</div>
+                          <div className={styles.legendItem}><span className={`${styles.legendDot} ${styles.legendSelected}`}></span> Plaza seleccionada</div>
+                        </div>
                       </div>
                       {!mapaGuardado && (
                         <button
