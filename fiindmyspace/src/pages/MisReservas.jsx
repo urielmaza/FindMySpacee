@@ -11,7 +11,6 @@ const MisReservas = () => {
 					<div className={`pageContainer ${isMenuOpen ? 'pageContainerExpanded' : ''}`}>
 						<div className="contentContainer">
 							<h1 className="pageTitle">Mis Reservas</h1>
-							<div className="simpleCard">el que lee es gay</div>
 				</div>
 			</div>
 		</>
