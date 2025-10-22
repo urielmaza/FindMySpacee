@@ -493,6 +493,20 @@ const SubirEstacionamiento = () => {
     }
 
     console.log('Horarios enviados al backend:', horariosPayload); // Verificar el payload
+    
+    // Construir tarifas a partir de la tabla de vehículos y modalidades seleccionadas
+    const tarifasPayload = [];
+    if (tipo === 'privado' && Array.isArray(vehiculos) && vehiculos.length > 0 && Array.isArray(modalidades)) {
+      vehiculos.forEach(v => {
+        modalidades.forEach(mKey => {
+          const val = v?.precios?.[mKey];
+          if (val !== undefined && val !== null && String(val).trim() !== '' && !Number.isNaN(Number(val))) {
+            tarifasPayload.push({ tipo_vehiculo: (v.nombre || '').trim() || 'Vehículo', modalidad: mKey, precio: Number(val) });
+          }
+        });
+      });
+    }
+
     const body = {
       id_cliente: idCliente || null,
       nombre_estacionamiento: nombre,
