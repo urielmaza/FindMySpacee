@@ -141,6 +141,43 @@
   }
 }
 
+/* Responsive: hacer la tarjeta más angosta y compacta */
+@media (max-width: 768px) {
+  .profileFormCard {
+    max-width: 420px; /* más angosta en tablet */
+    padding: 20px;
+    border-radius: 12px;
+  }
+  .profileFormTitle {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profileFormCard {
+    width: 92%;         /* ocupar menos del ancho total */
+    max-width: 340px;   /* más flaca en móvil */
+    padding: 16px;      /* más compacta */
+    border-radius: 12px;
+  }
+  .profileAvatarButton {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  .profileFormTitle {
+    font-size: 1.25rem;
+  }
+  .profileFormInput {
+    padding: 8px 10px;  /* inputs más esbeltos */
+    font-size: 0.95rem;
+  }
+  .profileFormButton {
+    padding: 10px;      /* botones más delgados */
+    font-size: 0.95rem;
+  }
+}
+
 /* Modo oscuro */
 :global(body.dark-mode) .profileFormCard {
   --card-bg: #1a1a1a;
