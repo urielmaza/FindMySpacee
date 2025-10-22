@@ -360,7 +360,8 @@
     top: 24px; /* ligeramente más abajo en tablet */
     width: calc(100% - 170px); /* respeta padding horizontal 16px */
   }
-  .rightActions { right: -24px; }
+  /* Mover ~20px hacia la izquierda respecto al estado original (-24px) */
+  .rightActions { position: relative; right: -4px; }
   
   .title {
     font-size: 2.5rem;
@@ -389,7 +390,8 @@
     top: 20px; /* ligeramente más abajo en móvil */
     width: calc(100% - 32px); /* respeta padding horizontal 16px */
   }
-  .rightActions { right: -24px; }
+  /* Mover ~20px hacia la izquierda respecto al estado original (-24px) */
+  .rightActions { position: relative; right: -4px; }
   
   .title {
     font-size: 2rem;
