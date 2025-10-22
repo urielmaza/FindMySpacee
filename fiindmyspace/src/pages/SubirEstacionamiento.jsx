@@ -122,7 +122,7 @@ const SubirEstacionamiento = () => {
         }
         const resp = await apiClient.get(`/espacios/${editingId}`);
         if (resp.data?.success) {
-          const { espacio, horarios } = resp.data.data || {};
+          const { espacio, horarios, modalidades: modKeys, metodos_pago: mpKeys, tarifas: tarifasSrv } = resp.data.data || {};
           if (espacio) {
             setNombre(espacio.nombre_estacionamiento || '');
             setUbicacion(espacio.ubicacion || '');
@@ -134,6 +134,11 @@ const SubirEstacionamiento = () => {
             setTieneSubsuelo(espacio.tiene_subsuelo ? 'si' : 'no');
             if (typeof espacio.latitud === 'number' && typeof espacio.longitud === 'number') {
               setSelectedCoords([espacio.latitud, espacio.longitud]);
+            }
+            // Precargar modalidades y métodos de pago para privados
+            if (espacio.tipo_de_estacionamiento === 'privado') {
+              if (Array.isArray(modKeys) && modKeys.length > 0) setModalidades(modKeys);
+              if (Array.isArray(mpKeys) && mpKeys.length > 0) setMetodosPago(mpKeys);
             }
             // 2) Si no vino en state, intentar precargar el layout del mapa desde localStorage por coincidencia
             try {
@@ -214,6 +219,28 @@ const SubirEstacionamiento = () => {
               ranges: ranges.map(r => ({ id: crypto.randomUUID(), start: r.start, end: r.end }))
             }));
             setDays(uiDays);
+          }
+
+          // Mapear tarifas a estructura de UI de vehículos (si es privado)
+          if (espacio?.tipo_de_estacionamiento === 'privado' && Array.isArray(tarifasSrv) && tarifasSrv.length > 0) {
+            const byVeh = new Map();
+            tarifasSrv.forEach(t => {
+              const veh = t.tipo_vehiculo || 'Vehículo';
+              if (!byVeh.has(veh)) byVeh.set(veh, {});
+              if (t.modalidad) byVeh.get(veh)[t.modalidad] = String(t.precio ?? '');
+            });
+            // Si no se recibieron modKeys, derivarlas de tarifas
+            if ((!Array.isArray(modKeys) || modKeys.length === 0)) {
+              const allMods = new Set();
+              tarifasSrv.forEach(t => t.modalidad && allMods.add(t.modalidad));
+              setModalidades(Array.from(allMods));
+            }
+            const vehRows = Array.from(byVeh.entries()).map(([nombre, precios]) => ({
+              id: crypto.randomUUID(),
+              nombre,
+              precios
+            }));
+            setVehiculos(vehRows);
           }
         }
       } catch (e) {
@@ -434,6 +461,19 @@ const SubirEstacionamiento = () => {
       .filter(d => d.franjas.length > 0);
 
     console.log('Horarios enviados al backend:', horariosPayload); // Verificar el payload
+
+    // Construir tarifas a partir de la tabla de vehículos y modalidades seleccionadas
+    const tarifasPayload = [];
+    if (tipo === 'privado' && Array.isArray(vehiculos) && vehiculos.length > 0 && Array.isArray(modalidades)) {
+      vehiculos.forEach(v => {
+        modalidades.forEach(mKey => {
+          const val = v?.precios?.[mKey];
+          if (val !== undefined && val !== null && String(val).trim() !== '' && !Number.isNaN(Number(val))) {
+            tarifasPayload.push({ tipo_vehiculo: (v.nombre || '').trim() || 'Vehículo', modalidad: mKey, precio: Number(val) });
+          }
+        });
+      });
+    }
     const body = {
       id_cliente: idCliente || null,
       nombre_estacionamiento: nombre,
@@ -448,7 +488,7 @@ const SubirEstacionamiento = () => {
       horarios: horariosPayload,
       modalidades: tipo === 'privado' ? modalidades : [],
       metodos_pago: tipo === 'privado' ? metodosPago : [],
-      tarifas: tipo === 'privado' ? tarifas : [],
+      tarifas: tipo === 'privado' ? tarifasPayload : [],
       mapa: mapaData
     };
 
