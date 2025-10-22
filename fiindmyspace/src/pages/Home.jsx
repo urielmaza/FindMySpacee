@@ -89,10 +89,12 @@ const Home = () => {
     if (!elements.length) return;
 
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
+    const isSmallViewport = typeof window !== 'undefined' && window.innerWidth <= 480;
+
+    // Accesibilidad o pantallas muy angostas: revelar inmediatamente
+    if (prefersReducedMotion || isSmallViewport) {
       elements.forEach(el => {
         el.classList.add(styles.revealVisible);
-        // Si es un contenedor de cadena, mostrar inmediatamente sus hijos
         if (el.hasAttribute('data-chain')) {
           const chainChildren = el.querySelectorAll(`.${styles.faqItem}`);
           chainChildren.forEach(child => child.classList.add(styles.revealVisible));
