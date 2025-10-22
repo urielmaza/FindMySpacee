@@ -14,6 +14,8 @@ import MisReservas from './pages/MisReservas'; // Nueva importación
 import AuthCallback from './pages/AuthCallback'; // Nueva importación
 import styles from './App.module.css'; // Asegúrate de tener este archivo CSS
 import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   const location = useLocation();
@@ -29,6 +31,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/parkin" element={<Parkin />} />
           <Route path="/subir-estacionamiento" element={<SubirEstacionamiento />} />
           <Route path="/cargar-vehiculo" element={<CargarVehiculo />} />
