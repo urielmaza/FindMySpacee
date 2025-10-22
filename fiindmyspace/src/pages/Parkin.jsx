@@ -297,18 +297,18 @@ const Parkin = () => {
   return (
     <>
       <BannerUser />
-      <div className={styles.pageContainer} style={{ padding: '20px' }}> {/* Ajustar el contenedor principal */}
-        <h2 className={styles.title} style={{ fontSize: '1.5rem', textAlign: 'center' }}>Bienvenido a Parking</h2> {/* Ajustar tamaño de fuente */}
-        <p className={styles.subtitle} style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '20px' }}> {/* Ajustar subtítulo */}
+      <div className={styles.pageContainer}>
+        <h2 className={styles.title}>Bienvenido a Parking</h2>
+        <p className={styles.subtitle}>
           <strong>Aclaración:</strong> Las búsquedas de estacionamientos pueden realizarse por ubicación exacta del estacionamiento o mostrando el entorno cercano de la ubicación para facilitar tu elección.
         </p>
 
         {/* Formulario de lugar destino */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', position: 'relative', flexDirection: 'column' }}> {/* Ajustar altura del contenedor padre */}
-          <div className={styles.card} style={{ textAlign: 'center', padding: '20px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', borderRadius: '8px', width: '100%', maxWidth: '500px' }}> {/* Ajustar estilo de la tarjeta */}
-            <form className={styles.form} onSubmit={handleSearch} style={{ margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}> {/* Centrar el formulario y añadir separación */}
-              <div className={styles.addressRow} style={{ width: '100%' }}> {/* Ajustar ancho interno */}
-                <label className={styles.label} style={{ fontSize: '0.9rem' }}>Dirección:</label>
+        <div className={styles.contentContainer}>
+          <div className={styles.formCard}>
+            <form className={styles.form} onSubmit={handleSearch}>
+              <div className={styles.addressRow}>
+                <label className={styles.label}>Dirección:</label>
                 <input
                   type="text"
                   value={addressInput}
@@ -317,28 +317,25 @@ const Parkin = () => {
                   className={styles.addressInput}
                   required
                   autoComplete="off"
-                  style={{ width: '100%', padding: '10px', fontSize: '0.9rem' }} // Hacer el campo de dirección más ancho
                 />
                 <button
                   type="button"
                   onClick={handleUseCurrentLocation}
                   disabled={isLocating}
                   className={styles.useLocationBtn}
-                  style={{ fontSize: '0.9rem', padding: '10px' }}
                 >
                   {isLocating ? 'Obteniendo…' : 'Usar mi ubicación'}
                 </button>
               </div>
 
               {/* Formulario de tipo de estacionamiento */}
-              <div style={{ marginBottom: 24, width: '100%' }}> {/* Ajustar ancho interno */}
-                <label className={styles.label} style={{ fontSize: '0.9rem' }}>Tipo de estacionamiento:</label>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Tipo de estacionamiento:</label>
                 <select
                   value={parkingType}
                   onChange={handleParkingTypeChange}
                   className={styles.select}
                   required
-                  style={{ width: '100%', padding: '10px', fontSize: '0.9rem' }}
                 >
                   <option value="">Selecciona una opción</option>
                   <option value="privado">Estacionamiento privado</option>
@@ -346,7 +343,7 @@ const Parkin = () => {
                 </select>
               </div>
 
-              <button type="submit" className={styles.submitButton} style={{ fontSize: '0.9rem', padding: '10px' }}>
+              <button type="submit" className={styles.submitButton}>
                 Buscar
               </button>
             </form>
@@ -355,7 +352,7 @@ const Parkin = () => {
 
         {/* Resultados de búsqueda */}
         {searchResult && (
-          <div className={styles.results} style={{ fontSize: '0.9rem', textAlign: 'center', marginTop: '20px' }}>
+          <div className={styles.results}>
             {searchResult}
           </div>
         )}
@@ -364,25 +361,25 @@ const Parkin = () => {
         {showMap && (
           <>
             {/* Leyenda de iconos */}
-            <div className={styles.legendCard} style={{ margin: '20px auto', maxWidth: '500px', fontSize: '0.9rem' }}> {/* Ajustar leyenda */}
-              <h4 className={styles.legendTitle} style={{ textAlign: 'center', fontSize: '1rem' }}>Leyenda del Mapa</h4>
-              <div className={styles.legendRow} style={{ display: 'flex', justifyContent: 'space-around' }}>
+            <div className={styles.legendCard}>
+              <h4 className={styles.legendTitle}>Leyenda del Mapa</h4>
+              <div className={styles.legendRow}>
                 <div className={styles.legendItem}>
-                  <img src="/ubicacion.png" alt="Ubicación" style={{ width: 38, height: 38 }} />
+                  <img src="/ubicacion.png" alt="Ubicación" width={38} height={38} />
                   <span style={{ fontSize: 14, color: '#495057' }}>Tu búsqueda</span>
                 </div>
                 <div className={styles.legendItem}>
-                  <img src="/privado.png" alt="Privado" style={{ width: 32, height: 32 }} />
+                  <img src="/privado.png" alt="Privado" width={32} height={32} />
                   <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Privado</span>
                 </div>
                 <div className={styles.legendItem}>
-                  <img src="/publico.png" alt="Público" style={{ width: 32, height: 32 }} />
+                  <img src="/publico.png" alt="Público" width={32} height={32} />
                   <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Público</span>
                 </div>
               </div>
             </div>
 
-            <div className={styles.mapWrapper} style={{ width: '100%', height: '300px', margin: '0 auto', maxWidth: '500px' }}> {/* Ajustar mapa */}
+            <div className={styles.mapWrapper}>
               <MapContainer
                 center={selectedCoords || [-34.603722, -58.381592]} // Coordenadas iniciales
                 zoom={13}
@@ -428,17 +425,16 @@ const Parkin = () => {
             </div>
 
             {/* Listado de estacionamientos en formato de tarjetas */}
-            <div className={styles.cardListWrapper} style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}> {/* Contenedor padre para centrar las tarjetas */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', maxWidth: '100%' }}> {/* Tarjetas en forma de fila */}
+            <div className={styles.cardListWrapper}>
+              <div className={styles.cardList}>
                 {direcciones.map((direccion) => (
                   <div
                     key={direccion.id_espacio}
                     className={styles.card}
-                    style={{ flex: '1 1 calc(50% - 10px)', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', borderRadius: '8px', padding: '10px', maxWidth: '300px' }} // Ajustar tamaño de la tarjeta
                     onClick={() => handleCardClick(direccion)} // Manejar clic en la tarjeta
                   >
-                    <h5 className={styles.cardTitle} style={{ fontSize: '0.9rem' }}>{direccion.ubicacion}</h5>
-                    <p className={styles.cardType} style={{ fontSize: '0.8rem' }}>
+                    <h5 className={styles.cardTitle}>{direccion.ubicacion}</h5>
+                    <p className={styles.cardType}>
                       Tipo: {direccion.tipo_de_estacionamiento === 'privado' ? 'Privado' : 'Público'}
                     </p>
                   </div>

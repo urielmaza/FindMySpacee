@@ -348,10 +348,20 @@
     gap: 310px;
   }
   
+  /* Subir contenido y footer (toggle) más arriba en responsive */
+  .sidebarContent {
+    margin: 40px 0 0 -3px; /* antes 80px */
+    flex: 0 0 auto;        /* evitar que empuje el footer al fondo */
+  }
+
+  .sidebarFooter {
+    padding: 12px 0 20px 0; /* línea y toggle más arriba */
+  }
+
   .darkModeToggle {
     width: 64px;
     height: 28px;
-    margin: 0 10px 20px auto; /* seguir a la derecha en móvil */
+    margin: 0 10px 10px auto; /* subir el toggle acercándolo al contenido */
   }
   
   .toggleCircle {
@@ -389,10 +399,19 @@
   .sidebarOpen {
     width: 100vw;
   }
+  /* Aún más arriba en móviles chicos */
+  .sidebarContent {
+    margin: 24px 0 0 -3px;
+    flex: 0 0 auto;
+  }
+  .sidebarFooter {
+    padding: 10px 0 18px 0;
+  }
   
   .darkModeToggle {
     width: 70px;
     height: 30px;
+    margin: 0 12px 12px auto; /* subir un poco más el toggle */
   }
   
   .toggleCircle {

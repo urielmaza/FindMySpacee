@@ -493,6 +493,36 @@ const SubirEstacionamiento = () => {
     }
 
     console.log('Horarios enviados al backend:', horariosPayload); // Verificar el payload
+
+    // Asegurar coordenadas: si el usuario escribió la dirección sin elegir sugerencia ni usar ubicación,
+    // intentamos geocodificar antes de guardar.
+    let lat = selectedCoords?.[0] ?? null;
+    let lon = selectedCoords?.[1] ?? null;
+    if ((lat === null || lon === null) && (addressInput || ubicacion)) {
+      try {
+        const texto = (addressInput || ubicacion || '').trim();
+        if (texto.length > 3) {
+          const respGeo = await apiClient.get('/autocomplete', { params: { text: texto } });
+          const features = Array.isArray(respGeo.data) ? respGeo.data : [];
+          const best = features[0];
+          if (best?.geometry?.coordinates && best.geometry.coordinates.length >= 2) {
+            // Geoapify devuelve [lon, lat]
+            lon = Number(best.geometry.coordinates[0]);
+            lat = Number(best.geometry.coordinates[1]);
+            setSelectedCoords([lat, lon]);
+          }
+        }
+      } catch (e) {
+        console.warn('Fallo geocodificando dirección para obtener coordenadas:', e);
+      }
+    }
+
+    // Validación final de coordenadas (preferimos guardarlas para búsquedas posteriores)
+    if (lat === null || lon === null || Number.isNaN(lat) || Number.isNaN(lon)) {
+      setMensaje('No se pudo determinar la ubicación en el mapa. Elegí una sugerencia o usa "Usar mi ubicación".');
+      setTipoMensaje('error');
+      return;
+    }
     
     // Construir tarifas a partir de la tabla de vehículos y modalidades seleccionadas
     const tarifasPayload = [];
@@ -511,8 +541,8 @@ const SubirEstacionamiento = () => {
       id_cliente: idCliente || null,
       nombre_estacionamiento: nombre,
       ubicacion: ubicacion || addressInput,
-      latitud: selectedCoords ? Number(selectedCoords[0].toFixed(8)) : null,
-      longitud: selectedCoords ? Number(selectedCoords[1].toFixed(8)) : null,
+      latitud: Number(lat.toFixed(8)),
+      longitud: Number(lon.toFixed(8)),
       cantidad_plazas: Number(plazas),
       tipo_de_estacionamiento: tipo,
       tipo_estructura: tipoEstructura || null,

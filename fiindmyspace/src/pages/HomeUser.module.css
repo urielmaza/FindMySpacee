@@ -332,13 +332,13 @@
 }
 
 :global(body.dark-mode) .featureCard {
-  background: transparent;
-  border: 2px solid rgba(255,255,255,0.5); /* borde más notorio en oscuro */
+  background: #202124; /* gris muy oscuro: "negro no tan negro" para distinguir la carta */
+  border: 2px solid rgba(255,255,255,0.55); /* leve aumento para más contraste */
 }
 
 :global(body.dark-mode) .featureCard:hover {
   box-shadow: none;
-  background: transparent;
+  background: #26272b; /* un toque más claro en hover */
   border-color: rgba(255,255,255,0.7); /* resalta más en hover */
 }
 
