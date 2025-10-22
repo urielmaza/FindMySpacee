@@ -110,7 +110,7 @@ const HomeUser = () => {
                 <path d="M8.714 14h-3.71a1 1 0 0 0-.948.683l-2.004 6A1 1 0 0 0 3 22h18a1 1 0 0 0 .948-1.316l-2-6a1 1 0 0 0-.949-.684h-3.712"/>
               </svg>
             </span>
-            <h3 className={styles.featureTitle}>Encuentra Parking</h3>
+            <h3 className={styles.featureTitle}>Encuentra estacionamientos</h3>
             <p className={styles.featureDescription}>
               Busca y reserva espacios de estacionamiento
             </p>
@@ -131,7 +131,7 @@ const HomeUser = () => {
                   <circle cx="5" cy="19" r="2"/>
                 </svg>
               </span>
-              <h3 className={styles.featureTitle}>Carga tu Estacionamiento</h3>
+              <h3 className={styles.featureTitle}>Subí tu estacionamiento</h3>
               <p className={styles.featureDescription}>
                 Monetiza tu espacio disponible y gana dinero
               </p>
@@ -153,9 +153,9 @@ const HomeUser = () => {
                 <path d="M19 18v2"/>
               </svg>
             </span>
-            <h3 className={styles.featureTitle}>Gestiona tus Vehículos</h3>
+            <h3 className={styles.featureTitle}>Carga tus vehículos</h3>
             <p className={styles.featureDescription}>
-              Administra la información de todos tus vehículos
+              Sube tu vehículo al sistema para reservas rápidas
             </p>
           </div>
         </div>

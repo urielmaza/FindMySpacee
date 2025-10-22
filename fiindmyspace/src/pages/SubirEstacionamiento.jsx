@@ -582,7 +582,7 @@ const SubirEstacionamiento = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div className={styles.inlineRow}>
                   <input
                     type="text"
                     placeholder="Ubicación"
@@ -596,15 +596,7 @@ const SubirEstacionamiento = () => {
                     type="button"
                     onClick={handleUseCurrentLocation}
                     disabled={isLocating}
-                    style={{
-                      padding: '8px 12px',
-                      fontSize: 14,
-                      cursor: isLocating ? 'not-allowed' : 'pointer',
-                      backgroundColor: isLocating ? '#9bbcfb' : '#2d7cff',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: 8
-                    }}
+                    className={styles.useLocationBtn}
                   >
                     {isLocating ? 'Obteniendo…' : 'Usar mi ubicación'}
                   </button>
@@ -613,13 +605,7 @@ const SubirEstacionamiento = () => {
                   <ul className={styles.suggestionsList}>
                     <li
                       onClick={handleUseCurrentLocation}
-                      style={{
-                        padding: '8px 12px',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #eee',
-                        color: '#007bff',
-                        fontWeight: 'bold'
-                      }}
+                      className={styles.locationOption}
                     >
                       📍 Usar mi ubicación actual
                     </li>

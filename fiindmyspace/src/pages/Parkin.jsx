@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import BannerUser from '../components/BannerUser';
+import styles from './Parkin.module.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -199,31 +200,22 @@ const Parkin = () => {
   return (
     <>
       <BannerUser />
-      <div style={{ marginTop: 100, marginBottom: 60, textAlign: 'center' }}>
-        <h2>Bienvenido a Parking</h2>
-        <p style={{ 
-          marginTop: 20, 
-          marginBottom: 30, 
-          fontSize: 14, 
-          color: '#666', 
-          fontStyle: 'italic',
-          maxWidth: 600,
-          margin: '20px auto 30px auto',
-          lineHeight: 1.5
-        }}>
+      <div className={styles.pageContainer}>
+        <h2 className={styles.title}>Bienvenido a Parking</h2>
+        <p className={styles.subtitle}>
           <strong>Aclaración:</strong> Las búsquedas de estacionamientos pueden realizarse por ubicación exacta del estacionamiento o mostrando el entorno cercano de la ubicación para facilitar tu elección.
         </p>
 
         {/* Formulario de lugar destino */}
-        <form style={{ marginTop: 40 }} onSubmit={handleSearch}>
-          <div style={{ marginBottom: 24, position: 'relative', display: 'inline-block' }}>
-            <label style={{ fontWeight: 'bold', fontSize: 18 }}>Dirección:</label>
+        <form className={styles.form} onSubmit={handleSearch}>
+          <div className={styles.addressRow}>
+            <label className={styles.label}>Dirección:</label>
             <input
               type="text"
               value={addressInput}
               onChange={handleAddressChange}
               placeholder="Buscar dirección"
-              style={{ marginLeft: 12, padding: 8, fontSize: 16, width: 250 }}
+              className={styles.addressInput}
               required
               autoComplete="off"
             />
@@ -231,50 +223,17 @@ const Parkin = () => {
               type="button"
               onClick={handleUseCurrentLocation}
               disabled={isLocating}
-              style={{
-                marginLeft: 8,
-                padding: '8px 12px',
-                fontSize: 14,
-                cursor: isLocating ? 'not-allowed' : 'pointer',
-                backgroundColor: isLocating ? '#9bbcfb' : '#2d7cff',
-                color: 'white',
-                border: 'none',
-                borderRadius: 4,
-                verticalAlign: 'middle'
-              }}
+              className={styles.useLocationBtn}
             >
               {isLocating ? 'Obteniendo…' : 'Usar mi ubicación'}
             </button>
             {/* Sugerencias de autocompletado */}
             {suggestions.length > 0 && (
-              <ul
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: 40,
-                  background: '#fff',
-                  border: '1px solid #ccc',
-                  borderRadius: 4,
-                  zIndex: 10,
-                  listStyle: 'none',
-                  margin: 0,
-                  padding: 0,
-                  maxHeight: 180,
-                  overflowY: 'auto',
-                  width: '100%',
-                }}
-              >
+              <ul className={styles.suggestionsList}>
                 {/* Opción para usar la ubicación actual */}
                 <li
                   onClick={() => handleSuggestionClick('current-location')}
-                  style={{
-                    padding: '8px 12px',
-                    cursor: 'pointer',
-                    borderBottom: '1px solid #eee',
-                    color: '#007bff',
-                    fontWeight: 'bold',
-                  }}
+                  className={styles.locationOption}
                 >
                   📍 Usar mi ubicación actual
                 </li>
@@ -284,11 +243,7 @@ const Parkin = () => {
                   <li
                     key={sug.properties.place_id}
                     onClick={() => handleSuggestionClick(sug)}
-                    style={{
-                      padding: '8px 12px',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #eee',
-                    }}
+                    className={styles.suggestionItem}
                   >
                     {sug.properties.formatted}
                   </li>
@@ -298,18 +253,18 @@ const Parkin = () => {
           </div>
           {/* Mostrar dirección real si existe */}
           {resolvedAddress && (
-            <div style={{ marginBottom: 24, color: '#2d7cff', fontWeight: 'bold' }}>
+            <div className={styles.resolvedAddress}>
               {resolvedAddress}
             </div>
           )}
 
           {/* Formulario de tipo de estacionamiento */}
           <div style={{ marginBottom: 24 }}>
-            <label style={{ fontWeight: 'bold', fontSize: 18 }}>Tipo de estacionamiento:</label>
+            <label className={styles.label}>Tipo de estacionamiento:</label>
             <select
               value={parkingType}
               onChange={handleParkingTypeChange}
-              style={{ marginLeft: 12, padding: 8, fontSize: 16 }}
+              className={styles.select}
               required
             >
               <option value="">Selecciona una opción</option>
@@ -318,25 +273,14 @@ const Parkin = () => {
             </select>
           </div>
 
-          <button
-            type="submit"
-            style={{
-              padding: '12px 32px',
-              fontSize: 18,
-              cursor: 'pointer',
-              backgroundColor: '#2d7cff',
-              color: 'white',
-              border: 'none',
-              borderRadius: 4,
-            }}
-          >
+          <button type="submit" className={styles.submitButton}>
             Buscar
           </button>
         </form>
 
         {/* Resultados de búsqueda */}
         {searchResult && (
-          <div style={{ marginTop: 40, whiteSpace: 'pre-line', fontSize: 16 }}>
+          <div className={styles.results}>
             {searchResult}
           </div>
         )}
@@ -345,34 +289,25 @@ const Parkin = () => {
         {showMap && (
           <>
             {/* Leyenda de iconos */}
-            <div style={{ 
-              marginTop: 30, 
-              marginBottom: 20, 
-              padding: 15, 
-              backgroundColor: '#f8f9fa', 
-              borderRadius: 8, 
-              border: '1px solid #dee2e6',
-              maxWidth: 600,
-              margin: '30px auto 20px auto'
-            }}>
-              <h4 style={{ margin: '0 0 10px 0', textAlign: 'center', color: '#495057' }}>Leyenda del Mapa</h4>
-              <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 15 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className={styles.legendCard}>
+              <h4 className={styles.legendTitle}>Leyenda del Mapa</h4>
+              <div className={styles.legendRow}>
+                <div className={styles.legendItem}>
                   <img src="/ubicacion.png" alt="Ubicación" style={{ width: 38, height: 38 }} />
                   <span style={{ fontSize: 14, color: '#495057' }}>Tu búsqueda</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className={styles.legendItem}>
                   <img src="/privado.png" alt="Privado" style={{ width: 32, height: 32 }} />
                   <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Privado</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className={styles.legendItem}>
                   <img src="/publico.png" alt="Público" style={{ width: 32, height: 32 }} />
                   <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Público</span>
                 </div>
               </div>
             </div>
 
-            <div style={{ margin: '40px auto', width: '80vw', height: '400px', maxWidth: 600 }}>
+            <div className={styles.mapWrapper}>
             <MapContainer
               center={selectedCoords || [-34.603722, -58.381592]} // Coordenadas iniciales
               zoom={13}

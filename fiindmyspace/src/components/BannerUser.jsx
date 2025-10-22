@@ -102,7 +102,7 @@ const BannerUser = ({ onMenuToggle }) => {
                 <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
               </svg>
             </span>
-            <span className={styles.navText}>Home</span>
+            <span className={styles.navText}>Inicio</span>
           </button>
           <button onClick={() => handleNavigation('/mis-reservas')} className={styles.navButton}>
             <span className={styles.navIcon}>

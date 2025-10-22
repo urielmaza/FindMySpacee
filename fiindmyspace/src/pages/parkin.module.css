@@ -1,0 +1,173 @@
+/* Contenedor general */
+.pageContainer {
+  margin-top: 100px;
+  margin-bottom: 60px;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  margin: 20px auto 30px auto;
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.form {
+  margin-top: 40px;
+}
+
+.addressRow {
+  margin-bottom: 24px;
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.addressInput {
+  margin-left: 12px;
+  padding: 8px;
+  font-size: 16px;
+  width: 250px;
+  max-width: 60vw;
+}
+
+.useLocationBtn {
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #2d7cff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+}
+
+.useLocationBtn[disabled] {
+  cursor: not-allowed;
+  background-color: #9bbcfb;
+}
+
+.suggestionsList {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.locationOption {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.suggestionItem {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.resolvedAddress {
+  margin-bottom: 24px;
+  color: #2d7cff;
+  font-weight: bold;
+}
+
+.select {
+  margin-left: 12px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.submitButton {
+  padding: 12px 32px;
+  font-size: 18px;
+  cursor: pointer;
+  background-color: #2d7cff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+
+.results {
+  margin-top: 40px;
+  white-space: pre-line;
+  font-size: 16px;
+}
+
+.legendCard {
+  margin: 30px auto 20px auto;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  max-width: 600px;
+}
+
+.legendTitle {
+  margin: 0 0 10px 0;
+  text-align: center;
+  color: #495057;
+}
+
+.legendRow {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mapWrapper {
+  margin: 40px auto;
+  width: 80vw;
+  height: 400px;
+  max-width: 600px;
+}
+
+@media (max-width: 768px) {
+  .title { font-size: 1.6rem; }
+  .addressInput { width: 100%; max-width: 100%; margin-left: 0; }
+  .select { margin-left: 0; width: 100%; }
+  .addressRow { display: flex; flex-direction: column; align-items: stretch; }
+  .useLocationBtn { width: 100%; }
+  .mapWrapper { width: 100%; height: 320px; }
+  .submitButton { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .title { font-size: 1.4rem; }
+  .label { font-size: 16px; }
+  .submitButton { font-size: 16px; padding: 10px 24px; }
+}
