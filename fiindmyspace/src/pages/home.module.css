@@ -108,7 +108,7 @@
   width: 100%;
   text-align: center;
   padding: 0;
-  margin: none;/*Creo que era esto veremos*/ /*no era eso pero bueno*/
+  margin: 0 auto;/* centrar como en el primer div */
 }/*creo que son los que están descentrados pero hay que encontrar el contenedor padre o crearlo*/
 
 .mainTitle {/*titulo. hay mas de uno revisar(?*/
@@ -217,11 +217,11 @@
   }
   
   .us {
-    padding: 40px 10px;
+    padding: 40px 0px;
   }
   
   .container {
-    padding: 0 10px;
+    padding: 0 30px;
     max-width: calc(100% - 20px);
   }
   
@@ -736,7 +736,7 @@ ahora te puedes marchaar
   
   .benefitsGrid {
     max-width: calc(100% - 20px);
-    margin: none;
+    margin: 0 auto;
   }
 }
 .testimonials {
@@ -981,7 +981,7 @@ ahora te puedes marchaar
   justify-self: center;/*esta mierda centra las preguntas*/
   max-width: 800px;
   width: 100%;
-  margin: none;
+  margin: 0 auto;
 }
 
 .faqItem {
@@ -1093,7 +1093,7 @@ ahora te puedes marchaar
   
   .faqsContainer {
     max-width: 100%;
-    margin: none;
+    margin: 0 auto;
   }
   
   .faqs {
@@ -1122,7 +1122,7 @@ ahora te puedes marchaar
   
   .faqsContainer {
     max-width: calc(100% - 20px);
-    margin: none;
+    margin: 0 auto;
   }
 }
 

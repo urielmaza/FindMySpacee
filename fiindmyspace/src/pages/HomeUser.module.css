@@ -358,7 +358,7 @@
   }
   .actionBar {
     top: 24px; /* ligeramente más abajo en tablet */
-    width: calc(100% - 32px); /* respeta padding horizontal 16px */
+    width: calc(100% - 170px); /* respeta padding horizontal 16px */
   }
   .rightActions { right: -24px; }
   
