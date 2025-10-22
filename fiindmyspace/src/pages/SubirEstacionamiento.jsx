@@ -85,6 +85,7 @@ const SubirEstacionamiento = () => {
     { key: 'transferencia', label: 'Transferencia bancaria' }
   ];
   const [metodosPago, setMetodosPago] = useState([]); // array de keys seleccionadas
+  const [tarifas, setTarifas] = useState([]); // Nueva variable para almacenar tarifas
 
   const dragPlaza = useRef(null);
   const offset = useRef({ x: 0, y: 0 });
@@ -432,24 +433,7 @@ const SubirEstacionamiento = () => {
       }))
       .filter(d => d.franjas.length > 0);
 
-    // Construir tarifas a partir de la tabla UI (solo para estacionamientos privados)
-    const tarifas = [];
-    if (tipo === 'privado' && modalidades.length > 0 && vehiculos.length > 0) {
-      vehiculos.forEach(v => {
-        const nombreVeh = (v.nombre || '').trim();
-        if (!nombreVeh) return;
-        modalidades.forEach(mKey => {
-          const val = v.precios?.[mKey];
-          if (val !== undefined && val !== null && String(val).trim() !== '') {
-            const precioNum = Number(val);
-            if (!Number.isNaN(precioNum) && precioNum >= 0) {
-              tarifas.push({ tipo_vehiculo: nombreVeh, modalidad: mKey, precio: precioNum });
-            }
-          }
-        });
-      });
-    }
-
+    console.log('Horarios enviados al backend:', horariosPayload); // Verificar el payload
     const body = {
       id_cliente: idCliente || null,
       nombre_estacionamiento: nombre,
@@ -465,7 +449,7 @@ const SubirEstacionamiento = () => {
       modalidades: tipo === 'privado' ? modalidades : [],
       metodos_pago: tipo === 'privado' ? metodosPago : [],
       tarifas: tipo === 'privado' ? tarifas : [],
-      mapa: mapaData // Incluir el diseño del mapa como JSON
+      mapa: mapaData
     };
 
     try {

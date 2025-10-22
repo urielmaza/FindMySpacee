@@ -156,6 +156,33 @@
   max-width: 600px;
 }
 
+/* Ajustar estilos para el mapa en la vista de detalles */
+.mapArea {
+  position: relative;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.plaza {
+  position: absolute;
+  background-color: #007bff;
+  border: 1px solid #0056b3;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.plazaSelected {
+  background-color: #28a745;
+  border-color: #1e7e34;
+}
+
 .cardListWrapper {
   margin-top: 20px;
 }

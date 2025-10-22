@@ -203,6 +203,7 @@ const Parkin = () => {
     }
   };
 
+  // Revisar y ajustar la lógica para asegurar que el mapa se renderice correctamente
   const handleCardClick = async (direccion) => {
     setSelectedParking(direccion); // Guardar el estacionamiento seleccionado
 
@@ -225,11 +226,18 @@ const Parkin = () => {
       console.error('Error al obtener el mapa del estacionamiento:', error);
       setParkingMap(null); // En caso de error, no mostrar mapa
     }
+
+    // Asegurarse de que el mapa se muestre correctamente
+    setShowMap(true);
   };
 
   const handleBackClick = () => {
     setSelectedParking(null); // Volver a la vista principal
     setParkingMap(null); // Limpiar el mapa
+  };
+
+  const handleSquareClick = (plazaNum) => {
+    navigate('/reservas', { state: { plazaNumero: plazaNum } });
   };
 
   if (!user) return null;
@@ -250,19 +258,26 @@ const Parkin = () => {
         {parkingMap ? (
           <div
             className={styles.mapArea}
-            style={{ width: parkingMap.areaSize, height: parkingMap.areaSize, margin: '20px auto' }}
+            style={{
+              width: parkingMap.areaSize || '100%',
+              height: parkingMap.areaSize || '400px',
+              margin: '20px auto',
+              position: 'relative',
+            }}
           >
             {parkingMap.plazasPos.map((plaza) => (
               <div
                 key={plaza.num}
                 className={`${styles.plaza} ${parkingMap.selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
                 style={{
-                  left: plaza.x,
-                  top: plaza.y,
-                  width: parkingMap.plazaSize,
-                  height: parkingMap.plazaSize,
+                  position: 'absolute',
+                  left: `${plaza.x}px`,
+                  top: `${plaza.y}px`,
+                  width: `${parkingMap.plazaSize}px`,
+                  height: `${parkingMap.plazaSize}px`,
                 }}
                 title={`Plaza ${plaza.num}`}
+                onClick={() => handleSquareClick(plaza.num)} // Redirigir al hacer clic
               >
                 {plaza.num}
               </div>
