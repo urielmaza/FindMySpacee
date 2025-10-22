@@ -338,6 +338,8 @@ ahora te puedes marchaar
   font-size: 1.4rem; /* Aumentado el tamaño de las letras */
   letter-spacing: 0.02em; /* Añadido espaciado entre letras */
   width: 100%;
+  max-width: 1000px;
+  padding: 0 12px; /* evitar que se corte en móviles */
   margin-top: 3%;
 }
 
@@ -1361,6 +1363,11 @@ ahora te puedes marchaar
   
   .footerSection:last-child {
     grid-column: 1 / -1;
+  
+  .textContainer {
+    top: 45%; /* eleva visibilidad en pantallas muy angostas */
+    padding: 0 14px;
+  }
     max-width: 400px;
   }
 }
