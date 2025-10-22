@@ -2,9 +2,7 @@
 import apiClient from '../apiClient';
 
 export function setUserSession(user) {
-  console.log('💾 Guardando sesión en localStorage:', user);
   localStorage.setItem('findmyspace_user', JSON.stringify(user));
-  console.log('✅ Sesión guardada exitosamente');
 }
 
 export function getUserSession() {
@@ -14,9 +12,8 @@ export function getUserSession() {
 }
 
 export function clearUserSession() {
-  console.log('🗑️ Eliminando solo la sesión del usuario');
   localStorage.removeItem('findmyspace_user');
-  console.log('✅ Sesión del usuario eliminada (mapas y preferencias preservadas)');
+
 }
 
 // Cerrar sesión preservando mapas y preferencia de modo oscuro

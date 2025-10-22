@@ -151,7 +151,7 @@ const Register = () => {
       <form className={styles.form} onSubmit={handleSubmit}>
         {/* Logo centrado */}
         <div className={styles.logoContainer}>
-          <img src={logo} alt="FindMySpace Logo" className={styles.logo} onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
+          <img src={logo} alt="FindMySpace Logo" className={styles.logo} onClick={() => navigate('/login')} style={{ cursor: 'pointer' }} />
         </div>
 
         {/* Texto debajo del logo */}

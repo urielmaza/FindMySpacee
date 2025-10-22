@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from '../components/user/Login.module.css';
 import apiClient from '../apiClient';
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -52,6 +54,23 @@ const ForgotPassword = () => {
         <button className={styles['button-submit']} type="submit" disabled={loading}>
           {loading ? 'Enviando...' : 'Enviar instrucciones'}
         </button>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#000',
+              cursor: 'pointer',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+            }}
+          >
+            volver
+          </button>
+        </div>
 
         {message && <div style={{ color: 'green', marginTop: 16 }}>{message}</div>}
         {error && <div className={styles.error}>{error}</div>}
