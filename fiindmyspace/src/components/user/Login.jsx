@@ -186,7 +186,14 @@ const Login = () => {
         </div>
 
         <div className={styles['flex-row']}>
-          <span className={styles.span}>Olvidaste tu contraseña?</span>
+          <button
+            type="button"
+            onClick={() => navigate('/forgot-password')}
+            className={styles.span}
+            style={{ background: 'none', border: 'none', color: '#2d79f3', cursor: 'pointer', padding: 0 }}
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
         </div>
 
         <button className={styles['button-submit']} type="submit" disabled={loading}>

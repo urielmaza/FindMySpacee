@@ -56,7 +56,43 @@ const Register = () => {
             setMessage('¡Registro con Google exitoso! Redirigiendo...');
             navigate('/home-user');
           } else {
-            setError(data.error || 'Error en registro con Google');
+            // Si ya existe, intentar login automático con Google
+            const alreadyExists =
+              data && typeof data.error === 'string' &&
+              data.error.toLowerCase().includes('ya existe una cuenta');
+
+            if (alreadyExists) {
+              try {
+                const loginRes = await fetch(`${API_BASE}/api/google/verify`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ credential: response.credential })
+                });
+                const loginData = await loginRes.json();
+
+                if (loginRes.ok && loginData.success) {
+                  const user = loginData.user || {};
+                  if (loginData.token) {
+                    localStorage.setItem('token', loginData.token);
+                  }
+                  setUserSession({
+                    id_cliente: user.id_cliente,
+                    email: user.email,
+                    nombre: user.nombre,
+                    apellido: user.apellido
+                  });
+                  setMessage('¡Bienvenido de nuevo! Iniciaste sesión con Google.');
+                  navigate('/home-user');
+                } else {
+                  setError(loginData.error || 'Error al iniciar sesión con Google');
+                }
+              } catch (e) {
+                console.error('Error en login con Google (verify):', e);
+                setError('Error de conexión con el servidor');
+              }
+            } else {
+              setError(data.error || 'Error en registro con Google');
+            }
           }
         } catch (err) {
           console.error('Error procesando registro de Google:', err);
@@ -83,10 +119,6 @@ const Register = () => {
     e.preventDefault();
     if (pw !== confirmPw) {
       setError('Las contraseñas no coinciden');
-      return;
-    }
-    if (!termsAccepted) {
-      setError('Debes aceptar los términos y condiciones');
       return;
     }
     setLoading(true);
@@ -193,18 +225,6 @@ const Register = () => {
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             style={{ cursor: 'pointer', marginRight: '10px' }}
           />
-        </div>
-
-        <div className={styles['flex-row']}>
-          <input
-            type="checkbox"
-            id="terms"
-            checked={termsAccepted}
-            onChange={(e) => setTermsAccepted(e.target.checked)}
-          />
-          <label htmlFor="terms" className={styles.span}>
-            Acepto los <span style={{ color: '#2d79f3' }}>términos y condiciones</span>
-          </label>
         </div>
 
         <button className={styles['button-submit']} type="submit" disabled={loading}>
