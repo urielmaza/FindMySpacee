@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserSession, clearUserSession } from '../utils/auth';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -57,6 +57,9 @@ const Parkin = () => {
   const [direcciones, setDirecciones] = useState([]); // Estado para las direcciones
   const [showMap, setShowMap] = useState(false); // Estado para mostrar el mapa
   const [isLocating, setIsLocating] = useState(false); // Estado para geolocalización
+  const [selectedParking, setSelectedParking] = useState(null); // Estado para el estacionamiento seleccionado
+  const [parkingMap, setParkingMap] = useState(null); // Estado para el mapa del estacionamiento
+  const mapRef = useRef(null); // Referencia al mapa
 
   useEffect(() => {
     if (!user) navigate('/');
@@ -193,9 +196,88 @@ const Parkin = () => {
 
     // Mostrar el mapa
     setShowMap(true);
+
+    // Centrar el mapa en las nuevas coordenadas seleccionadas
+    if (mapRef.current && selectedCoords) {
+      mapRef.current.setView(selectedCoords, 13); // Zoom nivel 13
+    }
+  };
+
+  const handleCardClick = async (direccion) => {
+    setSelectedParking(direccion); // Guardar el estacionamiento seleccionado
+
+    try {
+      // Solicitar el mapa del estacionamiento al backend
+      console.log('Solicitando mapa para espacio ID:', direccion.id_espacio);
+      const resp = await fetch(`${API_URL}/api/espacios/${direccion.id_espacio}`);
+      const data = await resp.json();
+      
+      console.log('Respuesta del backend:', data);
+
+      if (data.success && data.data?.espacio?.mapa) {
+        console.log('Mapa encontrado:', data.data.espacio.mapa);
+        setParkingMap(data.data.espacio.mapa); // Guardar el mapa obtenido del backend
+      } else {
+        console.log('No se encontró mapa en la respuesta');
+        setParkingMap(null); // No se encontró un mapa
+      }
+    } catch (error) {
+      console.error('Error al obtener el mapa del estacionamiento:', error);
+      setParkingMap(null); // En caso de error, no mostrar mapa
+    }
+  };
+
+  const handleBackClick = () => {
+    setSelectedParking(null); // Volver a la vista principal
+    setParkingMap(null); // Limpiar el mapa
   };
 
   if (!user) return null;
+
+  // Vista de detalles del estacionamiento
+  if (selectedParking) {
+    return (
+      <div className={styles.detailsPage}>
+        <h1 className={styles.detailsTitle}>Reserva tu estacionamiento</h1>
+        <div className={styles.detailsContent}>
+          <p><strong>Ubicación:</strong> {selectedParking.ubicacion}</p>
+          <p><strong>Tipo:</strong> {selectedParking.tipo_de_estacionamiento === 'privado' ? 'Privado' : 'Público'}</p>
+          <p><strong>Latitud:</strong> {selectedParking.latitud}</p>
+          <p><strong>Longitud:</strong> {selectedParking.longitud}</p>
+        </div>
+
+        {/* Renderizar el mapa del estacionamiento */}
+        {parkingMap ? (
+          <div
+            className={styles.mapArea}
+            style={{ width: parkingMap.areaSize, height: parkingMap.areaSize, margin: '20px auto' }}
+          >
+            {parkingMap.plazasPos.map((plaza) => (
+              <div
+                key={plaza.num}
+                className={`${styles.plaza} ${parkingMap.selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
+                style={{
+                  left: plaza.x,
+                  top: plaza.y,
+                  width: parkingMap.plazaSize,
+                  height: parkingMap.plazaSize,
+                }}
+                title={`Plaza ${plaza.num}`}
+              >
+                {plaza.num}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className={styles.noMapMessage}>No hay un mapa disponible para este estacionamiento.</p>
+        )}
+
+        <button className={styles.backButton} onClick={handleBackClick}>
+          Atrás
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -308,47 +390,74 @@ const Parkin = () => {
             </div>
 
             <div className={styles.mapWrapper}>
-            <MapContainer
-              center={selectedCoords || [-34.603722, -58.381592]} // Coordenadas iniciales
-              zoom={13}
-              style={{ width: '100%', height: '100%' }}
-              scrollWheelZoom={false}
-            >
-              <TileLayer
-                attribution='&copy; OpenStreetMap contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
+              <MapContainer
+                center={selectedCoords || [-34.603722, -58.381592]} // Coordenadas iniciales
+                zoom={13}
+                style={{ width: '100%', height: '100%' }}
+                scrollWheelZoom={false}
+                ref={mapRef} // Asignar la referencia al mapa
+              >
+                <TileLayer
+                  attribution='&copy; OpenStreetMap contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
 
-              {/* Marcador de la dirección buscada */}
-              {selectedCoords && (
-                <Marker position={selectedCoords} icon={locationIcon}>
-                  <Popup>
-                    <div style={{ textAlign: 'center' }}>
-                      <strong>📍 Ubicación buscada</strong><br/>
-                      {selectedAddress}
-                    </div>
-                  </Popup>
-                </Marker>
-              )}
+                {/* Marcador de la dirección buscada */}
+                {selectedCoords && (
+                  <Marker position={selectedCoords} icon={locationIcon}>
+                    <Popup>
+                      <div style={{ textAlign: 'center' }}>
+                        <strong>📍 Ubicación buscada</strong><br/>
+                        {selectedAddress}
+                      </div>
+                    </Popup>
+                  </Marker>
+                )}
 
-              {/* Marcadores de direcciones obtenidas del backend */}
-              {direcciones.map((direccion) => (
-                <Marker
-                  key={direccion.id_espacio}
-                  position={[direccion.latitud, direccion.longitud]}
-                  icon={getIconByType(direccion.tipo_de_estacionamiento)}
-                >
-                  <Popup>
-                    <div style={{ textAlign: 'center' }}>
-                      <strong>{direccion.ubicacion}</strong><br/>
-                      <small style={{ color: '#666' }}>
+                {/* Marcadores de direcciones obtenidas del backend */}
+                {direcciones.map((direccion) => (
+                  <Marker
+                    key={direccion.id_espacio}
+                    position={[direccion.latitud, direccion.longitud]}
+                    icon={getIconByType(direccion.tipo_de_estacionamiento)}
+                  >
+                    <Popup>
+                      <div style={{ textAlign: 'center' }}>
+                        <strong>{direccion.ubicacion}</strong><br/>
+                        <small style={{ color: '#666' }}>
+                          Tipo: {direccion.tipo_de_estacionamiento === 'privado' ? 'Privado' : 'Público'}
+                        </small>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+              </MapContainer>
+            </div>
+
+            {/* Listado de estacionamientos en formato de tarjetas */}
+            <div className={styles.cardListWrapper}>
+              <h4 className={styles.listTitle}>Estacionamientos encontrados:</h4>
+              {direcciones.length > 0 ? (
+                <div className={styles.cardList}>
+                  {direcciones.map((direccion) => (
+                    <div
+                      key={direccion.id_espacio}
+                      className={styles.card}
+                      onClick={() => handleCardClick(direccion)} // Manejar clic en la tarjeta
+                    >
+                      <h5 className={styles.cardTitle}>{direccion.ubicacion}</h5>
+                      <p className={styles.cardType}>
                         Tipo: {direccion.tipo_de_estacionamiento === 'privado' ? 'Privado' : 'Público'}
-                      </small>
+                      </p>
+                      <p className={styles.cardCoords}>
+                        Latitud: {direccion.latitud}, Longitud: {direccion.longitud}
+                      </p>
                     </div>
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.noResults}>No se encontraron estacionamientos.</p>
+              )}
             </div>
           </>
         )}

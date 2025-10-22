@@ -201,9 +201,23 @@ const MisEstacionamientos = () => {
                   plazas: esp.cantidad_plazas,
                   tipo: esp.tipo_de_estacionamiento,
                   tipoEstructura: esp.tipo_estructura,
-                  precio: esp.precio_por_hora,
                   fechaCreacion: esp.fecha_creacion || esp.created_at || new Date().toISOString(),
                 };
+                
+                // Buscar el mapa correspondiente en localStorage
+                const mapaEncontrado = mapasGuardados.find((m) => {
+                  const e = m?.estacionamiento;
+                  if (!e) return false;
+                  // 1) Por idEspacio si está disponible
+                  if (e.idEspacio && Number(e.idEspacio) === Number(esp.id_espacio)) return true;
+                  // 2) Por nombre + ubicación + plazas
+                  return (
+                    (e.nombre || '').trim().toLowerCase() === (estacionamiento.nombre || '').trim().toLowerCase() &&
+                    (e.ubicacion || '').trim().toLowerCase() === (estacionamiento.ubicacion || '').trim().toLowerCase() &&
+                    Number(e.plazas) === Number(estacionamiento.plazas)
+                  );
+                });
+
                 return (
                   <div key={esp.id_espacio} className={styles.mapaCard}>
                     <div className={styles.cardHeader}>
@@ -242,74 +256,61 @@ const MisEstacionamientos = () => {
                       <p className={styles.infoRow}>
                         <span className={styles.infoLabel}><span className={styles.icon}><IconBuilding /></span> Tipo:</span> {estacionamiento.tipo} {estacionamiento.tipoEstructura ? `- ${estacionamiento.tipoEstructura}` : ''}
                       </p>
-                      {estacionamiento.tipo === 'privado' && (
-                        <p className={styles.infoRow}><span className={styles.infoLabel}><span className={styles.icon}><IconMoney /></span> Precio:</span> ${estacionamiento.precio}/hora</p>
-                      )}
                       <p className={styles.infoRow}><span className={styles.infoLabel}><span className={styles.icon}><IconCalendar /></span> Creado:</span> {new Date(estacionamiento.fechaCreacion).toLocaleDateString('es-ES')}</p>
                     </div>
 
-                    {/* Visualización del mapa (si existe en localStorage una coincidencia) */}
-                    {(() => {
-                      const match = mapasGuardados.find((m) => {
-                        const e = m?.estacionamiento;
-                        if (!e) return false;
-                        // 1) Por idEspacio si está disponible
-                        if (e.idEspacio && Number(e.idEspacio) === Number(esp.id_espacio)) return true;
-                        // 2) Por nombre + ubicación + plazas
-                        return (
-                          (e.nombre || '').trim() === (estacionamiento.nombre || '').trim() &&
-                          (e.ubicacion || '').trim() === (estacionamiento.ubicacion || '').trim() &&
-                          Number(e.plazas) === Number(estacionamiento.plazas)
-                        );
-                      });
-                      if (!match || !match.mapa) return null;
-                      const { mapa } = match;
-                      const scale = 0.9;
-                      return (
-                        <div className={styles.mapaVisualizacion}>
-                          <h4 className={styles.mapaTitle}>Layout del Estacionamiento</h4>
-                          <div
-                            className={styles.mapaContainer}
-                            style={{
-                              width: (mapa.areaSize || 400) * scale,
-                              height: (mapa.areaSize || 400) * scale,
-                              position: 'relative',
-                              background: '#f7f7f7',
-                              border: '2px solid #2d7cff',
-                              borderRadius: 8,
-                              margin: '12px auto'
-                            }}
-                          >
-                            {(mapa.plazasPos || []).map((plaza) => (
-                              <div
-                                key={plaza.num}
-                                className={styles.plazaVista}
-                                style={{
-                                  position: 'absolute',
-                                  left: (plaza.x || 0) * scale,
-                                  top: (plaza.y || 0) * scale,
-                                  width: (mapa.plazaSize || 40) * scale,
-                                  height: (mapa.plazaSize || 40) * scale,
-                                  background: (mapa.selectedPlazas || []).includes(plaza.num) ? '#2d7cff' : '#fff',
-                                  color: (mapa.selectedPlazas || []).includes(plaza.num) ? '#fff' : '#222',
-                                  border: '1px solid #2d7cff',
-                                  borderRadius: 4,
-                                  fontSize: 10,
-                                  fontWeight: 'bold',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
-                                }}
-                                title={`Plaza ${plaza.num}`}
-                              >
-                                {plaza.num}
-                              </div>
-                            ))}
-                          </div>
+                    {/* Visualización del mapa desde localStorage */}
+                    {mapaEncontrado && mapaEncontrado.mapa && (
+                      <div className={styles.mapaVisualizacion}>
+                        <h4 className={styles.mapaTitle}>Layout del Estacionamiento</h4>
+                        <div
+                          className={styles.mapaContainer}
+                          style={{
+                            width: (mapaEncontrado.mapa.areaSize || 400) * 0.9,
+                            height: (mapaEncontrado.mapa.areaSize || 400) * 0.9,
+                            position: 'relative',
+                            background: '#f7f7f7',
+                            border: '2px solid #2d7cff',
+                            borderRadius: 8,
+                            margin: '12px auto'
+                          }}
+                        >
+                          {(mapaEncontrado.mapa.plazasPos || []).map((plaza) => (
+                            <div
+                              key={plaza.num}
+                              className={styles.plazaVista}
+                              style={{
+                                position: 'absolute',
+                                left: (plaza.x || 0) * 0.9,
+                                top: (plaza.y || 0) * 0.9,
+                                width: (mapaEncontrado.mapa.plazaSize || 40) * 0.9,
+                                height: (mapaEncontrado.mapa.plazaSize || 40) * 0.9,
+                                background: (mapaEncontrado.mapa.selectedPlazas || []).includes(plaza.num) ? '#2d7cff' : '#fff',
+                                color: (mapaEncontrado.mapa.selectedPlazas || []).includes(plaza.num) ? '#fff' : '#222',
+                                border: '1px solid #2d7cff',
+                                borderRadius: 4,
+                                fontSize: 10,
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
+                              }}
+                              title={`Plaza ${plaza.num}`}
+                            >
+                              {plaza.num}
+                            </div>
+                          ))}
                         </div>
-                      );
-                    })()}
+                      </div>
+                    )}
+
+                    {/* Mensaje si no hay mapa */}
+                    {!mapaEncontrado && (
+                      <div className={styles.mapaVisualizacion}>
+                        <p className={styles.noMapMessage}>No hay un diseño de mapa guardado para este estacionamiento.</p>
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -350,7 +350,7 @@ const SubirEstacionamiento = () => {
     );
   };
 
-  const handleShowMapa = async (e) => {
+  const handleShowMapa = (e) => {
     e.preventDefault();
 
     // Validación básica solo de UI
@@ -359,103 +359,19 @@ const SubirEstacionamiento = () => {
       setTipoMensaje('error');
       return;
     }
-    // Se elimina la obligación de precio por hora: ahora es un bloque dinámico (solo UI)
     if (tipoEstructura === 'cerrado' && !cantidadPisos) {
-      setMensaje('Error al enviar: la cantidad de pisos es obligatoria para estacionamientos cerrados.');
+      setMensaje('Error: la cantidad de pisos es obligatoria para estacionamientos cerrados.');
       setTipoMensaje('error');
       return;
     }
     if (tipoEstructura === 'cerrado' && !tieneSubsuelo) {
-      setMensaje('Error al enviar: debe especificar si tiene subsuelo para estacionamientos cerrados.');
+      setMensaje('Error: debe especificar si tiene subsuelo para estacionamientos cerrados.');
       setTipoMensaje('error');
       return;
     }
 
-    // Construir payload para backend
-    const horariosPayload = sortedDays
-      .map(d => ({
-        dia: d.name,
-        franjas: (d.ranges || [])
-          .filter(r => r.start && r.end)
-          .map(r => ({ apertura: r.start, cierre: r.end }))
-      }))
-      .filter(d => d.franjas.length > 0);
-
-    const lat = selectedCoords ? Number(Number(selectedCoords[0]).toFixed(8)) : null;
-    const lon = selectedCoords ? Number(Number(selectedCoords[1]).toFixed(8)) : null;
-
-    // Construir tarifas a partir de la tabla UI
-    const tarifas = [];
-    if (tipo === 'privado' && modalidades.length > 0 && vehiculos.length > 0) {
-      vehiculos.forEach(v => {
-        const nombreVeh = (v.nombre || '').trim();
-        if (!nombreVeh) return;
-        modalidades.forEach(mKey => {
-          const val = v.precios?.[mKey];
-          if (val !== undefined && val !== null && String(val).trim() !== '') {
-            const precioNum = Number(val);
-            if (!Number.isNaN(precioNum) && precioNum >= 0) {
-              tarifas.push({ tipo_vehiculo: nombreVeh, modalidad: mKey, precio: precioNum });
-            }
-          }
-        });
-      });
-    }
-
-    const body = {
-      id_cliente: idCliente || null,
-      nombre_estacionamiento: nombre,
-      ubicacion: ubicacion || addressInput,
-      latitud: lat,
-      longitud: lon,
-      cantidad_plazas: Number(plazas),
-      tipo_de_estacionamiento: tipo,
-      tipo_estructura: tipoEstructura || null,
-      cantidad_pisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos || 1) : 1,
-      tiene_subsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si' || tieneSubsuelo === true || tieneSubsuelo === 1) : false,
-      horarios: horariosPayload,
-      modalidades: tipo === 'privado' ? modalidades : [],
-      metodos_pago: tipo === 'privado' ? metodosPago : [],
-      tarifas: tipo === 'privado' ? tarifas : []
-    };
-
-    try {
-      if (editingId) {
-        const resp = await apiClient.put(`/espacios/${editingId}`, body);
-        if (resp.data?.success) {
-          setMensaje('¡Espacio actualizado correctamente!');
-          setTipoMensaje('exito');
-        } else {
-          setMensaje('No se pudo actualizar el espacio.');
-          setTipoMensaje('error');
-          return;
-        }
-      } else {
-        const resp = await apiClient.post('/espacios', body);
-        if (resp.status === 201 && resp.data && (resp.data.success || resp.data.id_espacio)) {
-          setMensaje('¡Espacio creado correctamente!');
-          setTipoMensaje('exito');
-        } else {
-          setMensaje('No se pudo crear el espacio.');
-          setTipoMensaje('error');
-          return;
-        }
-      }
-    } catch (err) {
-      console.error('Error al guardar el espacio:', err);
-      const data = err?.response?.data;
-      let msg = data?.error || 'Error en el servidor';
-      if (Array.isArray(data?.errors) && data.errors.length > 0) {
-        msg += ': ' + data.errors.join(', ');
-      } else if (data?.detail) {
-        msg += ` (${data.detail})`;
-      }
-      setMensaje(msg);
-      setTipoMensaje('error');
-      return;
-    }
-
-    if (plazasArray.length > 0) {
+    // Generar posiciones iniciales para las plazas si no existen
+    if (plazasArray.length > 0 && plazasPos.length === 0) {
       const cols = Math.ceil(Math.sqrt(plazasArray.length));
       const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
       const newPos = plazasArray.map((num, idx) => {
@@ -465,9 +381,9 @@ const SubirEstacionamiento = () => {
       });
       setPlazasPos(newPos);
     }
-  // Mostrar el panel derecho (mapa) solo después de guardar exitosamente
-  setShowMapa(true);
-    setMapaGuardado(false);
+
+    // Mostrar el mapa
+    setShowMapa(true);
   };
 
   const handleMouseDown = (e, idx) => {
@@ -498,66 +414,117 @@ const SubirEstacionamiento = () => {
     document.removeEventListener('mouseup', handleMouseUp);
   };
 
-  const handleGuardarMapa = () => {
+  const handleGuardarMapa = async () => {
     const mapaData = {
-      estacionamiento: {
-        idEspacio: editingId ? Number(editingId) : null,
-        nombre,
-        ubicacion: ubicacion || addressInput,
-        plazas: Number(plazas),
-        tipo,
-        tipoEstructura,
-        cantidadPisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos) : 1,
-        tieneSubsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
-        horarios: sortedDays.map(d => ({
-          dia: d.name,
-          franjas: d.ranges.map(r => ({ apertura: r.start, cierre: r.end }))
-        })),
-        coordenadas: selectedCoords,
-        fechaCreacion: new Date().toISOString()
-      },
-      mapa: { plazasPos, selectedPlazas, areaSize: AREA_SIZE, plazaSize: PLAZA_SIZE }
+      plazasPos,
+      selectedPlazas,
+      areaSize: AREA_SIZE,
+      plazaSize: PLAZA_SIZE
     };
 
-    const mapasGuardados = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
-    // Buscar un mapa existente para reemplazar
-    const idx = (() => {
-      const targetNombre = (mapaData.estacionamiento.nombre || '').trim().toLowerCase();
-      const targetUbic = (mapaData.estacionamiento.ubicacion || '').trim().toLowerCase();
-      const targetPlazas = Number(mapaData.estacionamiento.plazas);
-      const targetCoords = Array.isArray(mapaData.estacionamiento.coordenadas) ? mapaData.estacionamiento.coordenadas : [];
-      const targetId = mapaData.estacionamiento.idEspacio ? Number(mapaData.estacionamiento.idEspacio) : null;
-      const eps = 1e-5;
-      return mapasGuardados.findIndex((m) => {
-        const e = m?.estacionamiento || {};
-        // 1) Por idEspacio si ambos lo tienen
-        if (targetId && e.idEspacio && Number(e.idEspacio) === targetId) return true;
-        // 2) Por nombre + ubicación + plazas (case-insensitive)
-        const byNameUbi = ((e.nombre || '').trim().toLowerCase()) === targetNombre &&
-                          ((e.ubicacion || '').trim().toLowerCase()) === targetUbic &&
-                          Number(e.plazas) === targetPlazas;
-        if (byNameUbi) return true;
-        // 3) Por coordenadas + plazas si existen
-        const c = Array.isArray(e.coordenadas) ? e.coordenadas : [];
-        if (c.length === 2 && targetCoords.length === 2) {
-          const dLat = Math.abs(Number(c[0]) - Number(targetCoords[0]));
-          const dLon = Math.abs(Number(c[1]) - Number(targetCoords[1]));
-          if (dLat < eps && dLon < eps && Number(e.plazas) === targetPlazas) return true;
-        }
-        return false;
+    // Construir horarios para el backend
+    const horariosPayload = sortedDays
+      .map(d => ({
+        dia: d.name,
+        franjas: (d.ranges || [])
+          .filter(r => r.start && r.end)
+          .map(r => ({ apertura: r.start, cierre: r.end }))
+      }))
+      .filter(d => d.franjas.length > 0);
+
+    // Construir tarifas a partir de la tabla UI (solo para estacionamientos privados)
+    const tarifas = [];
+    if (tipo === 'privado' && modalidades.length > 0 && vehiculos.length > 0) {
+      vehiculos.forEach(v => {
+        const nombreVeh = (v.nombre || '').trim();
+        if (!nombreVeh) return;
+        modalidades.forEach(mKey => {
+          const val = v.precios?.[mKey];
+          if (val !== undefined && val !== null && String(val).trim() !== '') {
+            const precioNum = Number(val);
+            if (!Number.isNaN(precioNum) && precioNum >= 0) {
+              tarifas.push({ tipo_vehiculo: nombreVeh, modalidad: mKey, precio: precioNum });
+            }
+          }
+        });
       });
-    })();
-
-    if (idx >= 0) {
-      mapasGuardados[idx] = mapaData;
-    } else {
-      mapasGuardados.push(mapaData);
     }
-    localStorage.setItem('findmyspace_mapas', JSON.stringify(mapasGuardados));
 
-    setMapaGuardado(true);
-    setMensaje('¡Mapa guardado exitosamente en tu sesión!');
-    setTipoMensaje('exito');
+    const body = {
+      id_cliente: idCliente || null,
+      nombre_estacionamiento: nombre,
+      ubicacion: ubicacion || addressInput,
+      latitud: selectedCoords ? Number(selectedCoords[0].toFixed(8)) : null,
+      longitud: selectedCoords ? Number(selectedCoords[1].toFixed(8)) : null,
+      cantidad_plazas: Number(plazas),
+      tipo_de_estacionamiento: tipo,
+      tipo_estructura: tipoEstructura || null,
+      cantidad_pisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos || 1) : 1,
+      tiene_subsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
+      horarios: horariosPayload,
+      modalidades: tipo === 'privado' ? modalidades : [],
+      metodos_pago: tipo === 'privado' ? metodosPago : [],
+      tarifas: tipo === 'privado' ? tarifas : [],
+      mapa: mapaData // Incluir el diseño del mapa como JSON
+    };
+
+    try {
+      const response = editingId
+        ? await apiClient.put(`/espacios/${editingId}`, body)
+        : await apiClient.post('/espacios', body);
+
+      if (response.data?.success) {
+        const espacioId = editingId || response.data?.id_espacio;
+        
+        // Guardar también en localStorage para la sesión
+        const estacionamientoData = {
+          estacionamiento: {
+            idEspacio: espacioId,
+            nombre,
+            ubicacion: ubicacion || addressInput,
+            plazas: Number(plazas),
+            tipo,
+            tipoEstructura,
+            cantidadPisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos) : 1,
+            tieneSubsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
+            coordenadas: selectedCoords,
+            fechaCreacion: new Date().toISOString()
+          },
+          mapa: mapaData
+        };
+
+        // Guardar en localStorage
+        const mapasGuardados = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
+        
+        // Buscar si ya existe un mapa para este espacio
+        const existingIndex = mapasGuardados.findIndex(m => 
+          m.estacionamiento.idEspacio === espacioId ||
+          (m.estacionamiento.nombre === nombre && 
+           m.estacionamiento.ubicacion === (ubicacion || addressInput) &&
+           m.estacionamiento.plazas === Number(plazas))
+        );
+
+        if (existingIndex >= 0) {
+          // Actualizar el mapa existente
+          mapasGuardados[existingIndex] = estacionamientoData;
+        } else {
+          // Agregar nuevo mapa
+          mapasGuardados.push(estacionamientoData);
+        }
+
+        localStorage.setItem('findmyspace_mapas', JSON.stringify(mapasGuardados));
+
+        setMensaje('¡Mapa guardado exitosamente en el servidor y en tu sesión!');
+        setTipoMensaje('exito');
+        setMapaGuardado(true);
+      } else {
+        throw new Error('Error al guardar el mapa en el servidor.');
+      }
+    } catch (error) {
+      console.error('Error al guardar el mapa en el servidor:', error);
+      setMensaje('No se pudo guardar el mapa en el servidor.');
+      setTipoMensaje('error');
+    }
   };
 
   return (
@@ -727,7 +694,7 @@ const SubirEstacionamiento = () => {
                   <div className={styles.formGroup}>
                     <div className={styles.sectionHeader}>
                       <h2 className={styles.sectionTitle}>Precios por tipo de vehículo</h2>
-                      <p className={styles.helperText}>Tabla demostrativa. Los valores no se envían ni se persisten (solo vista).</p>
+                      <p className={styles.helperText}>Define los precios para cada tipo de vehículo y modalidad de cobro.</p>
                     </div>
 
                     {modalidades.length === 0 ? (
@@ -799,7 +766,7 @@ const SubirEstacionamiento = () => {
                   <div className={styles.formGroup}>
                     <div className={styles.sectionHeader}>
                       <h2 className={styles.sectionTitle}>Métodos de pago</h2>
-                      <p className={styles.helperText}>Selecciona los métodos aceptados. Solo demostrativo.</p>
+                      <p className={styles.helperText}>Selecciona los métodos de pago aceptados.</p>
                     </div>
                     <div className={styles.checkboxGroup}>
                       {METODOS_PAGO_DEF.map(p => (
