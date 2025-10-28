@@ -59,6 +59,7 @@ const Parkin = () => {
   const [isLocating, setIsLocating] = useState(false); // Estado para geolocalización
   const [selectedParking, setSelectedParking] = useState(null); // Estado para el estacionamiento seleccionado
   const [parkingMap, setParkingMap] = useState(null); // Estado para el mapa del estacionamiento
+  const [selectedNivel, setSelectedNivel] = useState(null); // para multi-piso
   const mapRef = useRef(null); // Referencia al mapa
 
   useEffect(() => {
@@ -217,10 +218,19 @@ const Parkin = () => {
 
       if (data.success && data.data?.espacio?.mapa) {
         console.log('Mapa encontrado:', data.data.espacio.mapa);
-        setParkingMap(data.data.espacio.mapa); // Guardar el mapa obtenido del backend
+        const mapa = data.data.espacio.mapa;
+        setParkingMap(mapa); // Guardar el mapa obtenido del backend
+        // Si es multi-piso, seleccionar el primer nivel disponible
+        if (Array.isArray(mapa.pisos) && mapa.pisos.length > 0) {
+          const niveles = mapa.pisos.map(p => p.nivel).sort((a,b)=>a-b);
+          setSelectedNivel(niveles[0]);
+        } else {
+          setSelectedNivel(null);
+        }
       } else {
         console.log('No se encontró mapa en la respuesta');
         setParkingMap(null); // No se encontró un mapa
+        setSelectedNivel(null);
       }
     } catch (error) {
       console.error('Error al obtener el mapa del estacionamiento:', error);
@@ -255,35 +265,70 @@ const Parkin = () => {
         </div>
 
         {/* Renderizar el mapa del estacionamiento */}
-        {parkingMap ? (
-          <div
-            className={styles.mapArea}
-            style={{
-              width: parkingMap.areaSize || '100%',
-              height: parkingMap.areaSize || '400px',
-              margin: '20px auto',
-              position: 'relative',
-            }}
-          >
-            {parkingMap.plazasPos.map((plaza) => (
+        {parkingMap ? (() => {
+          // Compatibilidad: un solo piso vs. múltiples pisos
+          const isMulti = Array.isArray(parkingMap.pisos) && parkingMap.pisos.length > 0;
+          const pisoActual = isMulti
+            ? parkingMap.pisos.find(p => p.nivel === selectedNivel) || parkingMap.pisos[0]
+            : null;
+          const areaSize = isMulti ? (pisoActual?.areaSize || 400) : (parkingMap.areaSize || 400);
+          const plazaSize = isMulti ? (pisoActual?.plazaSize || 40) : (parkingMap.plazaSize || 40);
+          const plazas = isMulti ? (pisoActual?.plazasPos || []) : (parkingMap.plazasPos || []);
+          const seleccionadas = isMulti ? (pisoActual?.selectedPlazas || []) : (parkingMap.selectedPlazas || []);
+
+          return (
+            <>
+              {isMulti && (
+                <div className={styles.formGroup} style={{ maxWidth: 320, margin: '0 auto' }}>
+                  <label className={styles.label} htmlFor="nivelSelect">Piso</label>
+                  <select
+                    id="nivelSelect"
+                    className={styles.select}
+                    value={selectedNivel ?? ''}
+                    onChange={(e) => setSelectedNivel(Number(e.target.value))}
+                  >
+                    {parkingMap.pisos
+                      .map(p => p.nivel)
+                      .sort((a,b)=>a-b)
+                      .map(n => (
+                        <option key={n} value={n}>
+                          {n === -1 ? 'Subsuelo (-1)' : (n === 0 ? 'Planta baja (0)' : `Piso ${n}`)}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
               <div
-                key={plaza.num}
-                className={`${styles.plaza} ${parkingMap.selectedPlazas.includes(plaza.num) ? styles.plazaSelected : ''}`}
+                className={styles.mapArea}
                 style={{
-                  position: 'absolute',
-                  left: `${plaza.x}px`,
-                  top: `${plaza.y}px`,
-                  width: `${parkingMap.plazaSize}px`,
-                  height: `${parkingMap.plazaSize}px`,
+                  width: areaSize || '100%',
+                  height: areaSize || '400px',
+                  margin: '20px auto',
+                  position: 'relative',
                 }}
-                title={`Plaza ${plaza.num}`}
-                onClick={() => handleSquareClick(plaza.num)} // Redirigir al hacer clic
               >
-                {plaza.num}
+                {plazas.map((plaza) => (
+                  <div
+                    key={plaza.num}
+                    className={`${styles.plaza} ${seleccionadas.includes(plaza.num) ? styles.plazaSelected : ''}`}
+                    style={{
+                      position: 'absolute',
+                      left: `${plaza.x}px`,
+                      top: `${plaza.y}px`,
+                      width: `${plazaSize}px`,
+                      height: `${plazaSize}px`,
+                    }}
+                    title={`Plaza ${plaza.num}`}
+                    onClick={() => handleSquareClick(plaza.num)}
+                  >
+                    {plaza.num}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
+            </>
+          );
+        })() : (
           <p className={styles.noMapMessage}>No hay un mapa disponible para este estacionamiento.</p>
         )}
 

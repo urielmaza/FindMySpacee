@@ -265,6 +265,62 @@ const MisEstacionamientos = () => {
                     {mapaEncontrado && mapaEncontrado.mapa && (
                       <div className={styles.mapaVisualizacion}>
                         <h4 className={styles.mapaTitle}>Layout del Estacionamiento</h4>
+                        {Array.isArray(mapaEncontrado.mapa.pisos) && mapaEncontrado.mapa.pisos.length > 0 ? (
+                          (() => {
+                            const pisosOrdenados = [...mapaEncontrado.mapa.pisos].sort((a,b)=>a.nivel-b.nivel);
+                            const piso = pisosOrdenados[0];
+                            const areaSize = piso.areaSize || 400;
+                            const plazaSize = piso.plazaSize || 40;
+                            const plazas = piso.plazasPos || [];
+                            const seleccionadas = piso.selectedPlazas || [];
+                            return (
+                              <>
+                                <div className={styles.helperText} style={{ textAlign: 'center' }}>
+                                  Mostrando {piso.nivel === -1 ? 'Subsuelo (-1)' : (piso.nivel === 0 ? 'Planta baja (0)' : `Piso ${piso.nivel}`)}
+                                </div>
+                                <div
+                                  className={styles.mapaContainer}
+                                  style={{
+                                    width: areaSize * 0.9,
+                                    height: areaSize * 0.9,
+                                    position: 'relative',
+                                    background: '#f7f7f7',
+                                    border: '2px solid #2d7cff',
+                                    borderRadius: 8,
+                                    margin: '12px auto'
+                                  }}
+                                >
+                                  {plazas.map((plaza) => (
+                                    <div
+                                      key={plaza.num}
+                                      className={styles.plazaVista}
+                                      style={{
+                                        position: 'absolute',
+                                        left: (plaza.x || 0) * 0.9,
+                                        top: (plaza.y || 0) * 0.9,
+                                        width: plazaSize * 0.9,
+                                        height: plazaSize * 0.9,
+                                        background: seleccionadas.includes(plaza.num) ? '#2d7cff' : '#fff',
+                                        color: seleccionadas.includes(plaza.num) ? '#fff' : '#222',
+                                        border: '1px solid #2d7cff',
+                                        borderRadius: 4,
+                                        fontSize: 10,
+                                        fontWeight: 'bold',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
+                                      }}
+                                      title={`Plaza ${plaza.num}`}
+                                    >
+                                      {plaza.num}
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            );
+                          })()
+                        ) : (
                         <div
                           className={styles.mapaContainer}
                           style={{
@@ -304,6 +360,7 @@ const MisEstacionamientos = () => {
                             </div>
                           ))}
                         </div>
+                        )}
                       </div>
                     )}
 
@@ -370,45 +427,102 @@ const MisEstacionamientos = () => {
                     {/* Visualización del mapa */}
                     <div className={styles.mapaVisualizacion}>
                       <h4 className={styles.mapaTitle}>Layout del Estacionamiento</h4>
-                      <div 
-                        className={styles.mapaContainer}
-                        style={{
-                          width: mapa.areaSize * 0.9, // Aumentado
-                          height: mapa.areaSize * 0.9,
-                          position: 'relative',
-                          background: '#f7f7f7',
-                          border: '2px solid #2d7cff',
-                          borderRadius: 8,
-                          margin: '12px auto'
-                        }}
-                      >
-                        {mapa.plazasPos.map((plaza) => (
-                          <div
-                            key={plaza.num}
-                            className={styles.plazaVista}
-                            style={{
-                              position: 'absolute',
-                              left: plaza.x * 0.9,
-                              top: plaza.y * 0.9,
-                              width: mapa.plazaSize * 0.9,
-                              height: mapa.plazaSize * 0.9,
-                              background: mapa.selectedPlazas.includes(plaza.num) ? '#2d7cff' : '#fff',
-                              color: mapa.selectedPlazas.includes(plaza.num) ? '#fff' : '#222',
-                              border: '1px solid #2d7cff',
-                              borderRadius: 4,
-                              fontSize: 10,
-                              fontWeight: 'bold',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
-                            }}
-                            title={`Plaza ${plaza.num}`}
-                          >
-                            {plaza.num}
-                          </div>
-                        ))}
-                      </div>
+                      {Array.isArray(mapa.pisos) && mapa.pisos.length > 0 ? (
+                        (() => {
+                          const pisosOrdenados = [...mapa.pisos].sort((a,b)=>a.nivel-b.nivel);
+                          const piso = pisosOrdenados[0];
+                          const areaSize = piso.areaSize || 400;
+                          const plazaSize = piso.plazaSize || 40;
+                          const plazas = piso.plazasPos || [];
+                          const seleccionadas = piso.selectedPlazas || [];
+                          return (
+                            <>
+                              <div className={styles.helperText} style={{ textAlign: 'center' }}>
+                                Mostrando {piso.nivel === -1 ? 'Subsuelo (-1)' : (piso.nivel === 0 ? 'Planta baja (0)' : `Piso ${piso.nivel}`)}
+                              </div>
+                              <div 
+                                className={styles.mapaContainer}
+                                style={{
+                                  width: areaSize * 0.9,
+                                  height: areaSize * 0.9,
+                                  position: 'relative',
+                                  background: '#f7f7f7',
+                                  border: '2px solid #2d7cff',
+                                  borderRadius: 8,
+                                  margin: '12px auto'
+                                }}
+                              >
+                                {plazas.map((plaza) => (
+                                  <div
+                                    key={plaza.num}
+                                    className={styles.plazaVista}
+                                    style={{
+                                      position: 'absolute',
+                                      left: plaza.x * 0.9,
+                                      top: plaza.y * 0.9,
+                                      width: plazaSize * 0.9,
+                                      height: plazaSize * 0.9,
+                                      background: seleccionadas.includes(plaza.num) ? '#2d7cff' : '#fff',
+                                      color: seleccionadas.includes(plaza.num) ? '#fff' : '#222',
+                                      border: '1px solid #2d7cff',
+                                      borderRadius: 4,
+                                      fontSize: 10,
+                                      fontWeight: 'bold',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
+                                    }}
+                                    title={`Plaza ${plaza.num}`}
+                                  >
+                                    {plaza.num}
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          );
+                        })()
+                      ) : (
+                        <div 
+                          className={styles.mapaContainer}
+                          style={{
+                            width: mapa.areaSize * 0.9, // Aumentado
+                            height: mapa.areaSize * 0.9,
+                            position: 'relative',
+                            background: '#f7f7f7',
+                            border: '2px solid #2d7cff',
+                            borderRadius: 8,
+                            margin: '12px auto'
+                          }}
+                        >
+                          {mapa.plazasPos.map((plaza) => (
+                            <div
+                              key={plaza.num}
+                              className={styles.plazaVista}
+                              style={{
+                                position: 'absolute',
+                                left: plaza.x * 0.9,
+                                top: plaza.y * 0.9,
+                                width: mapa.plazaSize * 0.9,
+                                height: mapa.plazaSize * 0.9,
+                                background: mapa.selectedPlazas.includes(plaza.num) ? '#2d7cff' : '#fff',
+                                color: mapa.selectedPlazas.includes(plaza.num) ? '#fff' : '#222',
+                                border: '1px solid #2d7cff',
+                                borderRadius: 4,
+                                fontSize: 10,
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
+                              }}
+                              title={`Plaza ${plaza.num}`}
+                            >
+                              {plaza.num}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

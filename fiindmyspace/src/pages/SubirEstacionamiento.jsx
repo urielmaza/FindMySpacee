@@ -52,6 +52,10 @@ const SubirEstacionamiento = () => {
   const [showMapa, setShowMapa] = useState(false);
   const [plazasPos, setPlazasPos] = useState([]);
   const [mapaGuardado, setMapaGuardado] = useState(false);
+  // Multi-piso: niveles disponibles, piso actual y mapas por piso
+  const [niveles, setNiveles] = useState([]); // e.g., [-1,0,1,2]
+  const [nivelActual, setNivelActual] = useState(null); // e.g., 0
+  const [pisosMap, setPisosMap] = useState({}); // { [nivel]: { plazasPos: [], selectedPlazas: [] } }
 
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
@@ -117,11 +121,33 @@ const SubirEstacionamiento = () => {
         isPrefillingRef.current = true;
         // 1) Si viene un layout en el state de navegación, úsalo directamente
         const incomingLayout = location?.state?.layout;
-        if (incomingLayout && Array.isArray(incomingLayout.plazasPos)) {
-          setPlazasPos(incomingLayout.plazasPos || []);
-          setSelectedPlazas(incomingLayout.selectedPlazas || []);
-          setMapaGuardado(false);
-          setShowMapa(true); // Mostrar el mapa inmediatamente en edición
+        // Soportar layouts de un solo piso y multi-piso (pisos)
+        if (incomingLayout) {
+          if (Array.isArray(incomingLayout.pisos)) {
+            // Nuevo formato multi-piso
+            const nivelesIncoming = incomingLayout.pisos.map(p => p.nivel).sort((a,b)=>a-b);
+            setNiveles(nivelesIncoming);
+            const mapObj = {};
+            incomingLayout.pisos.forEach(p => {
+              mapObj[p.nivel] = {
+                plazasPos: Array.isArray(p.plazasPos) ? p.plazasPos : [],
+                selectedPlazas: Array.isArray(p.selectedPlazas) ? p.selectedPlazas : []
+              };
+            });
+            setPisosMap(mapObj);
+            const firstNivel = nivelesIncoming[0] ?? 0;
+            setNivelActual(firstNivel);
+            setPlazasPos(mapObj[firstNivel]?.plazasPos || []);
+            setSelectedPlazas(mapObj[firstNivel]?.selectedPlazas || []);
+            setMapaGuardado(false);
+            setShowMapa(true);
+          } else if (Array.isArray(incomingLayout.plazasPos)) {
+            // Formato antiguo
+            setPlazasPos(incomingLayout.plazasPos || []);
+            setSelectedPlazas(incomingLayout.selectedPlazas || []);
+            setMapaGuardado(false);
+            setShowMapa(true); // Mostrar el mapa inmediatamente en edición
+          }
         }
         const resp = await apiClient.get(`/espacios/${editingId}`);
         if (resp.data?.success) {
@@ -193,26 +219,86 @@ const SubirEstacionamiento = () => {
                 });
               }
               if (!incomingLayout && match && match.mapa) {
-                setPlazasPos(match.mapa.plazasPos || []);
-                setSelectedPlazas(match.mapa.selectedPlazas || []);
-                setMapaGuardado(false);
-                setShowMapa(true); // Mostrar mapa si se encontró diseño guardado
+                if (Array.isArray(match.mapa.pisos)) {
+                  const nivelesLocal = match.mapa.pisos.map(p => p.nivel).sort((a,b)=>a-b);
+                  setNiveles(nivelesLocal);
+                  const mapObj = {};
+                  match.mapa.pisos.forEach(p => {
+                    mapObj[p.nivel] = {
+                      plazasPos: Array.isArray(p.plazasPos) ? p.plazasPos : [],
+                      selectedPlazas: Array.isArray(p.selectedPlazas) ? p.selectedPlazas : []
+                    };
+                  });
+                  setPisosMap(mapObj);
+                  const firstNivel = nivelesLocal[0] ?? 0;
+                  setNivelActual(firstNivel);
+                  setPlazasPos(mapObj[firstNivel]?.plazasPos || []);
+                  setSelectedPlazas(mapObj[firstNivel]?.selectedPlazas || []);
+                  setMapaGuardado(false);
+                  setShowMapa(true);
+                } else {
+                  setPlazasPos(match.mapa.plazasPos || []);
+                  setSelectedPlazas(match.mapa.selectedPlazas || []);
+                  setMapaGuardado(false);
+                  setShowMapa(true); // Mostrar mapa si se encontró diseño guardado
+                }
               } else {
                 // Generar una grilla por defecto según la cantidad de plazas
                 const total = Number(espacio.cantidad_plazas || 0);
                 if (!incomingLayout && total > 0) {
-                  const plazasArrayLocal = Array.from({ length: total }, (_, i) => i + 1);
-                  const cols = Math.ceil(Math.sqrt(plazasArrayLocal.length));
-                  const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
-                  const newPos = plazasArrayLocal.map((num, idx) => {
-                    const row = Math.floor(idx / cols);
-                    const col = idx % cols;
-                    return { num, x: col * spacing, y: row * spacing };
-                  });
-                  setPlazasPos(newPos);
-                  setSelectedPlazas([]);
-                  setMapaGuardado(false);
-                  setShowMapa(true); // Mostrar mapa con la grilla por defecto
+                  const nivelesCalc = (() => {
+                    if ((espacio.tipo_estructura || '') === 'cerrado') {
+                      const n = Number(espacio.cantidad_pisos || 1);
+                      const arr = [];
+                      if (espacio.tiene_subsuelo) arr.push(-1);
+                      // N incluye planta baja
+                      for (let i = 0; i < Math.max(1, n); i++) arr.push(i);
+                      return arr;
+                    }
+                    return [0];
+                  })();
+                  setNiveles(nivelesCalc);
+                  if (nivelesCalc.length > 1) {
+                    // Distribuir plazas entre pisos
+                    const perFloorBase = Math.floor(total / nivelesCalc.length);
+                    let remainder = total % nivelesCalc.length;
+                    const mapObj = {};
+                    let current = 1;
+                    nivelesCalc.forEach(niv => {
+                      const count = perFloorBase + (remainder > 0 ? 1 : 0);
+                      if (remainder > 0) remainder -= 1;
+                      const nums = Array.from({ length: count }, (_, i) => current + i);
+                      current += count;
+                      const cols = Math.ceil(Math.sqrt(nums.length || 1));
+                      const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
+                      const pos = nums.map((num, idx) => {
+                        const row = Math.floor(idx / cols);
+                        const col = idx % cols;
+                        return { num, x: col * spacing, y: row * spacing };
+                      });
+                      mapObj[niv] = { plazasPos: pos, selectedPlazas: [] };
+                    });
+                    setPisosMap(mapObj);
+                    const firstNivel = nivelesCalc[0];
+                    setNivelActual(firstNivel);
+                    setPlazasPos(mapObj[firstNivel]?.plazasPos || []);
+                    setSelectedPlazas(mapObj[firstNivel]?.selectedPlazas || []);
+                    setMapaGuardado(false);
+                    setShowMapa(true);
+                  } else {
+                    const plazasArrayLocal = Array.from({ length: total }, (_, i) => i + 1);
+                    const cols = Math.ceil(Math.sqrt(plazasArrayLocal.length));
+                    const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
+                    const newPos = plazasArrayLocal.map((num, idx) => {
+                      const row = Math.floor(idx / cols);
+                      const col = idx % cols;
+                      return { num, x: col * spacing, y: row * spacing };
+                    });
+                    setPlazasPos(newPos);
+                    setSelectedPlazas([]);
+                    setMapaGuardado(false);
+                    setShowMapa(true); // Mostrar mapa con la grilla por defecto
+                  }
                 }
               }
             } catch (e) {
@@ -269,6 +355,22 @@ const SubirEstacionamiento = () => {
       prefillDoneRef.current = true;
     });
   }, [editingId]);
+
+  // Recalcular niveles cuando cambien estructura, cantidad de pisos o subsuelo (solo para nuevos mapas)
+  useEffect(() => {
+    if (isPrefillingRef.current) return; // evitar mientras precargamos
+    if (tipoEstructura !== 'cerrado') {
+      setNiveles([0]);
+      setNivelActual(0);
+      return;
+    }
+    const n = Math.max(1, Number(cantidadPisos || 1));
+    const arr = [];
+    if (tieneSubsuelo === 'si') arr.push(-1);
+    for (let i = 0; i < n; i++) arr.push(i);
+    setNiveles(arr);
+    if (!arr.includes(nivelActual)) setNivelActual(arr[0] ?? 0);
+  }, [tipoEstructura, cantidadPisos, tieneSubsuelo]);
 
   // Efecto: resetear vista previa del mapa SOLO si el usuario cambió la estructura
   useEffect(() => {
@@ -430,21 +532,75 @@ const SubirEstacionamiento = () => {
       return;
     }
 
-    // Generar posiciones iniciales para las plazas si no existen
+    // Generar posiciones iniciales si no existen
     if (plazasArray.length > 0 && plazasPos.length === 0) {
-      const cols = Math.ceil(Math.sqrt(plazasArray.length));
-      const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
-      const newPos = plazasArray.map((num, idx) => {
-        const row = Math.floor(idx / cols);
-        const col = idx % cols;
-        return { num, x: col * spacing, y: row * spacing };
-      });
-      setPlazasPos(newPos);
+      if (tipoEstructura === 'cerrado' && niveles.length > 1) {
+        const total = plazasArray.length;
+        const perFloorBase = Math.floor(total / niveles.length);
+        let remainder = total % niveles.length;
+        const mapObj = {};
+        let current = 1;
+        niveles.forEach(niv => {
+          const count = perFloorBase + (remainder > 0 ? 1 : 0);
+          if (remainder > 0) remainder -= 1;
+          const nums = Array.from({ length: count }, (_, i) => current + i);
+          current += count;
+          const cols = Math.ceil(Math.sqrt(nums.length || 1));
+          const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
+          const pos = nums.map((num, idx) => {
+            const row = Math.floor(idx / cols);
+            const col = idx % cols;
+            return { num, x: col * spacing, y: row * spacing };
+          });
+          mapObj[niv] = { plazasPos: pos, selectedPlazas: [] };
+        });
+        setPisosMap(mapObj);
+        const firstNivel = niveles[0];
+        setNivelActual(firstNivel);
+        setPlazasPos(mapObj[firstNivel]?.plazasPos || []);
+        setSelectedPlazas(mapObj[firstNivel]?.selectedPlazas || []);
+      } else {
+        const cols = Math.ceil(Math.sqrt(plazasArray.length));
+        const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
+        const newPos = plazasArray.map((num, idx) => {
+          const row = Math.floor(idx / cols);
+          const col = idx % cols;
+          return { num, x: col * spacing, y: row * spacing };
+        });
+        setPlazasPos(newPos);
+      }
     }
 
     // Mostrar el mapa
     setShowMapa(true);
   };
+
+  // Sincronizar ediciones con el piso actual cuando hay múltiples pisos
+  useEffect(() => {
+    if (!showMapa) return;
+    if (!(tipoEstructura === 'cerrado' && niveles.length > 1)) return;
+    if (nivelActual === null || nivelActual === undefined) return;
+    setPisosMap(prev => ({
+      ...prev,
+      [nivelActual]: {
+        ...(prev[nivelActual] || {}),
+        plazasPos: plazasPos
+      }
+    }));
+  }, [plazasPos, nivelActual, showMapa, tipoEstructura, niveles]);
+
+  useEffect(() => {
+    if (!showMapa) return;
+    if (!(tipoEstructura === 'cerrado' && niveles.length > 1)) return;
+    if (nivelActual === null || nivelActual === undefined) return;
+    setPisosMap(prev => ({
+      ...prev,
+      [nivelActual]: {
+        ...(prev[nivelActual] || {}),
+        selectedPlazas: selectedPlazas
+      }
+    }));
+  }, [selectedPlazas, nivelActual, showMapa, tipoEstructura, niveles]);
 
   // Guardar cambios (sin guardar el mapa). Deja el mapa visible en edición.
   const handleGuardarCambios = async (e) => {
@@ -618,12 +774,26 @@ const SubirEstacionamiento = () => {
   };
 
   const handleGuardarMapa = async () => {
-    const mapaData = {
-      plazasPos,
-      selectedPlazas,
-      areaSize: AREA_SIZE,
-      plazaSize: PLAZA_SIZE
-    };
+    // Construcción del mapa para guardar (soporta multi-piso)
+    let mapaData = {};
+    if (tipoEstructura === 'cerrado' && niveles.length > 1) {
+      mapaData = {
+        pisos: niveles.map(niv => ({
+          nivel: niv,
+          plazasPos: pisosMap[niv]?.plazasPos || [],
+          selectedPlazas: pisosMap[niv]?.selectedPlazas || [],
+          areaSize: AREA_SIZE,
+          plazaSize: PLAZA_SIZE
+        }))
+      };
+    } else {
+      mapaData = {
+        plazasPos,
+        selectedPlazas,
+        areaSize: AREA_SIZE,
+        plazaSize: PLAZA_SIZE
+      };
+    }
 
     // Construir horarios para el backend y validar
     const horariosPayload = sortedDays
@@ -1162,6 +1332,30 @@ const SubirEstacionamiento = () => {
               {showMapa && (
                 <div className={`${styles.panelCard} ${styles.mapPanel}`}>
                   <h2 className={styles.sectionTitle}>Mapa</h2>
+                  {tipoEstructura === 'cerrado' && niveles.length > 1 && (
+                    <div className={styles.formGroup} style={{ marginTop: '-8px' }}>
+                      <label className={styles.helperText} htmlFor="nivelSelect">Piso</label>
+                      <select
+                        id="nivelSelect"
+                        className={styles.formSelect}
+                        value={nivelActual ?? ''}
+                        onChange={e => {
+                          const nuevo = Number(e.target.value);
+                          // al cambiar de piso, reflejar ediciones actuales ya están sincronizadas por efecto
+                          setNivelActual(nuevo);
+                          const data = pisosMap[nuevo] || { plazasPos: [], selectedPlazas: [] };
+                          setPlazasPos(data.plazasPos || []);
+                          setSelectedPlazas(data.selectedPlazas || []);
+                        }}
+                      >
+                        {niveles.map(n => (
+                          <option key={n} value={n}>
+                            {n === -1 ? 'Subsuelo (-1)' : (n === 0 ? 'Planta baja (0)' : `Piso ${n}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   {plazasPos.length > 0 ? (
                     <>
                       <div className={styles.mapWrapper} style={{ width: AREA_SIZE }}>

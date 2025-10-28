@@ -99,19 +99,29 @@
 }
 
 .useLocationBtn {
-  padding: 8px 12px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
   font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  background-color: #2d7cff;
-  color: #fff;
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
+  background: linear-gradient(120deg, #000000 0%, #8304b6 50%, #000000 100%);
+  background-size: 300% 300%;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+  box-shadow: none;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
 
-.useLocationBtn:disabled {
-  cursor: not-allowed;
-  background-color: #9bbcfb;
-}
+.useLocationBtn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.useLocationBtn:active { transform: translateY(0); }
+.useLocationBtn:disabled { cursor: not-allowed; opacity: 0.85; filter: saturate(0.8); }
 
 @media (max-width: 600px) {
   .inlineRow {
@@ -157,26 +167,24 @@
 
 /* Botón de envío */
 .submitButton {
+  position: relative;
   width: 100%;
   padding: 12px 0;
-  background: linear-gradient(135deg, #000000, #8304b6);
-  color: white;
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.3s ease;
+  background: linear-gradient(120deg, #000000 0%, #8304b6 50%, #000000 100%);
+  background-size: 300% 300%;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+  box-shadow: none;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
-
-.submitButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(44,62,80,0.3);
-}
-
-.submitButton:active {
-  transform: translateY(0);
-}
+.submitButton:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.submitButton:active { transform: translateY(0); }
 
 /* ====== Sección de Franjas Horarias ====== */
 .sectionHeader {
@@ -484,26 +492,31 @@
 
 /* Botón de guardar mapa */
 .saveMapButton {
+  position: relative;
   width: 100%;
   margin-top: 12px;
   padding: 12px 0;
-  background: linear-gradient(135deg, #000000, #8304b6);
-  color: white;
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.3s ease;
+  background: linear-gradient(120deg, #000000 0%, #8304b6 50%, #000000 100%);
+  background-size: 300% 300%;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+  box-shadow: none;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
+.saveMapButton:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.saveMapButton:active { transform: translateY(0); }
 
-.saveMapButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(44,62,80,0.3);
-}
-
-.saveMapButton:active {
-  transform: translateY(0);
+/* Animación del gradiente (igual al de MisVehiculos.addButton) */
+@keyframes addButtonFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Mensaje de mapa guardado */
@@ -649,13 +662,13 @@
   box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.15);
 }
 
-:global(body.dark-mode) .submitButton {
-  background: linear-gradient(135deg, #000000, #00E5FF);
-  color: #ffffff;
-}
-
+:global(body.dark-mode) .useLocationBtn,
+:global(body.dark-mode) .submitButton,
 :global(body.dark-mode) .saveMapButton {
-  background: linear-gradient(135deg, #000000, #00E5FF);
+  background: linear-gradient(120deg, #000000 0%, #00e1ff 50%, #000000 100%);
+  background-size: 300% 300%;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
   color: #ffffff;
 }
 
