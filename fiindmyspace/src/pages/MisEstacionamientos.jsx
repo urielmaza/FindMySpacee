@@ -139,6 +139,8 @@ const MisEstacionamientos = () => {
     // Intentar enviar el layout asociado por state para que el formulario lo precargue
     const match = mapasGuardados.find((m) => {
       const e = m?.estacionamiento || {};
+      // 0) Priorizar coincidencia por ID de espacio si está disponible
+      if (e.idEspacio && Number(e.idEspacio) === Number(esp.id_espacio)) return true;
       const byNameUbi = (
         ((e.nombre || '').trim().toLowerCase()) === ((estacionamiento.nombre || '').trim().toLowerCase()) &&
         ((e.ubicacion || '').trim().toLowerCase()) === ((estacionamiento.ubicacion || '').trim().toLowerCase()) &&

@@ -10,8 +10,11 @@ const BannerUser = ({ onMenuToggle }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tipoCliente, setTipoCliente] = useState(() => {
+    // Preferir el valor persistido para evitar parpadeo entre rutas
+    const stored = localStorage.getItem('tipo_cliente');
+    if (stored) return stored;
     const session = getUserSession();
-    return session?.tipo_cliente || 'cliente';
+    return session?.tipo_cliente || null; // null = desconocido (no forzar 'cliente')
   });
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
 
@@ -26,17 +29,26 @@ const BannerUser = ({ onMenuToggle }) => {
 
   // Cargar tipo_cliente del backend para render condicional del menú
   useEffect(() => {
+    // Si ya tenemos tipoCliente (persistido o sesión), evitamos refetch para no producir cambios visuales innecesarios
+    if (tipoCliente) return;
     (async () => {
       try {
         const { data } = await apiClient.get('/profile');
         if (data && data.success && data.user && data.user.tipo_cliente) {
-          setTipoCliente(data.user.tipo_cliente);
+          const nuevo = data.user.tipo_cliente;
+          setTipoCliente(prev => {
+            if (prev !== nuevo) {
+              try { localStorage.setItem('tipo_cliente', nuevo); } catch {}
+              return nuevo;
+            }
+            return prev;
+          });
         }
       } catch (e) {
-        // Si falla, dejar valor por defecto ('cliente')
+        // Mantener el valor anterior para no parpadear
       }
     })();
-  }, []);
+  }, [tipoCliente]);
 
   // Toggle modo oscuro
   const toggleDarkMode = () => {

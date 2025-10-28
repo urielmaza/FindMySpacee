@@ -92,6 +92,8 @@ const SubirEstacionamiento = () => {
   const areaRef = useRef(null);
   // Bandera para evitar reseteos mientras se precargan datos en modo edición
   const isPrefillingRef = useRef(false);
+  const prefillDoneRef = useRef(false);
+  const initialStructRef = useRef({ plazas: null, tipo: null, tipoEstructura: null });
 
   const userSession = getUserSession();
   const idCliente = userSession ? userSession.id_cliente : null;
@@ -119,6 +121,7 @@ const SubirEstacionamiento = () => {
           setPlazasPos(incomingLayout.plazasPos || []);
           setSelectedPlazas(incomingLayout.selectedPlazas || []);
           setMapaGuardado(false);
+          setShowMapa(true); // Mostrar el mapa inmediatamente en edición
         }
         const resp = await apiClient.get(`/espacios/${editingId}`);
         if (resp.data?.success) {
@@ -130,6 +133,12 @@ const SubirEstacionamiento = () => {
             setPlazas(String(espacio.cantidad_plazas || ''));
             setTipo(espacio.tipo_de_estacionamiento || '');
             setTipoEstructura(espacio.tipo_estructura || '');
+            // Guardar valores iniciales para detectar cambios del usuario luego
+            initialStructRef.current = {
+              plazas: String(espacio.cantidad_plazas || ''),
+              tipo: (espacio.tipo_de_estacionamiento || ''),
+              tipoEstructura: (espacio.tipo_estructura || '')
+            };
             setCantidadPisos(espacio.cantidad_pisos ? String(espacio.cantidad_pisos) : '');
             setTieneSubsuelo(espacio.tiene_subsuelo ? 'si' : 'no');
             if (typeof espacio.latitud === 'number' && typeof espacio.longitud === 'number') {
@@ -143,16 +152,20 @@ const SubirEstacionamiento = () => {
             // 2) Si no vino en state, intentar precargar el layout del mapa desde localStorage por coincidencia
             try {
               const mapas = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
-              // Búsqueda exacta por nombre, ubicación y plazas
-              let match = incomingLayout ? null : mapas.find((m) => {
-                const e = m?.estacionamiento || {};
-                return (
-                  (e.nombre || '').trim() === (espacio.nombre_estacionamiento || '').trim() &&
-                  (e.ubicacion || '').trim() === (espacio.ubicacion || '').trim() &&
-                  Number(e.plazas) === Number(espacio.cantidad_plazas)
-                );
-              });
-              // Fallback: coincidencia case-insensitive
+              // 1) Coincidencia directa por ID de espacio
+              let match = incomingLayout ? null : mapas.find((m) => Number(m?.estacionamiento?.idEspacio) === Number(editingId));
+              // 2) Búsqueda exacta por nombre, ubicación y plazas
+              if (!match && !incomingLayout) {
+                match = mapas.find((m) => {
+                  const e = m?.estacionamiento || {};
+                  return (
+                    (e.nombre || '').trim() === (espacio.nombre_estacionamiento || '').trim() &&
+                    (e.ubicacion || '').trim() === (espacio.ubicacion || '').trim() &&
+                    Number(e.plazas) === Number(espacio.cantidad_plazas)
+                  );
+                });
+              }
+              // 3) Fallback: coincidencia case-insensitive
               if (!match && !incomingLayout) {
                 match = mapas.find((m) => {
                   const e = m?.estacionamiento || {};
@@ -163,8 +176,8 @@ const SubirEstacionamiento = () => {
                   );
                 });
               }
-              // Fallback: por coordenadas (si existen) y plazas
-              if (!match && !incomingLayout && Array.isArray((mapas[0]?.estacionamiento?.coordenadas))) {
+              // 4) Fallback: por coordenadas (si existen) y plazas
+              if (!match && !incomingLayout) {
                 const lat = Number(espacio.latitud);
                 const lon = Number(espacio.longitud);
                 const eps = 1e-5; // tolerancia
@@ -183,6 +196,7 @@ const SubirEstacionamiento = () => {
                 setPlazasPos(match.mapa.plazasPos || []);
                 setSelectedPlazas(match.mapa.selectedPlazas || []);
                 setMapaGuardado(false);
+                setShowMapa(true); // Mostrar mapa si se encontró diseño guardado
               } else {
                 // Generar una grilla por defecto según la cantidad de plazas
                 const total = Number(espacio.cantidad_plazas || 0);
@@ -198,6 +212,7 @@ const SubirEstacionamiento = () => {
                   setPlazasPos(newPos);
                   setSelectedPlazas([]);
                   setMapaGuardado(false);
+                  setShowMapa(true); // Mostrar mapa con la grilla por defecto
                 }
               }
             } catch (e) {
@@ -250,16 +265,28 @@ const SubirEstacionamiento = () => {
     cargarDatos().finally(() => {
       // Permitir nuevamente que el efecto de reseteo actúe ante cambios del usuario
       isPrefillingRef.current = false;
+      // Marcar que la precarga terminó; desde ahora, cambios en estructura son del usuario
+      prefillDoneRef.current = true;
     });
   }, [editingId]);
 
-  // Efecto: resetear vista previa del mapa cuando cambian campos clave
+  // Efecto: resetear vista previa del mapa SOLO si el usuario cambió la estructura
   useEffect(() => {
-    if (isPrefillingRef.current) return;
+    // No hacer nada mientras estamos precargando
+    if (isPrefillingRef.current || !prefillDoneRef.current) return;
+
+    const init = initialStructRef.current || {};
+    const changed = (
+      String(plazas ?? '') !== String(init.plazas ?? '') ||
+      String(tipo ?? '') !== String(init.tipo ?? '') ||
+      String(tipoEstructura ?? '') !== String(init.tipoEstructura ?? '')
+    );
+    if (!changed) return;
+
     setShowMapa(false);
     setPlazasPos([]);
     setMapaGuardado(false);
-    }, [plazas, tipo, tipoEstructura]);
+  }, [plazas, tipo, tipoEstructura]);
 
   // Mantener coherencia de columnas (modalidades) en las filas de vehículos
   useEffect(() => {
@@ -417,6 +444,149 @@ const SubirEstacionamiento = () => {
 
     // Mostrar el mapa
     setShowMapa(true);
+  };
+
+  // Guardar cambios (sin guardar el mapa). Deja el mapa visible en edición.
+  const handleGuardarCambios = async (e) => {
+    e.preventDefault();
+
+    // Validación básica
+    if (!nombre || !ubicacion || !plazas || !tipo || !tipoEstructura) {
+      setMensaje('Completa los campos obligatorios.');
+      setTipoMensaje('error');
+      return;
+    }
+    if (tipoEstructura === 'cerrado' && !cantidadPisos) {
+      setMensaje('Error: la cantidad de pisos es obligatoria para estacionamientos cerrados.');
+      setTipoMensaje('error');
+      return;
+    }
+    if (tipoEstructura === 'cerrado' && !tieneSubsuelo) {
+      setMensaje('Error: debe especificar si tiene subsuelo para estacionamientos cerrados.');
+      setTipoMensaje('error');
+      return;
+    }
+
+    // Construir horarios para el backend y validar
+    const horariosPayload = sortedDays
+      .map(d => ({
+        dia: d.name,
+        franjas: (d.ranges || [])
+          .filter(r => r.start && r.end)
+          .map(r => ({ apertura: r.start, cierre: r.end }))
+      }))
+      .filter(d => d.franjas.length > 0);
+
+    if (horariosPayload.length === 0) {
+      setMensaje('Error: Debes agregar al menos una franja horaria con hora de apertura y cierre.');
+      setTipoMensaje('error');
+      return;
+    }
+    for (const d of horariosPayload) {
+      for (const f of d.franjas) {
+        const [ha, ma] = f.apertura.split(':').map(Number);
+        const [hc, mc] = f.cierre.split(':').map(Number);
+        if (Number.isNaN(ha) || Number.isNaN(ma) || Number.isNaN(hc) || Number.isNaN(mc)) {
+          setMensaje(`Error: Horario inválido en ${d.dia}.`);
+          setTipoMensaje('error');
+          return;
+        }
+        const aperturaMin = ha * 60 + ma;
+        const cierreMin = hc * 60 + mc;
+        if (aperturaMin >= cierreMin) {
+          setMensaje(`Error: En ${d.dia} la hora de apertura debe ser anterior a la de cierre.`);
+          setTipoMensaje('error');
+          return;
+        }
+      }
+    }
+
+    // Asegurar coordenadas (como en guardar mapa)
+    let lat = selectedCoords?.[0] ?? null;
+    let lon = selectedCoords?.[1] ?? null;
+    if ((lat === null || lon === null) && (addressInput || ubicacion)) {
+      try {
+        const texto = (addressInput || ubicacion || '').trim();
+        if (texto.length > 3) {
+          const respGeo = await apiClient.get('/autocomplete', { params: { text: texto } });
+          const features = Array.isArray(respGeo.data) ? respGeo.data : [];
+          const best = features[0];
+          if (best?.geometry?.coordinates && best.geometry.coordinates.length >= 2) {
+            lon = Number(best.geometry.coordinates[0]);
+            lat = Number(best.geometry.coordinates[1]);
+            setSelectedCoords([lat, lon]);
+          }
+        }
+      } catch (e) {
+        console.warn('Fallo geocodificando dirección para obtener coordenadas:', e);
+      }
+    }
+    if (lat === null || lon === null || Number.isNaN(lat) || Number.isNaN(lon)) {
+      setMensaje('No se pudo determinar la ubicación en el mapa. Elegí una sugerencia o usa "Usar mi ubicación".');
+      setTipoMensaje('error');
+      return;
+    }
+
+    // Construir tarifas desde la tabla de vehículos
+    const tarifasPayload = [];
+    if (tipo === 'privado' && Array.isArray(vehiculos) && vehiculos.length > 0 && Array.isArray(modalidades)) {
+      vehiculos.forEach(v => {
+        modalidades.forEach(mKey => {
+          const val = v?.precios?.[mKey];
+          if (val !== undefined && val !== null && String(val).trim() !== '' && !Number.isNaN(Number(val))) {
+            tarifasPayload.push({ tipo_vehiculo: (v.nombre || '').trim() || 'Vehículo', modalidad: mKey, precio: Number(val) });
+          }
+        });
+      });
+    }
+
+    const body = {
+      id_cliente: idCliente || null,
+      nombre_estacionamiento: nombre,
+      ubicacion: ubicacion || addressInput,
+      latitud: Number(lat.toFixed(8)),
+      longitud: Number(lon.toFixed(8)),
+      cantidad_plazas: Number(plazas),
+      tipo_de_estacionamiento: tipo,
+      tipo_estructura: tipoEstructura || null,
+      cantidad_pisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos || 1) : 1,
+      tiene_subsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
+      horarios: horariosPayload,
+      modalidades: tipo === 'privado' ? modalidades : [],
+      metodos_pago: tipo === 'privado' ? metodosPago : [],
+      tarifas: tipo === 'privado' ? tarifasPayload : []
+      // Importante: sin campo `mapa` aquí
+    };
+
+    try {
+      const response = await apiClient.put(`/espacios/${editingId}`, body);
+      if (response.data?.success) {
+        setMensaje('Cambios guardados.');
+        setTipoMensaje('exito');
+        // Si aún no hay grilla o cambió la cantidad de plazas, regenerar y mostrar mapa
+        const total = Number(plazas || 0);
+        if (total > 0 && plazasPos.length === 0) {
+          const plazasArrayLocal = Array.from({ length: total }, (_, i) => i + 1);
+          const cols = Math.ceil(Math.sqrt(plazasArrayLocal.length));
+          const spacing = (AREA_SIZE - PLAZA_SIZE) / (cols - 1 || 1);
+          const newPos = plazasArrayLocal.map((num, idx) => {
+            const row = Math.floor(idx / cols);
+            const col = idx % cols;
+            return { num, x: col * spacing, y: row * spacing };
+          });
+          setPlazasPos(newPos);
+          setSelectedPlazas([]);
+        }
+        setShowMapa(true);
+        setMapaGuardado(false); // Debe volver a guardarse si cambió algo estructural
+      } else {
+        throw new Error('Error al guardar cambios.');
+      }
+    } catch (error) {
+      console.error('Error al guardar cambios:', error);
+      setMensaje('No se pudieron guardar los cambios.');
+      setTipoMensaje('error');
+    }
   };
 
   const handleMouseDown = (e, idx) => {
@@ -623,7 +793,7 @@ const SubirEstacionamiento = () => {
               {/* Columna izquierda: formulario */}
               <div className={styles.panelCard}>
                 <h1 className={styles.pageTitle}>{editingId ? 'Editar Estacionamiento' : 'Nuevo Estacionamiento'}</h1>
-                <form onSubmit={handleShowMapa}>
+                <form onSubmit={editingId ? handleGuardarCambios : handleShowMapa}>
               <div className={styles.formGroup}>
                 <input
                   type="text"
@@ -988,7 +1158,7 @@ const SubirEstacionamiento = () => {
                   </div>
                 )}
               </div>
-              {/* Columna derecha: mapa, solo aparece tras guardar exitosamente */}
+              {/* Columna derecha: mapa. En edición, se muestra automáticamente. */}
               {showMapa && (
                 <div className={`${styles.panelCard} ${styles.mapPanel}`}>
                   <h2 className={styles.sectionTitle}>Mapa</h2>
