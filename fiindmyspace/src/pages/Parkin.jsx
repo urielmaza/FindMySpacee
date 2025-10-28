@@ -309,20 +309,44 @@ const Parkin = () => {
             <form className={styles.form} onSubmit={handleSearch}>
               <div className={styles.addressRow}>
                 <label className={styles.label}>Dirección:</label>
-                <input
-                  type="text"
-                  value={addressInput}
-                  onChange={handleAddressChange}
-                  placeholder="Buscar dirección"
-                  className={styles.addressInput}
-                  required
-                  autoComplete="off"
-                />
+                <div className={styles.addressInputWrapper}>
+                  <input
+                    type="text"
+                    value={addressInput}
+                    onChange={handleAddressChange}
+                    placeholder="Buscar dirección"
+                    className={styles.addressInput}
+                    required
+                    autoComplete="off"
+                  />
+                  {suggestions && suggestions.length > 0 && (
+                    <ul className={styles.suggestionsList} role="listbox">
+                      <li
+                        className={styles.locationOption}
+                        role="option"
+                        onMouseDown={(e) => { e.preventDefault(); handleSuggestionClick('current-location'); }}
+                      >
+                        📍 Usar mi ubicación actual
+                      </li>
+                      {suggestions.map((sug, idx) => (
+                        <li
+                          key={idx}
+                          className={styles.suggestionItem}
+                          role="option"
+                          onMouseDown={(e) => { e.preventDefault(); handleSuggestionClick(sug); }}
+                          title={sug?.properties?.formatted || ''}
+                        >
+                          {sug?.properties?.formatted || 'Sugerencia'}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={handleUseCurrentLocation}
                   disabled={isLocating}
-                  className={styles.useLocationBtn}
+                  className={`${styles.useLocationBtn} ${isLocating ? styles.loading : ''}`}
                 >
                   {isLocating ? 'Obteniendo…' : 'Usar mi ubicación'}
                 </button>
@@ -349,13 +373,6 @@ const Parkin = () => {
             </form>
           </div>
         </div>
-
-        {/* Resultados de búsqueda */}
-        {searchResult && (
-          <div className={styles.results}>
-            {searchResult}
-          </div>
-        )}
 
         {/* Mapa con la ubicación seleccionada */}
         {showMap && (
@@ -397,7 +414,7 @@ const Parkin = () => {
                   <Marker position={selectedCoords} icon={locationIcon}>
                     <Popup>
                       <div style={{ textAlign: 'center' }}>
-                        <strong>📍 Ubicación buscada</strong><br/>
+                        <strong>Ubicación buscada</strong><br/>
                         {selectedAddress}
                       </div>
                     </Popup>

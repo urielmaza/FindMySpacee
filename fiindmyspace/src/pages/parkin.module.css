@@ -49,12 +49,17 @@
   font-size: 18px;
 }
 
+.addressInputWrapper {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 220px;
+}
+
 .addressInput {
   margin-left: 12px;
   padding: 10px 12px;
   font-size: 16px;
-  flex: 1 1 240px;
-  min-width: 220px;
+  width: 100%;
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background: #ffffff;
@@ -66,38 +71,62 @@
   box-shadow: 0 0 0 3px rgba(45, 124, 255, 0.15);
 }
 
+/* Botón primario estilo "Agregar vehículo" (gradiente animado) */
 .useLocationBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 10px 14px;
   font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  background-color: #2d7cff;
-  color: #fff;
+  color: #ffffff;
   border: none;
   border-radius: 10px;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(45, 124, 255, 0.25);
+  margin-left: 12px; /* separa del input */
+  background: linear-gradient(120deg, #000000 0%, #8304b6 50%, #000000 100%);
+  background-size: 300% 300%;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+  box-shadow: none;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
 
+.useLocationBtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.useLocationBtn:active {
+  transform: translateY(0);
+}
+
+/* Estado de carga: violeta más claro */
+.useLocationBtn.loading,
 .useLocationBtn[disabled] {
   cursor: not-allowed;
-  background-color: #9bbcfb;
+  background: linear-gradient(120deg, #6e35a3 0%, #a86dd6 50%, #6e35a3 100%);
+  background-size: 300% 300%;
+  opacity: 0.95;
 }
 
 .suggestionsList {
   position: absolute;
   left: 0;
   right: 0;
-  top: 40px;
+  top: 44px;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
-  z-index: 10;
+  z-index: 1000;
   list-style: none;
   margin: 0;
   padding: 0;
   max-height: 180px;
   overflow-y: auto;
-  width: 100%;
+  width: calc(100% - 12px);
 }
 
 .locationOption {
@@ -130,21 +159,29 @@
 }
 
 .submitButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 12px 18px;
   font-size: 16px;
   cursor: pointer;
-  background-color: #2d7cff;
-  color: white;
+  color: #ffffff;
   border: none;
   border-radius: 10px;
   font-weight: 800;
-  box-shadow: 0 6px 18px rgba(45, 124, 255, 0.25);
-  transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  background: linear-gradient(120deg, #000000 0%, #8304b6 50%, #000000 100%);
+  background-size: 300% 300%;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+  box-shadow: none;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
 
 .submitButton:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(45, 124, 255, 0.28);
+  filter: brightness(1.05);
 }
 
 .results {
@@ -186,6 +223,13 @@
   width: 100%;
   height: 320px;
   max-width: 600px;
+}
+
+/* Animación del gradiente (igual a MisVehiculos.addButton) */
+@keyframes addButtonFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Ajustar estilos para el mapa en la vista de detalles */
@@ -327,9 +371,10 @@
 @media (max-width: 768px) {
   .title { font-size: 1.6rem; }
   .addressInput { width: 100%; max-width: 100%; margin-left: 0; }
+  .addressInputWrapper { flex: 1 1 auto; min-width: 100%; }
   .select { margin-left: 0; width: 100%; }
   .addressRow { display: flex; flex-direction: column; align-items: stretch; }
-  .useLocationBtn { width: 100%; }
+  .useLocationBtn { width: 100%; margin-left: 0; }
   .mapWrapper { width: 100%; height: 300px; }
   .submitButton { width: 100%; }
   .formCard { padding: 20px; border-radius: 14px; }
@@ -409,7 +454,22 @@
 
 :global(body.dark-mode) .submitButton,
 :global(body.dark-mode) .useLocationBtn {
-  background-color: #295bcc; /* azul un poco más oscuro en dark */
+  background: linear-gradient(120deg, #000000 0%, #00e1ff 50%, #000000 100%);
+  background-size: 300% 300%;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
+}
+
+:global(body.dark-mode) .useLocationBtn.loading,
+:global(body.dark-mode) .useLocationBtn[disabled] {
+  background: linear-gradient(120deg, #0a3a40 0%, #00c3e6 50%, #0a3a40 100%);
+}
+
+:global(body.dark-mode) .submitButton {
+  background: linear-gradient(120deg, #000000 0%, #00e1ff 50%, #000000 100%);
+  background-size: 300% 300%;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
 
 :global(body.dark-mode) .backButton {

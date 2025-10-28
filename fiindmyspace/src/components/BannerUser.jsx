@@ -4,21 +4,25 @@ import styles from './BannerUser.module.css';
 import logoLight from '../assets/logofindmyspaceB.png';
 import logoDark from '../assets/logofindmyspace.png';
 import apiClient from '../apiClient';
+import { getUserSession } from '../utils/auth';
 
 const BannerUser = ({ onMenuToggle }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [tipoCliente, setTipoCliente] = useState('cliente');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [tipoCliente, setTipoCliente] = useState(() => {
+    const session = getUserSession();
+    return session?.tipo_cliente || 'cliente';
+  });
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
 
   // Cargar preferencia de modo oscuro al iniciar
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(savedDarkMode);
-    if (savedDarkMode) {
+    if (isDarkMode) {
       document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
     }
-  }, []);
+  }, [isDarkMode]);
 
   // Cargar tipo_cliente del backend para render condicional del menú
   useEffect(() => {
