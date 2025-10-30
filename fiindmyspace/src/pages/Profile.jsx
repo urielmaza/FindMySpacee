@@ -26,7 +26,7 @@ const Profile = () => {
   const [pmAvailableTypes, setPmAvailableTypes] = useState([]); // ['tarjeta','transferencia','billetera']
   const [pmItems, setPmItems] = useState([]); // lista de métodos guardados
   // Formularios
-  const [cardForm, setCardForm] = useState({ marca: '', last4: '', exp_mes: '', exp_anio: '', titular: '' });
+  const [cardForm, setCardForm] = useState({ marca: '', exp_mes: '', exp_anio: '', titular: '', cvv: '' });
   // Campo local para ingresar número de tarjeta sólo en el cliente (no se envía al servidor)
   const [cardNumber, setCardNumber] = useState('');
   const [trfForm, setTrfForm] = useState({ alias: '', cbu: '', cvu: '', banco: '', titular: '' });
@@ -103,14 +103,19 @@ const Profile = () => {
   };
 
   const handleCardNumberChange = (val) => {
-    const digits = String(val).replace(/\D/g, '').slice(0, 19);
+    const digits = String(val).replace(/\D/g, '').slice(0, 16); // Limitar a 16 dígitos
     const brand = detectCardBrand(digits);
-    setCardNumber(formatCardNumber(digits, brand));
-    // Actualizamos marca y últimos 4 en el form (sin guardar el PAN)
+
+    // Si es Amex, limitar a 15 dígitos
+    const maxDigits = brand === 'amex' ? 15 : 16;
+    const limitedDigits = digits.slice(0, maxDigits);
+
+    setCardNumber(formatCardNumber(limitedDigits, brand));
+
+    // Actualizamos marca (sin guardar el PAN)
     setCardForm((v) => ({
       ...v,
-      marca: brand || '',
-      last4: digits.slice(-4) || ''
+      marca: brand || ''
     }));
   };
 
@@ -196,11 +201,27 @@ const Profile = () => {
     setError('');
     setMessage('');
     try {
-      const { data } = await apiClient.post('/payment-methods', { clave, detalle, es_default });
+      // Transformar para tarjeta al nuevo esquema del backend
+      let payloadDetalle = detalle;
+      if (clave === 'tarjeta') {
+        const digits = (cardNumber || '').replace(/\D/g, '');
+        const venc = `${(cardForm.exp_mes || '').toString().padStart(2,'0')}/${(cardForm.exp_anio || '').toString().padStart(2,'0')}`;
+        payloadDetalle = {
+          marca: cardForm.marca || '',
+          number: digits,
+          vencimiento: venc,
+          titular: cardForm.titular || '',
+          cvv: cardForm.cvv || ''
+        };
+      }
+      const { data } = await apiClient.post('/payment-methods', { clave, detalle: payloadDetalle, es_default });
       if (data && data.success) {
         await reloadPaymentData();
         setMessage('Método de pago agregado');
-  if (clave === 'tarjeta') { setCardForm({ marca: '', last4: '', exp_mes: '', exp_anio: '', titular: '' }); setCardNumber(''); }
+        if (clave === 'tarjeta') {
+          setCardForm({ marca: '', exp_mes: '', exp_anio: '', titular: '', cvv: '' });
+          setCardNumber('');
+        }
         if (clave === 'transferencia') setTrfForm({ alias: '', cbu: '', cvu: '', banco: '', titular: '' });
         if (clave === 'billetera') setWalForm({ proveedor: '', handle: '' });
       } else {
@@ -354,15 +375,211 @@ const Profile = () => {
             )}
           </div>
 
-          {/* Tipo de usuario */}
+          {/* Tipo de usuario + Métodos de pago debajo */}
           {!editPwMode && (
-            <div className="profileFormGroup">
-              <label className="profileFormLabel" htmlFor="tipoUsuario">Tipo de usuario</label>
-              <select id="tipoUsuario" className="profileFormInput" value={tipoCliente} onChange={(e) => setTipoCliente(e.target.value)}>
-                <option value="cliente">Cliente</option>
-                <option value="propietario">Propietario</option>
-              </select>
-            </div>
+            <>
+              <div className="profileFormGroup">
+                <label className="profileFormLabel" htmlFor="tipoUsuario">Tipo de usuario</label>
+                <select id="tipoUsuario" className="profileFormInput" value={tipoCliente} onChange={(e) => setTipoCliente(e.target.value)}>
+                  <option value="cliente">Cliente</option>
+                  <option value="propietario">Propietario</option>
+                </select>
+              </div>
+
+              {/* Métodos de pago (movido aquí debajo de Tipo de usuario) */}
+              <div className="profileFormGroup" style={{ marginTop: 16 }}>
+                <h2 className="profileFormTitle" style={{ marginBottom: 8 }}>Métodos de pago</h2>
+                {pmAvailableTypes.length === 0 ? (
+                  <div className="profileFormGroup" style={{ color: '#666' }}>
+                    No hay tipos disponibles para administrar desde el perfil.
+                  </div>
+                ) : (
+                  <>
+                    {/* Listado */}
+                    <div className="profileFormGroup">
+                      {pmItems.length === 0 ? (
+                        <div style={{ color: '#666' }}>Aún no agregaste métodos.</div>
+                      ) : (
+                        pmItems.map(it => (
+                          <div key={it.id_cliente_metodo} style={{ border: '1px solid #e1e8ed', borderRadius: 10, padding: 10, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <div style={{ fontWeight: 700 }}>
+                                {it.clave === 'tarjeta' && `Tarjeta ${it.detalle?.marca || ''} •••• ${it.detalle?.last4 || ''}`}
+                                {it.clave === 'transferencia' && `Transferencia ${it.detalle?.alias || it.detalle?.banco || ''}`}
+                                {it.clave === 'billetera' && `Billetera ${it.detalle?.proveedor || ''} (${it.detalle?.handle || ''})`}
+                              </div>
+                              <div style={{ fontSize: 12, color: '#555' }}>
+                                {it.es_default ? 'Predeterminado' : ''}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              {!it.es_default && (
+                                <button type="button" className="profileFormButton" style={{ width: 'auto', padding: '8px 10px' }} onClick={() => setDefaultPaymentMethod(it.id_cliente_metodo)} disabled={pmSaving}>
+                                  Predeterminar
+                                </button>
+                              )}
+                              <button type="button" className="profileFormButton" style={{ width: 'auto', padding: '8px 10px', background: '#b91c1c' }} onClick={() => removePaymentMethod(it.id_cliente_metodo)} disabled={pmSaving}>
+                                Eliminar
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Formularios condicionales */}
+                    {pmAvailableTypes.includes('tarjeta') && (
+                      <details className="profileFormGroup" style={{ borderTop: '1px solid #eee', paddingTop: 12 }}>
+                        <summary className="profileFormLabel" style={{ marginBottom: 4, cursor: 'pointer' }}>Agregar tarjeta</summary>
+                        <div className="profileFormGroup">
+                          <label className="profileFormLabel">Número de tarjeta</label>
+                          <input
+                            className="profileFormInput"
+                            value={cardNumber}
+                            onChange={(e)=>handleCardNumberChange(e.target.value)}
+                            inputMode="numeric"
+                            placeholder="#### #### #### ####"
+                          />
+                          <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                            Detectamos la marca automáticamente en tu navegador. No almacenamos el número completo.
+                          </div>
+                        </div>
+                        <div className="profileFormRow">
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">Marca</label>
+                            <input
+                              className="profileFormInput"
+                              value={cardForm.marca}
+                              readOnly
+                              placeholder="Marca detectada automáticamente"
+                            />
+                          </div>
+                        </div>
+                        <div className="profileFormRow">
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">Vencimiento</label>
+                            <input
+                              className="profileFormInput"
+                              value={(function(){
+                                const m = cardForm.exp_mes || '';
+                                const y = cardForm.exp_anio || '';
+                                if (!m && !y) return '';
+                                if (m.length < 2) return m;
+                                return y.length ? `${m}/${y}` : `${m}/`;
+                              })()}
+                              onChange={(e) => {
+                                const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                let mes = raw.slice(0, 2);
+                                let anio = raw.slice(2, 4);
+                                if (mes.length === 2) {
+                                  const mNum = parseInt(mes, 10);
+                                  if (isNaN(mNum) || mNum <= 0) mes = '01';
+                                  else if (mNum > 12) mes = '12';
+                                  else mes = mes.padStart(2, '0');
+                                }
+                                if (anio.length > 2) anio = anio.slice(0, 2);
+                                setCardForm((v) => ({
+                                  ...v,
+                                  exp_mes: mes,
+                                  exp_anio: anio
+                                }));
+                              }}
+                              placeholder="MM/YY"
+                              maxLength={5}
+                            />
+                          </div>
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">CVV</label>
+                            <input
+                              className="profileFormInput"
+                              type="text"
+                              inputMode="numeric"
+                              pattern="\\d*"
+                              value={cardForm.cvv || ''}
+                              onChange={(e) => {
+                                const digits = (e.target.value || '').replace(/\D/g, '').slice(0, 4);
+                                setCardForm((v) => ({ ...v, cvv: digits }));
+                              }}
+                              placeholder="CVV"
+                            />
+                          </div>
+                        </div>
+                        <div className="profileFormGroup">
+                          <label className="profileFormLabel">Titular</label>
+                          <input className="profileFormInput" value={cardForm.titular} onChange={e=>setCardForm(v=>({...v, titular:e.target.value}))} placeholder="Nombre del titular" />
+                        </div>
+                        <button
+                          type="button"
+                          className="profileFormButton"
+                          onClick={() => addPaymentMethod('tarjeta', cardForm)}
+                          disabled={(() => {
+                            const digits = (cardNumber || '').replace(/\D/g, '');
+                            const hasValidLen = digits.length === 15 || digits.length === 16;
+                            const hasExp = (cardForm.exp_mes || '').length === 2 && (cardForm.exp_anio || '').length === 2;
+                            const hasCvv = (cardForm.cvv || '').length >= 3 && (cardForm.cvv || '').length <= 4;
+                            return pmSaving || !hasValidLen || !hasExp || !hasCvv;
+                          })()}
+                        >
+                          {pmSaving ? 'Guardando...' : 'Agregar tarjeta'}
+                        </button>
+                      </details>
+                    )}
+
+                    {pmAvailableTypes.includes('transferencia') && (
+                      <details className="profileFormGroup" style={{ borderTop: '1px solid #eee', paddingTop: 12 }}>
+                        <summary className="profileFormLabel" style={{ marginBottom: 4, cursor: 'pointer' }}>Agregar cuenta (transferencia)</summary>
+                        <div className="profileFormRow">
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">Alias</label>
+                            <input className="profileFormInput" value={trfForm.alias} onChange={e=>setTrfForm(v=>({...v, alias:e.target.value}))} placeholder="mi.alias.mp" />
+                          </div>
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">Banco</label>
+                            <input className="profileFormInput" value={trfForm.banco} onChange={e=>setTrfForm(v=>({...v, banco:e.target.value}))} placeholder="Banco" />
+                          </div>
+                        </div>
+                        <div className="profileFormRow">
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">CBU</label>
+                            <input className="profileFormInput" value={trfForm.cbu} onChange={e=>setTrfForm(v=>({...v, cbu:e.target.value.replace(/\D/g,'').slice(0,22)}))} placeholder="22 dígitos" />
+                          </div>
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">CVU</label>
+                            <input className="profileFormInput" value={trfForm.cvu} onChange={e=>setTrfForm(v=>({...v, cvu:e.target.value.replace(/\D/g,'').slice(0,22)}))} placeholder="22 dígitos" />
+                          </div>
+                        </div>
+                        <div className="profileFormGroup">
+                          <label className="profileFormLabel">Titular</label>
+                          <input className="profileFormInput" value={trfForm.titular} onChange={e=>setTrfForm(v=>({...v, titular:e.target.value}))} placeholder="Nombre del titular" />
+                        </div>
+                        <button type="button" className="profileFormButton" onClick={() => addPaymentMethod('transferencia', trfForm)} disabled={pmSaving || (!trfForm.alias && !trfForm.cbu && !trfForm.cvu)}>
+                          {pmSaving ? 'Guardando...' : 'Agregar cuenta'}
+                        </button>
+                      </details>
+                    )}
+
+                    {pmAvailableTypes.includes('billetera') && (
+                      <details className="profileFormGroup" style={{ borderTop: '1px solid #eee', paddingTop: 12 }}>
+                        <summary className="profileFormLabel" style={{ marginBottom: 4, cursor: 'pointer' }}>Agregar billetera</summary>
+                        <div className="profileFormRow">
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">Proveedor</label>
+                            <input className="profileFormInput" value={walForm.proveedor} onChange={e=>setWalForm(v=>({...v, proveedor:e.target.value}))} placeholder="MercadoPago, Ualá..." />
+                          </div>
+                          <div className="profileFormCol">
+                            <label className="profileFormLabel">Handle</label>
+                            <input className="profileFormInput" value={walForm.handle} onChange={e=>setWalForm(v=>({...v, handle:e.target.value}))} placeholder="Alias/usuario" />
+                          </div>
+                        </div>
+                        <button type="button" className="profileFormButton" onClick={() => addPaymentMethod('billetera', walForm)} disabled={pmSaving || !walForm.proveedor || !walForm.handle}>
+                          {pmSaving ? 'Guardando...' : 'Agregar billetera'}
+                        </button>
+                      </details>
+                    )}
+                  </>
+                )}
+              </div>
+            </>
           )}
 
           {!editPwMode && (
@@ -385,150 +602,7 @@ const Profile = () => {
           {error && <div style={{ color: 'crimson', marginTop: 12 }}>{error}</div>}
         </form>
       </div>
-      {/* Métodos de pago */}
-      <div className="profileFormCard" style={{ marginTop: 16 }}>
-        <h2 className="profileFormTitle" style={{ marginBottom: 8 }}>Métodos de pago</h2>
-        {pmAvailableTypes.length === 0 ? (
-          <div className="profileFormGroup" style={{ color: '#666' }}>
-            No hay tipos disponibles para administrar desde el perfil.
-          </div>
-        ) : (
-          <>
-            {/* Listado */}
-            <div className="profileFormGroup">
-              {pmItems.length === 0 ? (
-                <div style={{ color: '#666' }}>Aún no agregaste métodos.</div>
-              ) : (
-                pmItems.map(it => (
-                  <div key={it.id_cliente_metodo} style={{ border: '1px solid #e1e8ed', borderRadius: 10, padding: 10, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 700 }}>
-                        {it.clave === 'tarjeta' && `Tarjeta ${it.detalle?.marca || ''} •••• ${it.detalle?.last4 || ''}`}
-                        {it.clave === 'transferencia' && `Transferencia ${it.detalle?.alias || it.detalle?.banco || ''}`}
-                        {it.clave === 'billetera' && `Billetera ${it.detalle?.proveedor || ''} (${it.detalle?.handle || ''})`}
-                      </div>
-                      <div style={{ fontSize: 12, color: '#555' }}>
-                        {it.es_default ? 'Predeterminado' : ''}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {!it.es_default && (
-                        <button type="button" className="profileFormButton" style={{ width: 'auto', padding: '8px 10px' }} onClick={() => setDefaultPaymentMethod(it.id_cliente_metodo)} disabled={pmSaving}>
-                          Predeterminar
-                        </button>
-                      )}
-                      <button type="button" className="profileFormButton" style={{ width: 'auto', padding: '8px 10px', background: '#b91c1c' }} onClick={() => removePaymentMethod(it.id_cliente_metodo)} disabled={pmSaving}>
-                        Eliminar
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Formularios condicionales según tipos disponibles */}
-            {pmAvailableTypes.includes('tarjeta') && (
-              <div className="profileFormGroup" style={{ borderTop: '1px solid #eee', paddingTop: 12 }}>
-                <h3 className="profileFormLabel" style={{ marginBottom: 4 }}>Agregar tarjeta</h3>
-                <div className="profileFormGroup">
-                  <label className="profileFormLabel">Número de tarjeta</label>
-                  <input
-                    className="profileFormInput"
-                    value={cardNumber}
-                    onChange={(e)=>handleCardNumberChange(e.target.value)}
-                    inputMode="numeric"
-                    placeholder="#### #### #### ####"
-                  />
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                    Detectamos la marca automáticamente en tu navegador. No almacenamos el número completo.
-                  </div>
-                </div>
-                <div className="profileFormRow">
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">Marca</label>
-                    <input className="profileFormInput" value={cardForm.marca} readOnly={cardNumber.replace(/\D/g,'').length>0} onChange={e=>setCardForm(v=>({...v, marca:e.target.value}))} placeholder="visa, mastercard" />
-                  </div>
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">Últimos 4</label>
-                    <input className="profileFormInput" value={cardForm.last4} readOnly={cardNumber.replace(/\D/g,'').length>0} onChange={e=>setCardForm(v=>({...v, last4:e.target.value.replace(/\D/g,'').slice(0,4)}))} placeholder="1234" />
-                  </div>
-                </div>
-                <div className="profileFormRow">
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">Mes venc.</label>
-                    <input className="profileFormInput" type="number" min={1} max={12} value={cardForm.exp_mes} onChange={e=>setCardForm(v=>({...v, exp_mes:e.target.value}))} />
-                  </div>
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">Año venc.</label>
-                    <input className="profileFormInput" type="number" min={new Date().getFullYear()} value={cardForm.exp_anio} onChange={e=>setCardForm(v=>({...v, exp_anio:e.target.value}))} />
-                  </div>
-                </div>
-                <div className="profileFormGroup">
-                  <label className="profileFormLabel">Titular</label>
-                  <input className="profileFormInput" value={cardForm.titular} onChange={e=>setCardForm(v=>({...v, titular:e.target.value}))} placeholder="Nombre del titular" />
-                </div>
-                <button type="button" className="profileFormButton" onClick={() => addPaymentMethod('tarjeta', cardForm)} disabled={pmSaving || !cardForm.last4 || !cardForm.marca}>
-                  {pmSaving ? 'Guardando...' : 'Agregar tarjeta'}
-                </button>
-              </div>
-            )}
-
-            {pmAvailableTypes.includes('transferencia') && (
-              <div className="profileFormGroup" style={{ borderTop: '1px solid #eee', paddingTop: 12 }}>
-                <h3 className="profileFormLabel" style={{ marginBottom: 4 }}>Agregar cuenta (transferencia)</h3>
-                <div className="profileFormRow">
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">Alias</label>
-                    <input className="profileFormInput" value={trfForm.alias} onChange={e=>setTrfForm(v=>({...v, alias:e.target.value}))} placeholder="mi.alias.mp" />
-                  </div>
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">Banco</label>
-                    <input className="profileFormInput" value={trfForm.banco} onChange={e=>setTrfForm(v=>({...v, banco:e.target.value}))} placeholder="Banco" />
-                  </div>
-                </div>
-                <div className="profileFormRow">
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">CBU</label>
-                    <input className="profileFormInput" value={trfForm.cbu} onChange={e=>setTrfForm(v=>({...v, cbu:e.target.value.replace(/\D/g,'').slice(0,22)}))} placeholder="22 dígitos" />
-                  </div>
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">CVU</label>
-                    <input className="profileFormInput" value={trfForm.cvu} onChange={e=>setTrfForm(v=>({...v, cvu:e.target.value.replace(/\D/g,'').slice(0,22)}))} placeholder="22 dígitos" />
-                  </div>
-                </div>
-                <div className="profileFormGroup">
-                  <label className="profileFormLabel">Titular</label>
-                  <input className="profileFormInput" value={trfForm.titular} onChange={e=>setTrfForm(v=>({...v, titular:e.target.value}))} placeholder="Nombre del titular" />
-                </div>
-                <button type="button" className="profileFormButton" onClick={() => addPaymentMethod('transferencia', trfForm)} disabled={pmSaving || (!trfForm.alias && !trfForm.cbu && !trfForm.cvu)}>
-                  {pmSaving ? 'Guardando...' : 'Agregar cuenta'}
-                </button>
-              </div>
-            )}
-
-            {pmAvailableTypes.includes('billetera') && (
-              <div className="profileFormGroup" style={{ borderTop: '1px solid #eee', paddingTop: 12 }}>
-                <h3 className="profileFormLabel" style={{ marginBottom: 4 }}>Agregar billetera</h3>
-                <div className="profileFormRow">
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">Proveedor</label>
-                    <input className="profileFormInput" value={walForm.proveedor} onChange={e=>setWalForm(v=>({...v, proveedor:e.target.value}))} placeholder="MercadoPago, Ualá..." />
-                  </div>
-                  <div className="profileFormCol">
-                    <label className="profileFormLabel">Handle</label>
-                    <input className="profileFormInput" value={walForm.handle} onChange={e=>setWalForm(v=>({...v, handle:e.target.value}))} placeholder="Alias/usuario" />
-                  </div>
-                </div>
-                <button type="button" className="profileFormButton" onClick={() => addPaymentMethod('billetera', walForm)} disabled={pmSaving || !walForm.proveedor || !walForm.handle}>
-                  {pmSaving ? 'Guardando...' : 'Agregar billetera'}
-                </button>
-              </div>
-            )}
-          </>
-        )}
-        {error && <div style={{ color: 'crimson', marginTop: 8 }}>{error}</div>}
-        {message && <div style={{ color: 'green', marginTop: 8 }}>{message}</div>}
-      </div>
+      
     </div>
   );
 };

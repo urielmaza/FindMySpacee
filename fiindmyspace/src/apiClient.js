@@ -24,8 +24,9 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Redirigir al usuario a la página de inicio de sesión
-      window.location.href = '/login';
+      // Redirigir con HashRouter
+      const target = `${window.location.origin}/#/login`;
+      window.location.assign(target);
     }
     return Promise.reject(error);
   }
