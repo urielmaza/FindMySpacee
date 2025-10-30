@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserSession, clearUserSession } from '../utils/auth';
+import apiClient from '../apiClient';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -61,6 +62,14 @@ const Parkin = () => {
   const [parkingMap, setParkingMap] = useState(null); // Estado para el mapa del estacionamiento
   const [selectedNivel, setSelectedNivel] = useState(null); // para multi-piso
   const mapRef = useRef(null); // Referencia al mapa
+
+  // Selección de vehículo para reservar una plaza
+  const [selectingPlaza, setSelectingPlaza] = useState(null);
+  const [vehiculosUsuario, setVehiculosUsuario] = useState([]);
+  const [loadingVehiculos, setLoadingVehiculos] = useState(false);
+  const [vehiculosError, setVehiculosError] = useState('');
+  const [selectedVehiculoId, setSelectedVehiculoId] = useState(null);
+  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) navigate('/');
@@ -246,22 +255,87 @@ const Parkin = () => {
     setParkingMap(null); // Limpiar el mapa
   };
 
-  const handleSquareClick = (plazaNum) => {
-    navigate('/reservas', { state: { plazaNumero: plazaNum } });
+  const fetchVehiculosUsuario = async () => {
+    try {
+      setLoadingVehiculos(true);
+      setVehiculosError('');
+      const session = getUserSession();
+      const id = session?.id_cliente;
+      if (!id) {
+        setVehiculosUsuario([]);
+        setVehiculosError('No se encontró la sesión del usuario.');
+        return;
+      }
+      const resp = await apiClient.get(`/vehiculos/usuario/${id}`);
+      if (resp.data?.success) {
+        setVehiculosUsuario(resp.data.data || []);
+      } else {
+        setVehiculosUsuario([]);
+        setVehiculosError('No se pudieron obtener los vehículos.');
+      }
+    } catch (err) {
+      console.error('Error obteniendo vehículos:', err);
+      setVehiculosUsuario([]);
+      setVehiculosError('Error al cargar los vehículos.');
+    } finally {
+      setLoadingVehiculos(false);
+    }
+  };
+
+  const handleSquareClick = async (plazaNum) => {
+    // Abrir modal para seleccionar vehículo antes de reservar
+    setSelectingPlaza(plazaNum);
+    setIsVehicleModalOpen(true);
+    setSelectedVehiculoId(null);
+    await fetchVehiculosUsuario();
+  };
+
+  const closeVehicleModal = () => {
+    setIsVehicleModalOpen(false);
+    setSelectingPlaza(null);
+    setSelectedVehiculoId(null);
+  };
+
+  const confirmVehicleSelection = () => {
+    if (!selectedVehiculoId || !selectingPlaza) return;
+    const vehiculo = vehiculosUsuario.find(v => (v.id_vehiculo || v.id) === selectedVehiculoId);
+    navigate('/reservas', { state: {
+      plazaNumero: selectingPlaza,
+      vehiculoId: selectedVehiculoId,
+      vehiculo,
+      parkingId: selectedParking?.id_espacio,
+      parkingName: selectedParking?.nombre_estacionamiento || selectedParking?.ubicacion || ''
+    }});
+    closeVehicleModal();
   };
 
   if (!user) return null;
 
   // Vista de detalles del estacionamiento
   if (selectedParking) {
+    const mapsQuery = (selectedParking.latitud && selectedParking.longitud)
+      ? `${selectedParking.latitud},${selectedParking.longitud}`
+      : (selectedParking.ubicacion || '');
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
     return (
       <div className={styles.detailsPage}>
-        <h1 className={styles.detailsTitle}>Reserva tu estacionamiento</h1>
+        <h1 className={styles.detailsTitle}>Reserva tu estacionamiento en</h1>
         <div className={styles.detailsContent}>
-          <p><strong>Ubicación:</strong> {selectedParking.ubicacion}</p>
-          <p><strong>Tipo:</strong> {selectedParking.tipo_de_estacionamiento === 'privado' ? 'Privado' : 'Público'}</p>
-          <p><strong>Latitud:</strong> {selectedParking.latitud}</p>
-          <p><strong>Longitud:</strong> {selectedParking.longitud}</p>
+          <p className={styles.detailsName}>{selectedParking.nombre_estacionamiento || selectedParking.ubicacion || '—'}</p>
+          <div className={styles.detailsAddressRow}>
+            <div className={styles.addressInline}>
+              {/* Ícono ubicación en SVG */}
+              <svg className={styles.pinIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 2C8.686 2 6 4.686 6 8c0 4.418 6 12 6 12s6-7.582 6-12c0-3.314-2.686-6-6-6zm0 8.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+              </svg>
+              <span className={styles.detailsAddressText}>
+                {selectedParking.ubicacion || 'Dirección no disponible'}
+              </span>
+            </div>
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={styles.mapButton}>
+              Cómo llegar
+            </a>
+          </div>
         </div>
 
         {/* Renderizar el mapa del estacionamiento */}
@@ -335,6 +409,68 @@ const Parkin = () => {
         <button className={styles.backButton} onClick={handleBackClick}>
           Atrás
         </button>
+
+        {isVehicleModalOpen && (
+          <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+            <div className={styles.modalCard}>
+              <h3 className={styles.modalTitle}>Elegí un vehículo</h3>
+
+              {loadingVehiculos ? (
+                <p className={styles.modalText}>Cargando vehículos…</p>
+              ) : vehiculosError ? (
+                <p className={styles.modalError}>{vehiculosError}</p>
+              ) : vehiculosUsuario.length > 0 ? (
+                <ul className={styles.vehiculosList}>
+                  {vehiculosUsuario.map((v) => {
+                    const id = v.id_vehiculo || v.id;
+                    return (
+                      <li key={id} className={styles.vehiculoItem}>
+                        <label className={styles.vehiculoLabel}>
+                          <input
+                            type="radio"
+                            name="vehiculo"
+                            value={id}
+                            checked={selectedVehiculoId === id}
+                            onChange={() => setSelectedVehiculoId(id)}
+                          />
+                          <span className={styles.vehiculoInfo}>
+                            {v.marca} {v.modelo} — {v.patente}
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className={styles.modalEmpty}>
+                  <p className={styles.modalText}>No tenés vehículos cargados.</p>
+                  <button
+                    className={styles.primaryButton}
+                    onClick={() => {
+                      navigate('/cargar-vehiculo');
+                      closeVehicleModal();
+                    }}
+                  >
+                    Agregar vehículo
+                  </button>
+                </div>
+              )}
+
+              <div className={styles.modalActions}>
+                <button className={styles.secondaryButton} onClick={closeVehicleModal}>
+                  Cancelar
+                </button>
+                <button
+                  className={styles.primaryButton}
+                  onClick={confirmVehicleSelection}
+                  disabled={!selectedVehiculoId}
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -348,7 +484,7 @@ const Parkin = () => {
           <strong>Aclaración:</strong> Las búsquedas de estacionamientos pueden realizarse por ubicación exacta del estacionamiento o mostrando el entorno cercano de la ubicación para facilitar tu elección.
         </p>
 
-        {/* Formulario de lugar destino */}
+        {/* Formulario de lugar destino + Mapa a la derecha cuando esté visible */}
         <div className={styles.contentContainer}>
           <div className={styles.formCard}>
             <form className={styles.form} onSubmit={handleSearch}>
@@ -417,31 +553,11 @@ const Parkin = () => {
               </button>
             </form>
           </div>
-        </div>
 
-        {/* Mapa con la ubicación seleccionada */}
-        {showMap && (
-          <>
-            {/* Leyenda de iconos */}
-            <div className={styles.legendCard}>
-              <h4 className={styles.legendTitle}>Leyenda del Mapa</h4>
-              <div className={styles.legendRow}>
-                <div className={styles.legendItem}>
-                  <img src="/ubicacion.png" alt="Ubicación" width={38} height={38} />
-                  <span style={{ fontSize: 14, color: '#495057' }}>Tu búsqueda</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <img src="/privado.png" alt="Privado" width={32} height={32} />
-                  <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Privado</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <img src="/publico.png" alt="Público" width={32} height={32} />
-                  <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Público</span>
-                </div>
-              </div>
-            </div>
+          {showMap && (<div className={styles.divider} aria-hidden="true" />)}
 
-            <div className={styles.mapWrapper}>
+          {showMap && (
+            <div className={styles.mapInline}>
               <MapContainer
                 center={selectedCoords || [-34.603722, -58.381592]} // Coordenadas iniciales
                 zoom={13}
@@ -485,6 +601,37 @@ const Parkin = () => {
                 ))}
               </MapContainer>
             </div>
+          )}
+        </div>
+
+        {/* Sección complementaria cuando el mapa está visible */}
+        {showMap && (
+          <>
+            {/* Leyenda de iconos */}
+            <div className={styles.legendCard}>
+              <h4 className={styles.legendTitle}>Leyenda del Mapa</h4>
+              <div className={styles.legendRow}>
+                <div className={styles.legendItem}>
+                  <img src="/ubicacion.png" alt="Ubicación" width={38} height={38} />
+                  <span style={{ fontSize: 14, color: '#495057' }}>Tu búsqueda</span>
+                </div>
+                <div className={styles.legendItem}>
+                  <img src="/privado.png" alt="Privado" width={32} height={32} />
+                  <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Privado</span>
+                </div>
+                <div className={styles.legendItem}>
+                  <img src="/publico.png" alt="Público" width={32} height={32} />
+                  <span style={{ fontSize: 14, color: '#495057' }}>Estacionamiento Público</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Título/estado de la sección de resultados */}
+            {direcciones && direcciones.length > 0 ? (
+              <h3 className={styles.cardSectionTitle}>Estacionamientos cercanos</h3>
+            ) : (
+              <p className={styles.noResults}>No se encontraron estacionamientos cerca</p>
+            )}
 
             {/* Listado de estacionamientos en formato de tarjetas */}
             <div className={styles.cardListWrapper}>
@@ -493,12 +640,12 @@ const Parkin = () => {
                   <div
                     key={direccion.id_espacio}
                     className={styles.card}
-                    onClick={() => handleCardClick(direccion)} // Manejar clic en la tarjeta
+                    onClick={() => handleCardClick(direccion)}
                   >
-                    <h5 className={styles.cardTitle}>{direccion.ubicacion}</h5>
-                    <p className={styles.cardType}>
-                      Tipo: {direccion.tipo_de_estacionamiento === 'privado' ? 'Privado' : 'Público'}
-                    </p>
+                    <h5 className={styles.cardTitle}>
+                      {direccion.nombre_estacionamiento || direccion.ubicacion}
+                    </h5>
+                    <p className={styles.cardType}>{direccion.ubicacion}</p>
                   </div>
                 ))}
               </div>
@@ -509,5 +656,9 @@ const Parkin = () => {
     </>
   );
 };
+
+// Modal de selección de vehículo
+// Lo renderizamos al final para evitar problemas de stacking context
+// Nota: Se apoya en clases CSS definidas en parkin.module.css
 
 export default Parkin;

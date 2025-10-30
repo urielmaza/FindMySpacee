@@ -162,8 +162,9 @@ const SubirEstacionamiento = () => {
             // Guardar valores iniciales para detectar cambios del usuario luego
             initialStructRef.current = {
               plazas: String(espacio.cantidad_plazas || ''),
-              tipo: (espacio.tipo_de_estacionamiento || ''),
-              tipoEstructura: (espacio.tipo_estructura || '')
+              tipoEstructura: (espacio.tipo_estructura || ''),
+              cantidadPisos: espacio.cantidad_pisos ? String(espacio.cantidad_pisos) : '',
+              tieneSubsuelo: espacio.tiene_subsuelo ? 'si' : 'no',
             };
             setCantidadPisos(espacio.cantidad_pisos ? String(espacio.cantidad_pisos) : '');
             setTieneSubsuelo(espacio.tiene_subsuelo ? 'si' : 'no');
@@ -372,7 +373,7 @@ const SubirEstacionamiento = () => {
     if (!arr.includes(nivelActual)) setNivelActual(arr[0] ?? 0);
   }, [tipoEstructura, cantidadPisos, tieneSubsuelo]);
 
-  // Efecto: resetear vista previa del mapa SOLO si el usuario cambió la estructura
+  // Efecto: resetear vista previa del mapa SOLO si el usuario cambió la estructura (que afecta el mapa)
   useEffect(() => {
     // No hacer nada mientras estamos precargando
     if (isPrefillingRef.current || !prefillDoneRef.current) return;
@@ -380,15 +381,16 @@ const SubirEstacionamiento = () => {
     const init = initialStructRef.current || {};
     const changed = (
       String(plazas ?? '') !== String(init.plazas ?? '') ||
-      String(tipo ?? '') !== String(init.tipo ?? '') ||
-      String(tipoEstructura ?? '') !== String(init.tipoEstructura ?? '')
+      String(tipoEstructura ?? '') !== String(init.tipoEstructura ?? '') ||
+      String(cantidadPisos ?? '') !== String(init.cantidadPisos ?? '') ||
+      String(tieneSubsuelo ?? '') !== String(init.tieneSubsuelo ?? '')
     );
     if (!changed) return;
 
     setShowMapa(false);
     setPlazasPos([]);
     setMapaGuardado(false);
-  }, [plazas, tipo, tipoEstructura]);
+  }, [plazas, tipoEstructura, cantidadPisos, tieneSubsuelo]);
 
   // Mantener coherencia de columnas (modalidades) en las filas de vehículos
   useEffect(() => {
@@ -696,6 +698,29 @@ const SubirEstacionamiento = () => {
       });
     }
 
+    // Construir datos de mapa actuales (si existen) para persistirlos también al guardar cambios
+    let hasMap = false;
+    let mapaData = {};
+    if (tipoEstructura === 'cerrado' && niveles.length > 1) {
+      const pisos = niveles.map(niv => ({
+        nivel: niv,
+        plazasPos: pisosMap[niv]?.plazasPos || [],
+        selectedPlazas: pisosMap[niv]?.selectedPlazas || [],
+        areaSize: AREA_SIZE,
+        plazaSize: PLAZA_SIZE
+      }));
+      hasMap = pisos.some(p => Array.isArray(p.plazasPos) && p.plazasPos.length > 0);
+      mapaData = { pisos };
+    } else {
+      hasMap = Array.isArray(plazasPos) && plazasPos.length > 0;
+      mapaData = {
+        plazasPos,
+        selectedPlazas,
+        areaSize: AREA_SIZE,
+        plazaSize: PLAZA_SIZE
+      };
+    }
+
     const body = {
       id_cliente: idCliente || null,
       nombre_estacionamiento: nombre,
@@ -711,8 +736,11 @@ const SubirEstacionamiento = () => {
       modalidades: tipo === 'privado' ? modalidades : [],
       metodos_pago: tipo === 'privado' ? metodosPago : [],
       tarifas: tipo === 'privado' ? tarifasPayload : []
-      // Importante: sin campo `mapa` aquí
     };
+    // Incluir mapa solo si existe (evita sobreescribir con vacío)
+    if (hasMap) {
+      body.mapa = mapaData;
+    }
 
     try {
       const response = await apiClient.put(`/espacios/${editingId}`, body);
@@ -734,7 +762,49 @@ const SubirEstacionamiento = () => {
           setSelectedPlazas([]);
         }
         setShowMapa(true);
-        setMapaGuardado(false); // Debe volver a guardarse si cambió algo estructural
+        // Evaluar si hubo cambios estructurales que requieran re-guardar el mapa
+        const init = initialStructRef.current || {};
+        const structuralChanged = (
+          String(plazas ?? '') !== String(init.plazas ?? '') ||
+          String(tipoEstructura ?? '') !== String(init.tipoEstructura ?? '') ||
+          String(cantidadPisos ?? '') !== String(init.cantidadPisos ?? '') ||
+          String(tieneSubsuelo ?? '') !== String(init.tieneSubsuelo ?? '')
+        );
+        // Si no hubo cambios estructurales y tenemos mapa, considerarlo guardado
+        if (hasMap && !structuralChanged) {
+          setMapaGuardado(true);
+          // Actualizar localStorage para mantener consistencia con el servidor
+          try {
+            const espacioId = editingId;
+            const estacionamientoData = {
+              estacionamiento: {
+                idEspacio: espacioId,
+                nombre,
+                ubicacion: ubicacion || addressInput,
+                plazas: Number(plazas),
+                tipo,
+                tipoEstructura,
+                cantidadPisos: tipoEstructura === 'cerrado' ? parseInt(cantidadPisos || 1) : 1,
+                tieneSubsuelo: tipoEstructura === 'cerrado' ? (tieneSubsuelo === 'si') : false,
+                coordenadas: [lat, lon],
+                fechaCreacion: new Date().toISOString()
+              },
+              mapa: mapaData
+            };
+            const mapasGuardadosLS = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
+            const existingIndex = mapasGuardadosLS.findIndex(m => m.estacionamiento?.idEspacio === espacioId);
+            if (existingIndex >= 0) {
+              mapasGuardadosLS[existingIndex] = estacionamientoData;
+            } else {
+              mapasGuardadosLS.push(estacionamientoData);
+            }
+            localStorage.setItem('findmyspace_mapas', JSON.stringify(mapasGuardadosLS));
+          } catch (e) {
+            console.warn('No se pudo actualizar el mapa en localStorage tras guardar cambios:', e);
+          }
+        } else {
+          setMapaGuardado(false);
+        }
       } else {
         throw new Error('Error al guardar cambios.');
       }
@@ -963,6 +1033,17 @@ const SubirEstacionamiento = () => {
               {/* Columna izquierda: formulario */}
               <div className={styles.panelCard}>
                 <h1 className={styles.pageTitle}>{editingId ? 'Editar Estacionamiento' : 'Nuevo Estacionamiento'}</h1>
+                {/* Toggle mostrar/ocultar mapa */}
+                <div className={styles.formGroup} style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-8px' }}>
+                  <button
+                    type="button"
+                    className={styles.addButton}
+                    onClick={() => setShowMapa(prev => !prev)}
+                    aria-label={showMapa ? 'Ocultar mapa' : 'Mostrar mapa'}
+                  >
+                    {showMapa ? 'Ocultar mapa' : 'Mostrar mapa'}
+                  </button>
+                </div>
                 <form onSubmit={editingId ? handleGuardarCambios : handleShowMapa}>
               <div className={styles.formGroup}>
                 <input

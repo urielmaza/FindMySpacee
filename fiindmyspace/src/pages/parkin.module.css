@@ -225,6 +225,43 @@
   max-width: 600px;
 }
 
+/* Mapa alineado a la derecha del formulario (inline) */
+.mapInline {
+  margin: 0;
+  width: 100%;
+  height: 320px;
+  max-width: 600px;
+}
+
+/* Separador vertical entre formulario y mapa (solo desktop) */
+.divider {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .divider {
+    display: block;
+    width: 1px;
+    background: #e1e8ed;
+    align-self: stretch; /* estirar para acompañar alto de la fila */
+    min-height: 320px;   /* altura mínima para coincidir con el mapa */
+    margin: 0 4px;
+  }
+}
+
+:global(body.dark-mode) .divider {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Título de la sección de tarjetas */
+.cardSectionTitle {
+  margin: 18px auto 8px auto;
+  max-width: 600px;
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+}
+
 /* Animación del gradiente (igual a MisVehiculos.addButton) */
 @keyframes addButtonFlow {
   0% { background-position: 0% 50%; }
@@ -236,15 +273,15 @@
 .mapArea {
   position: relative;
   background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
+  border: 1px solid #343434;
   border-radius: 8px;
   overflow: hidden;
 }
 
 .plaza {
   position: absolute;
-  background-color: #007bff;
-  border: 1px solid #0056b3;
+  background-color: #692497;
+  border: 1px solid #000000;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -252,6 +289,7 @@
   color: #fff;
   font-size: 12px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .plazaSelected {
@@ -278,6 +316,7 @@
   width: calc(33.333% - 16px); /* Tres tarjetas por fila */
   box-sizing: border-box;
   transition: transform 0.15s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .card:hover {
@@ -317,6 +356,8 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
   min-height: 40vh;
 }
 
@@ -331,17 +372,18 @@
 }
 
 .detailsTitle {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 16px;
+  font-size: 34px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .detailsContent {
   background-color: #ffffff;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
   width: 100%;
   max-width: 400px;
   text-align: left;
@@ -353,19 +395,74 @@
   color: #333;
 }
 
+/* Nombre del estacionamiento centrado en la vista de reservas */
+.detailsName {
+  text-align: center;
+  font-weight: 700;
+  font-size: 22px;
+  margin: 4px 0 10px 0;
+}
+
+/* Fila de dirección con ícono */
+.detailsAddressRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.addressInline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0; /* permite que el texto envuelva y no empuje el layout */
+  justify-content: center;
+}
+
+.pinIcon {
+  width: 18px;
+  height: 18px;
+  fill: #6c757d;
+  flex: 0 0 auto;
+}
+
+.detailsAddressText {
+  color: #666;
+  font-size: 15px;
+}
+
+/* Botón/Link pequeño para abrir Google Maps */
+.mapButton {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid #692497;
+  color: #692497;
+  background: #ffffff;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mapButton:hover {
+  background: #3e147b;
+  color: #ffffff;
+}
+
 .backButton {
   margin-top: 20px;
   padding: 10px 20px;
   font-size: 16px;
   color: #ffffff;
-  background-color: #007bff;
+  background-color: #692497;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .backButton:hover {
-  background-color: #0056b3;
+  background-color: #3e147b;
 }
 
 @media (max-width: 768px) {
@@ -376,8 +473,30 @@
   .addressRow { display: flex; flex-direction: column; align-items: stretch; }
   .useLocationBtn { width: 100%; margin-left: 0; }
   .mapWrapper { width: 100%; height: 300px; }
+    .mapInline { width: 100%; height: 300px; }
   .submitButton { width: 100%; }
   .formCard { padding: 20px; border-radius: 14px; }
+  /* Detalle de reserva: tamaños más contenidos en mobile */
+  .detailsTitle { font-size: 28px; margin-bottom: 16px; }
+  .detailsContent { max-width: 100%; padding: 16px; }
+  .detailsName { font-size: 20px; }
+  .detailsAddressRow { gap: 10px; }
+  .detailsAddressText { font-size: 14px; text-align: center; }
+  /* Tarjetas: dos por fila en tablets/móviles grandes */
+  .card { width: calc(50% - 16px); }
+}
+
+/* Empuje a la derecha para no quedar debajo del sidebar fijo (desktop) */
+@media (min-width: 769px) {
+  /* Sidebar colapsado mide 80px; sumamos un margen de seguridad */
+  .pageContainer {
+    padding-left: calc(16px + 88px);
+  }
+
+  /* Ajuste similar para la vista de detalles, preservando su padding base */
+  .detailsPage {
+    padding-left: calc(20px + 88px);
+  }
 }
 
 @media (max-width: 480px) {
@@ -385,6 +504,11 @@
   .label { font-size: 16px; }
   .submitButton { font-size: 16px; padding: 10px 24px; }
   .formCard { padding: 16px; border-radius: 12px; }
+  .detailsTitle { font-size: 24px; }
+  .detailsName { font-size: 18px; }
+  .mapButton { width: 100%; text-align: center; }
+  /* Tarjetas: una por fila en móviles chicos */
+  .card { width: 100%; }
 }
 
 /* Modo oscuro: fondos "negro no tan negro" para mejor contraste */
@@ -452,6 +576,19 @@
 
 :global(body.dark-mode) .detailsContent p { color: #e0e0e0; }
 
+:global(body.dark-mode) .detailsAddressText { color: #cfcfcf; }
+
+:global(body.dark-mode) .mapButton {
+  background: transparent;
+  border-color: #a277e8; /* violeta claro */
+  color: #cbb5ff;
+}
+
+:global(body.dark-mode) .mapButton:hover {
+  background: #a277e8;
+  color: #1a1a1a;
+}
+
 :global(body.dark-mode) .submitButton,
 :global(body.dark-mode) .useLocationBtn {
   background: linear-gradient(120deg, #000000 0%, #00e1ff 50%, #000000 100%);
@@ -473,8 +610,94 @@
 }
 
 :global(body.dark-mode) .backButton {
-  background-color: #295bcc;
+  background-color: #3e147b;
 }
+
+/* ===== Modal selección de vehículo ===== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modalCard {
+  width: 92%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e1e8ed;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+  padding: 20px;
+}
+
+.modalTitle {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.vehiculosList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.vehiculoItem { padding: 8px 0; border-bottom: 1px solid #f0f2f5; }
+.vehiculoLabel { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.vehiculoInfo { font-size: 14px; color: #333; }
+
+.modalText { text-align: center; color: #555; }
+.modalError { text-align: center; color: #b00020; font-weight: 600; }
+.modalEmpty { text-align: center; display: flex; flex-direction: column; gap: 10px; }
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.primaryButton {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #692497;
+  background: #692497;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.primaryButton:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.secondaryButton {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  color: #24292f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .modalCard { padding: 16px; }
+  .modalTitle { font-size: 18px; }
+}
+
+/* Dark mode para modal */
+:global(body.dark-mode) .modalOverlay { background: rgba(0,0,0,0.6); }
+:global(body.dark-mode) .modalCard { background: #1f1f1f; border-color: rgba(255,255,255,0.1); }
+:global(body.dark-mode) .vehiculoInfo { color: #e6e6e6; }
+:global(body.dark-mode) .modalText { color: #cfcfcf; }
+:global(body.dark-mode) .modalError { color: #ff8080; }
+:global(body.dark-mode) .secondaryButton { background: #2a2a2a; border-color: rgba(255,255,255,0.16); color: #e6e6e6; }
+:global(body.dark-mode) .primaryButton { background: #3e147b; border-color: #3e147b; }
 
 /* Mensajes auxiliares */
 .noResults, .noMapMessage { color: #555; }
