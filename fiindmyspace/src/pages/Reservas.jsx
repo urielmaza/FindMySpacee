@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './Reservas.module.css';
 import { getUserSession } from '../utils/auth';
 import apiClient from '../apiClient';
 
 const Reservas = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { plazaNumero, vehiculoId, vehiculo, parkingId, parkingName } = location.state || {}; // Datos desde Parkin
 
   const [email, setEmail] = useState('');
@@ -29,6 +30,15 @@ const Reservas = () => {
   const [errorHorario, setErrorHorario] = useState('');
   const [metodosPago, setMetodosPago] = useState([]);
   const [metodoPago, setMetodoPago] = useState('');
+  const [ownerPayMethods, setOwnerPayMethods] = useState(null); // detalles del propietario por espacio
+  const [userCards, setUserCards] = useState([]); // tarjetas del usuario
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [espacioInfo, setEspacioInfo] = useState(null); // datos del espacio para maps
+  const [showTarifas, setShowTarifas] = useState(false);
+  const transferFileRef = useRef(null);
+  const walletFileRef = useRef(null);
+  const [transferFileName, setTransferFileName] = useState('');
+  const [walletFileName, setWalletFileName] = useState('');
   // Largo plazo: semana/mes/año
   const [cantidad, setCantidad] = useState(1);
   // Hora fija para día/semana/mes/año (retiro/entrega)
@@ -43,6 +53,7 @@ const Reservas = () => {
     anio: 'Por año',
   };
   const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const WEEK_DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
   const METODO_PAGO_LABELS = {
     efectivo: 'Efectivo',
     tarjeta: 'Tarjeta',
@@ -79,7 +90,16 @@ const Reservas = () => {
     setHorarios(Array.isArray(data.horarios) ? data.horarios : []);
   const mp = Array.isArray(data.metodos_pago) ? data.metodos_pago : [];
   setMetodosPago(mp);
+  setEspacioInfo(data.espacio || null);
   setMetodoPago(''); // limpiar selección al cambiar de espacio
+        // Cargar métodos de pago del propietario para este espacio
+        try {
+          const mresp = await apiClient.get(`/espacios/${parkingId}/payment-methods`);
+          setOwnerPayMethods(mresp.data?.metodos || {});
+        } catch (e2) {
+          console.warn('No se pudieron cargar los métodos del propietario para este espacio:', e2);
+          setOwnerPayMethods({});
+        }
         const def = (data.modalidades && data.modalidades[0]) || 'hora';
         setModalidad(def);
       } catch (e) {
@@ -88,6 +108,25 @@ const Reservas = () => {
     };
     load();
   }, [parkingId]);
+
+  // Cargar métodos de pago del usuario (para mostrar tarjetas guardadas)
+  useEffect(() => {
+    const loadUserMethods = async () => {
+      try {
+        const res = await apiClient.get('/payment-methods');
+        const items = Array.isArray(res.data?.items) ? res.data.items : [];
+        const cards = items.filter(it => String(it.clave) === 'tarjeta');
+        setUserCards(cards);
+        const first = cards[0];
+        setSelectedCard(first ? first.id_cliente_metodo : null);
+      } catch (e) {
+        // silencioso si no hay sesión o falla
+        setUserCards([]);
+        setSelectedCard(null);
+      }
+    };
+    loadUserMethods();
+  }, []);
 
   // Calcular precio
   useEffect(() => {
@@ -345,6 +384,92 @@ const Reservas = () => {
     }
   };
 
+  const copyToClipboard = async (text) => {
+    const value = text ?? '';
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(String(value));
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = String(value);
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+    } catch (e) {
+      console.warn('No se pudo copiar al portapapeles:', e);
+    }
+  };
+
+  const getProviderUrl = (name) => {
+    const s = String(name || '').toLowerCase();
+    if (!s) return null;
+    if (s.includes('mercado')) return 'https://www.mercadopago.com/';
+    if (s.includes('paypal')) return 'https://www.paypal.com/';
+    if (s.includes('uala')) return 'https://www.uala.com/';
+    if (s.includes('binance')) return 'https://www.binance.com/';
+    return null;
+  };
+
+  const getProviderAppUrl = (name) => {
+    const s = String(name || '').toLowerCase();
+    if (!s) return null;
+    if (s.includes('mercado')) return 'mercadopago://';
+    if (s.includes('paypal')) return 'paypal://';
+    if (s.includes('uala')) return 'uala://';
+    if (s.includes('binance')) return 'binance://';
+    return null;
+  };
+
+  const isMobile = () => {
+    if (typeof navigator === 'undefined') return false;
+    return /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  const openAppThenFallback = (appUrl, webUrl) => {
+    try {
+      const start = Date.now();
+      // Intento abrir la app
+      window.location.href = appUrl;
+      // Fallback si no se abre (app no instalada)
+      setTimeout(() => {
+        const elapsed = Date.now() - start;
+        // Si seguimos en la misma pestaña rápidamente, probablemente no abrió la app
+        if (elapsed < 1600 && webUrl) {
+          window.location.href = webUrl;
+        }
+      }, 1200);
+    } catch {
+      if (webUrl) window.location.href = webUrl;
+    }
+  };
+
+  const handleProviderClick = (e, providerName) => {
+    const webUrl = getProviderUrl(providerName);
+    const appUrl = getProviderAppUrl(providerName);
+    if (isMobile() && appUrl) {
+      e.preventDefault();
+      openAppThenFallback(appUrl, webUrl);
+    }
+    // En desktop, sigue el href normal
+  };
+
+  const getGoogleMapsUrl = () => {
+    const e = espacioInfo || {};
+    const lat = e.latitud;
+    const lng = e.longitud;
+    if (lat != null && lng != null && lat !== '' && lng !== '') {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+    }
+    const q = e.ubicacion || parkingName || '';
+    if (q) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+    return 'https://www.google.com/maps';
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (Array.isArray(metodosPago) && metodosPago.length > 0 && !metodoPago) {
@@ -391,6 +516,7 @@ const Reservas = () => {
       fecha_hasta,
       modalidad,
       metodo_pago: metodoPago || null,
+      id_cliente_metodo: (metodoPago === 'tarjeta' && selectedCard) ? selectedCard : null,
     };
     apiClient.post('/reservas', payload)
       .then((r) => {
@@ -590,7 +716,7 @@ const Reservas = () => {
           <div className={styles.formGroup}>
             <label>Método de pago:</label>
             <div className={styles.checkboxGroup}>
-              {metodosPago.map((mp) => (
+              {(metodosPago.filter(m => m !== 'efectivo')).map((mp) => (
                 <label key={mp} className={styles.checkboxItem}>
                   <input
                     type="radio"
@@ -601,9 +727,292 @@ const Reservas = () => {
                   <span>{METODO_PAGO_LABELS[mp] || toTitle(mp)}</span>
                 </label>
               ))}
+              {metodosPago.includes('efectivo') && (
+                <label key="efectivo" className={styles.checkboxItem}>
+                  <input
+                    type="checkbox"
+                    checked={metodoPago === 'efectivo'}
+                    onChange={() => setMetodoPago(metodoPago === 'efectivo' ? '' : 'efectivo')}
+                  />
+                  <span>{METODO_PAGO_LABELS.efectivo}</span>
+                </label>
+              )}
             </div>
             {!metodoPago && (
               <p className={styles.helperText}>Selecciona un método para continuar.</p>
+            )}
+            {metodoPago === 'efectivo' && (
+              <div className={styles.paymentCardWrapper}>
+                <div className={styles.paymentCard}>
+                  <p className={styles.helperText} style={{ marginBottom: 8 }}>
+                    Este estacionamiento también acepta pago en efectivo. ¿Querés utilizar este método de pago? Pagarás directamente en el lugar. Consultá tus reservas allí.
+                  </p>
+                  <div className={styles.paymentRow}>
+                    <a
+                      href={getGoogleMapsUrl()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.providerLink}
+                      title="Ver ubicación en Google Maps"
+                    >
+                      Ver ubicación (Google Maps)
+                    </a>
+                    <button
+                      type="button"
+                      className={styles.attachButton}
+                      onClick={() => setShowTarifas(v => !v)}
+                    >
+                      {showTarifas ? 'Ocultar lista de precios' : 'Ver lista de precios'}
+                    </button>
+                  </div>
+                  {showTarifas && (
+                    <div style={{ marginTop: 8 }}>
+                      {(tarifas || []).length === 0 ? (
+                        <p className={styles.helperText}>Este espacio no tiene tarifas configuradas.</p>
+                      ) : (
+                        <div className={styles.pricesTableWrapper}>
+                          <table className={styles.pricesTable}>
+                            <thead>
+                              <tr>
+                                <th style={{ minWidth: 140 }}>Tipo de vehículo</th>
+                                {WEEK_DAYS.map(d => (
+                                  <th key={d}>{d}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(Array.from(new Set(tarifas.map(t => t.tipo_vehiculo)))).map(tv => {
+                                // Elegimos la mejor tarifa por tipo: preferimos 'dia', si no 'hora', si no la primera encontrada
+                                const tDia = tarifas.find(t => String(t.tipo_vehiculo) === String(tv) && String(t.modalidad).toLowerCase() === 'dia');
+                                const tHora = tarifas.find(t => String(t.tipo_vehiculo) === String(tv) && String(t.modalidad).toLowerCase() === 'hora');
+                                const tAny = tarifas.find(t => String(t.tipo_vehiculo) === String(tv));
+                                const tarifa = tDia || tHora || tAny;
+                                const valor = tarifa ? `${tarifa.moneda || 'ARS'} ${tarifa.precio}` : '—';
+                                return (
+                                  <tr key={tv}>
+                                    <td className={styles.pricesRowHeader}>{tv}</td>
+                                    {WEEK_DAYS.map(d => (
+                                      <td key={d}>{valor}</td>
+                                    ))}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {metodoPago === 'tarjeta' && (
+              <div className={styles.formGroup}>
+                {userCards.length > 0 ? (
+                  <div className={styles.paymentCardWrapper}>
+                    <div className={styles.paymentCard}>
+                      {userCards.map((c) => (
+                        <label key={c.id_cliente_metodo} className={styles.paymentRow} style={{ cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="selectedCard"
+                            checked={selectedCard === c.id_cliente_metodo}
+                            onChange={() => setSelectedCard(c.id_cliente_metodo)}
+                            style={{ marginRight: 8 }}
+                          />
+                          <span className={styles.paymentKey} style={{ minWidth: 90 }}>
+                            {c.detalle?.marca ? c.detalle.marca.toUpperCase() : 'TARJETA'}
+                          </span>
+                          <span className={styles.paymentValue} style={{ textAlign: 'left' }}>
+                            •••• {c.detalle?.last4 || ''}
+                          </span>
+                          <span className={styles.paymentValue} style={{ maxWidth: 100 }}>
+                            {c.detalle?.vencimiento || ''}
+                          </span>
+                          {/* sin etiqueta de predeterminada */}
+                        </label>
+                      ))}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => navigate('/profile')}
+                          title="Agregar tarjeta"
+                        >
+                          + Agregar tarjeta
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.paymentCardWrapper}>
+                    <div className={styles.paymentCard}>
+                      <div className={styles.paymentRow}>
+                        <span className={styles.helperText}>No tienes tarjetas guardadas.</span>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => navigate('/profile')}
+                          title="Agregar tarjeta"
+                        >
+                          + Agregar tarjeta
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {metodoPago === 'transferencia' && (
+              <div className={styles.formGroup}>
+                {ownerPayMethods?.transferencia ? (
+                  <div className={styles.paymentCardWrapper}>
+                     <div className={styles.paymentCard}>
+                      <div className={styles.paymentRow}>
+                        <span className={styles.paymentKey}>Banco</span>
+                        <span className={styles.paymentValue}>{ownerPayMethods.transferencia.banco || '—'}</span>
+                      </div>
+                      <div className={styles.paymentRow}>
+                        <span className={styles.paymentKey}>Titular</span>
+                        <span className={styles.paymentValue}>{ownerPayMethods.transferencia.titular || '—'}</span>
+                      </div>
+                      <div className={styles.paymentRow}>
+                        <span className={styles.paymentKey}>Alias</span>
+                        <span className={styles.paymentValue}>{ownerPayMethods.transferencia.alias || '—'}</span>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => copyToClipboard(ownerPayMethods.transferencia.alias)}
+                          title="Copiar Alias"
+                        >
+                          <svg className={styles.copyIcon} viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className={styles.paymentRow}>
+                        <span className={styles.paymentKey}>CBU</span>
+                        <span className={styles.paymentValue}>{ownerPayMethods.transferencia.cbu || '—'}</span>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => copyToClipboard(ownerPayMethods.transferencia.cbu)}
+                          title="Copiar CBU"
+                        >
+                          <svg className={styles.copyIcon} viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className={styles.paymentRow}>
+                        <span className={styles.paymentKey}>CVU</span>
+                        <span className={styles.paymentValue}>{ownerPayMethods.transferencia.cvu || '—'}</span>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => copyToClipboard(ownerPayMethods.transferencia.cvu)}
+                          title="Copiar CVU"
+                        >
+                          <svg className={styles.copyIcon} viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className={`${styles.paymentRow} ${styles.paymentRowCenter}`}>
+                        <button
+                          type="button"
+                          className={styles.attachButton}
+                          onClick={() => transferFileRef.current?.click()}
+                        >
+                          + Adjuntar comprobante
+                        </button>
+                        <input
+                          type="file"
+                          ref={transferFileRef}
+                          style={{ display: 'none' }}
+                          accept="image/*,application/pdf"
+                          onChange={(e) => setTransferFileName(e.target.files?.[0]?.name || '')}
+                        />
+                        {transferFileName && (
+                          <span className={styles.helperText} style={{ marginLeft: 8 }}>
+                            {transferFileName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className={styles.helperText}>El propietario no tiene una transferencia predeterminada configurada para este espacio.</p>
+                )}
+              </div>
+            )}
+            {metodoPago === 'billetera' && (
+              <div className={styles.formGroup}>
+                {ownerPayMethods?.billetera ? (
+                  <div className={styles.paymentCardWrapper}>
+                    <div className={styles.paymentCard}>
+                      <div className={styles.paymentRow}>
+                        <span className={styles.paymentKey}>Proveedor</span>
+                        {(function(){
+                          const prov = ownerPayMethods.billetera.proveedor || '—';
+                          const url = getProviderUrl(prov);
+                          if (url) {
+                            return (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.providerLink}
+                                onClick={(e) => handleProviderClick(e, prov)}
+                              >
+                                {prov}
+                              </a>
+                            );
+                          }
+                          return <span className={styles.paymentValue}>{prov}</span>;
+                        })()}
+                      </div>
+                      <div className={styles.paymentRow}>
+                        <span className={styles.paymentKey}>Alias</span>
+                        <span className={styles.paymentValue}>{ownerPayMethods.billetera.handle || '—'}</span>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={() => copyToClipboard(ownerPayMethods.billetera.handle)}
+                          title="Copiar Alias"
+                        >
+                          <svg className={styles.copyIcon} viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className={`${styles.paymentRow} ${styles.paymentRowCenter}`}>
+                        <button
+                          type="button"
+                          className={styles.attachButton}
+                          onClick={() => walletFileRef.current?.click()}
+                        >
+                          + Adjuntar comprobante
+                        </button>
+                        <input
+                          type="file"
+                          ref={walletFileRef}
+                          style={{ display: 'none' }}
+                          accept="image/*,application/pdf"
+                          onChange={(e) => setWalletFileName(e.target.files?.[0]?.name || '')}
+                        />
+                        {walletFileName && (
+                          <span className={styles.helperText} style={{ marginLeft: 8 }}>
+                            {walletFileName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className={styles.helperText}>El propietario no tiene una billetera predeterminada configurada para este espacio.</p>
+                )}
+              </div>
             )}
           </div>
         )}

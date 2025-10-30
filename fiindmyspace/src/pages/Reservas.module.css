@@ -1,17 +1,19 @@
 .reservasContainer {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e1e8ed;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .title {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 2rem;
+  font-weight: 800;
   margin-bottom: 20px;
   text-align: center;
+  color: #000000;
 }
 
 .form {
@@ -23,19 +25,30 @@
 .formGroup {
   display: flex;
   flex-direction: column;
+  gap: 6px;
 }
 
 label {
   font-size: 14px;
-  margin-bottom: 8px;
-  color: #333;
+  margin-bottom: 4px;
+  color: #222222;
+  font-weight: 600;
 }
 
 input {
-  padding: 10px;
+  padding: 12px 14px;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #8304b6;
+  box-shadow: 0 0 0 3px rgba(131, 4, 182, 0.12);
 }
 
 input[readonly] {
@@ -44,18 +57,25 @@ input[readonly] {
 }
 
 .submitButton {
-  padding: 12px;
+  position: relative;
+  width: 100%;
+  padding: 14px 0;
   font-size: 16px;
-  color: #fff;
-  background-color: #007bff;
+  color: #ffffff;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  background: linear-gradient(120deg, #000000 0%, #8304b6 50%, #000000 100%);
+  background-size: 300% 300%;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+  box-shadow: none;
+  animation: addButtonFlow 7s ease-in-out infinite;
+  will-change: background-position;
 }
 
 .submitButton:hover {
-  background-color: #0056b3;
+  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 /* Checkbox group for modalidades */
@@ -69,10 +89,10 @@ input[readonly] {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #fff;
+  padding: 8px 12px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .submitButton:disabled {
@@ -82,7 +102,7 @@ input[readonly] {
 
 .helperText {
   font-size: 12px;
-  color: #555;
+  color: #6b7280;
   margin-top: 6px;
 }
 
@@ -90,4 +110,133 @@ input[readonly] {
   font-size: 13px;
   color: #d32f2f;
   margin: 4px 0 0 0;
+}
+
+/* Payment method details card */
+.paymentCardWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.paymentCard {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border: 1px solid #e1e8ed;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  padding: 16px;
+}
+
+.paymentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.paymentRowCenter {
+  justify-content: center;
+  margin-top: 12px; /* da aire respecto a la línea anterior */
+}
+
+.paymentRow:last-child {
+  border-bottom: none;
+}
+
+.paymentKey {
+  font-weight: 600;
+  color: #333;
+}
+
+.paymentValue {
+  flex: 1;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  color: #111827;
+  word-break: break-all;
+}
+
+.copyButton {
+  background: transparent;
+  border: 2px solid #e1e8ed;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copyButton:hover {
+  background: #f3f4f6;
+}
+
+.copyIcon {
+  width: 18px;
+  height: 18px;
+  fill: #6b7280;
+}
+
+.providerLink {
+  color: #8304b6;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.providerLink:hover {
+  text-decoration: underline;
+}
+
+.attachButton {
+  padding: 10px 14px;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: linear-gradient(120deg, #000000 0%, #8304b6 50%, #000000 100%);
+  background-size: 300% 300%;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+  animation: addButtonFlow 7s ease-in-out infinite;
+}
+
+.attachButton:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+/* Prices matrix */
+.pricesTableWrapper {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+.pricesTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.pricesTable th,
+.pricesTable td {
+  border: 1px solid #e1e8ed;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.pricesTable th {
+  background: #f8f9fa;
+  font-weight: 700;
+}
+
+.pricesRowHeader {
+  text-align: left !important;
+  font-weight: 700;
+  background: #fafafa;
+}
+
+@keyframes addButtonFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
