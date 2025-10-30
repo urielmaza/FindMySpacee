@@ -408,16 +408,8 @@ const Profile = () => {
                                 {it.clave === 'transferencia' && `Transferencia ${it.detalle?.alias || it.detalle?.banco || ''}`}
                                 {it.clave === 'billetera' && `Billetera ${it.detalle?.proveedor || ''} (${it.detalle?.handle || ''})`}
                               </div>
-                              <div style={{ fontSize: 12, color: '#555' }}>
-                                {it.es_default ? 'Predeterminado' : ''}
-                              </div>
                             </div>
                             <div style={{ display: 'flex', gap: 8 }}>
-                              {!it.es_default && (
-                                <button type="button" className="profileFormButton" style={{ width: 'auto', padding: '8px 10px' }} onClick={() => setDefaultPaymentMethod(it.id_cliente_metodo)} disabled={pmSaving}>
-                                  Predeterminar
-                                </button>
-                              )}
                               <button type="button" className="profileFormButton" style={{ width: 'auto', padding: '8px 10px', background: '#b91c1c' }} onClick={() => removePaymentMethod(it.id_cliente_metodo)} disabled={pmSaving}>
                                 Eliminar
                               </button>
