@@ -292,10 +292,13 @@
   cursor: pointer;
 }
 
-.plazaSelected {
-  background-color: #28a745;
-  border-color: #1e7e34;
-}
+/* Estados unificados con MisEstacionamientos */
+.plazaLibre { background: #692497; color: #fff; border-color: #3e147b; cursor: pointer; }
+.plazaOcupado { background: #dc3545; color: #fff; border-color: #b02a37; cursor: not-allowed; }
+.plazaReservado { background: #adb5bd; color: #222; border-color: #6c757d; cursor: not-allowed; }
+
+/* Píldoras de leyenda reutilizando estilos existentes */
+.legendDot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
 
 .cardListWrapper {
   margin-top: 20px;
@@ -345,8 +348,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100vh;
+  justify-content: flex-start;
+  min-height: 100vh;
   background-color: #f9f9f9;
   padding: 20px;
 }
@@ -553,6 +556,10 @@
   background-color: #232427;
   border: 1px solid rgba(255,255,255,0.12);
 }
+
+:global(body.dark-mode) .plazaLibre { background: #7e3ab5; color: #fff; border-color: #a277e8; }
+:global(body.dark-mode) .plazaOcupado { background: #ff4d5e; color: #fff; border-color: #ff99a3; }
+:global(body.dark-mode) .plazaReservado { background: #6c757d; color: #f5f5f5; border-color: #8a949c; }
 
 :global(body.dark-mode) .card {
   background-color: #202124; /* gris muy oscuro para distinguir la carta */

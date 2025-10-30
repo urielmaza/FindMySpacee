@@ -92,11 +92,17 @@ const MisEstacionamientos = () => {
   const [mapasGuardados, setMapasGuardados] = useState([]);
   const [espacios, setEspacios] = useState([]);
   const [error, setError] = useState(null);
+  const [estadoPlazas, setEstadoPlazas] = useState({}); // { keyEst: { [num]: 'libre'|'ocupado'|'reservado' } }
 
   // Cargar mapas guardados al montar el componente
   useEffect(() => {
     const mapas = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
     setMapasGuardados(mapas);
+    // Cargar estados persistidos de plazas
+    try {
+      const raw = localStorage.getItem('findmyspace_estados_plazas');
+      if (raw) setEstadoPlazas(JSON.parse(raw));
+    } catch (_) {}
     // Cargar espacios desde la API
     const fetchEspacios = async () => {
       try {
@@ -115,6 +121,45 @@ const MisEstacionamientos = () => {
     };
     fetchEspacios();
   }, []);
+
+  // Helpers de estados
+  const buildEstKey = (esp, estacionamiento, fallbackKey) => {
+    if (esp && esp.id_espacio) return `espacio:${esp.id_espacio}`;
+    const name = (estacionamiento?.nombre || '').trim().toLowerCase();
+    const ubi = (estacionamiento?.ubicacion || '').trim().toLowerCase();
+    const plazas = Number(estacionamiento?.plazas || 0);
+    return fallbackKey || `est:${name}|${ubi}|${plazas}`;
+  };
+
+  const nextEstado = (estadoActual) => {
+    switch (estadoActual) {
+      case 'libre':
+        return 'ocupado';
+      case 'ocupado':
+        return 'reservado';
+      default:
+        return 'libre';
+    }
+  };
+
+  const togglePlaza = (estKey, num) => {
+    setEstadoPlazas((prev) => {
+      const actual = prev?.[estKey]?.[num] || 'libre';
+      const siguiente = nextEstado(actual);
+      const updated = {
+        ...prev,
+        [estKey]: { ...(prev[estKey] || {}), [num]: siguiente },
+      };
+      try { localStorage.setItem('findmyspace_estados_plazas', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+  };
+
+  const estadoToClass = (estado) => {
+    if (estado === 'ocupado') return styles.plazaOcupado;
+    if (estado === 'reservado') return styles.plazaReservado;
+    return styles.plazaLibre; // libre por defecto (violeta)
+  };
 
   // Función para eliminar un mapa
   const eliminarMapa = (index) => {
@@ -290,37 +335,43 @@ const MisEstacionamientos = () => {
                                     margin: '12px auto'
                                   }}
                                 >
-                                  {plazas.map((plaza) => (
-                                    <div
-                                      key={plaza.num}
-                                      className={styles.plazaVista}
-                                      style={{
-                                        position: 'absolute',
-                                        left: (plaza.x || 0) * 0.9,
-                                        top: (plaza.y || 0) * 0.9,
-                                        width: plazaSize * 0.9,
-                                        height: plazaSize * 0.9,
-                                        background: seleccionadas.includes(plaza.num) ? '#2d7cff' : '#fff',
-                                        color: seleccionadas.includes(plaza.num) ? '#fff' : '#222',
-                                        border: '1px solid #2d7cff',
-                                        borderRadius: 4,
-                                        fontSize: 10,
-                                        fontWeight: 'bold',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
-                                      }}
-                                      title={`Plaza ${plaza.num}`}
-                                    >
-                                      {plaza.num}
-                                    </div>
-                                  ))}
+                                  {plazas.map((plaza) => {
+                                    const estKey = buildEstKey(esp, estacionamiento);
+                                    const estado = estadoPlazas?.[estKey]?.[plaza.num] || 'libre';
+                                    return (
+                                      <div
+                                        key={plaza.num}
+                                        className={`${styles.plazaVista} ${estadoToClass(estado)}`}
+                                        style={{
+                                          position: 'absolute',
+                                          left: (plaza.x || 0) * 0.9,
+                                          top: (plaza.y || 0) * 0.9,
+                                          width: plazaSize * 0.9,
+                                          height: plazaSize * 0.9,
+                                        }}
+                                        title={`Plaza ${plaza.num} - ${estado}`}
+                                        aria-label={`Plaza ${plaza.num} - ${estado}. Click para cambiar estado`}
+                                        tabIndex={0}
+                                        onClick={() => togglePlaza(estKey, plaza.num)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlaza(estKey, plaza.num); }
+                                        }}
+                                      >
+                                        {plaza.num}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                <div className={styles.legend}>
+                                  <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaLibre}`}></span>Libre</span>
+                                  <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaOcupado}`}></span>Ocupado</span>
+                                  <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaReservado}`}></span>Reservado</span>
                                 </div>
                               </>
                             );
                           })()
                         ) : (
+                        <>
                         <div
                           className={styles.mapaContainer}
                           style={{
@@ -333,33 +384,39 @@ const MisEstacionamientos = () => {
                             margin: '12px auto'
                           }}
                         >
-                          {(mapaEncontrado.mapa.plazasPos || []).map((plaza) => (
-                            <div
-                              key={plaza.num}
-                              className={styles.plazaVista}
-                              style={{
-                                position: 'absolute',
-                                left: (plaza.x || 0) * 0.9,
-                                top: (plaza.y || 0) * 0.9,
-                                width: (mapaEncontrado.mapa.plazaSize || 40) * 0.9,
-                                height: (mapaEncontrado.mapa.plazaSize || 40) * 0.9,
-                                background: (mapaEncontrado.mapa.selectedPlazas || []).includes(plaza.num) ? '#2d7cff' : '#fff',
-                                color: (mapaEncontrado.mapa.selectedPlazas || []).includes(plaza.num) ? '#fff' : '#222',
-                                border: '1px solid #2d7cff',
-                                borderRadius: 4,
-                                fontSize: 10,
-                                fontWeight: 'bold',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
-                              }}
-                              title={`Plaza ${plaza.num}`}
-                            >
-                              {plaza.num}
-                            </div>
-                          ))}
+                          {(mapaEncontrado.mapa.plazasPos || []).map((plaza) => {
+                            const estKey = buildEstKey(esp, estacionamiento);
+                            const estado = estadoPlazas?.[estKey]?.[plaza.num] || 'libre';
+                            return (
+                              <div
+                                key={plaza.num}
+                                className={`${styles.plazaVista} ${estadoToClass(estado)}`}
+                                style={{
+                                  position: 'absolute',
+                                  left: (plaza.x || 0) * 0.9,
+                                  top: (plaza.y || 0) * 0.9,
+                                  width: (mapaEncontrado.mapa.plazaSize || 40) * 0.9,
+                                  height: (mapaEncontrado.mapa.plazaSize || 40) * 0.9,
+                                }}
+                                title={`Plaza ${plaza.num} - ${estado}`}
+                                aria-label={`Plaza ${plaza.num} - ${estado}. Click para cambiar estado`}
+                                tabIndex={0}
+                                onClick={() => togglePlaza(estKey, plaza.num)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlaza(estKey, plaza.num); }
+                                }}
+                              >
+                                {plaza.num}
+                              </div>
+                            );
+                          })}
                         </div>
+                        <div className={styles.legend}>
+                          <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaLibre}`}></span>Libre</span>
+                          <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaOcupado}`}></span>Ocupado</span>
+                          <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaReservado}`}></span>Reservado</span>
+                        </div>
+                        </>
                         )}
                       </div>
                     )}
@@ -452,37 +509,43 @@ const MisEstacionamientos = () => {
                                   margin: '12px auto'
                                 }}
                               >
-                                {plazas.map((plaza) => (
-                                  <div
-                                    key={plaza.num}
-                                    className={styles.plazaVista}
-                                    style={{
-                                      position: 'absolute',
-                                      left: plaza.x * 0.9,
-                                      top: plaza.y * 0.9,
-                                      width: plazaSize * 0.9,
-                                      height: plazaSize * 0.9,
-                                      background: seleccionadas.includes(plaza.num) ? '#2d7cff' : '#fff',
-                                      color: seleccionadas.includes(plaza.num) ? '#fff' : '#222',
-                                      border: '1px solid #2d7cff',
-                                      borderRadius: 4,
-                                      fontSize: 10,
-                                      fontWeight: 'bold',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
-                                    }}
-                                    title={`Plaza ${plaza.num}`}
-                                  >
-                                    {plaza.num}
-                                  </div>
-                                ))}
+                                {plazas.map((plaza) => {
+                                  const estKey = buildEstKey(null, estacionamiento, `local:${index}`);
+                                  const estado = estadoPlazas?.[estKey]?.[plaza.num] || 'libre';
+                                  return (
+                                    <div
+                                      key={plaza.num}
+                                      className={`${styles.plazaVista} ${estadoToClass(estado)}`}
+                                      style={{
+                                        position: 'absolute',
+                                        left: plaza.x * 0.9,
+                                        top: plaza.y * 0.9,
+                                        width: plazaSize * 0.9,
+                                        height: plazaSize * 0.9,
+                                      }}
+                                      title={`Plaza ${plaza.num} - ${estado}`}
+                                      aria-label={`Plaza ${plaza.num} - ${estado}. Click para cambiar estado`}
+                                      tabIndex={0}
+                                      onClick={() => togglePlaza(estKey, plaza.num)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlaza(estKey, plaza.num); }
+                                      }}
+                                    >
+                                      {plaza.num}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div className={styles.legend}>
+                                <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaLibre}`}></span>Libre</span>
+                                <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaOcupado}`}></span>Ocupado</span>
+                                <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaReservado}`}></span>Reservado</span>
                               </div>
                             </>
                           );
                         })()
                       ) : (
+                        <>
                         <div 
                           className={styles.mapaContainer}
                           style={{
@@ -495,33 +558,39 @@ const MisEstacionamientos = () => {
                             margin: '12px auto'
                           }}
                         >
-                          {mapa.plazasPos.map((plaza) => (
-                            <div
-                              key={plaza.num}
-                              className={styles.plazaVista}
-                              style={{
-                                position: 'absolute',
-                                left: plaza.x * 0.9,
-                                top: plaza.y * 0.9,
-                                width: mapa.plazaSize * 0.9,
-                                height: mapa.plazaSize * 0.9,
-                                background: mapa.selectedPlazas.includes(plaza.num) ? '#2d7cff' : '#fff',
-                                color: mapa.selectedPlazas.includes(plaza.num) ? '#fff' : '#222',
-                                border: '1px solid #2d7cff',
-                                borderRadius: 4,
-                                fontSize: 10,
-                                fontWeight: 'bold',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.2)'
-                              }}
-                              title={`Plaza ${plaza.num}`}
-                            >
-                              {plaza.num}
-                            </div>
-                          ))}
+                          {mapa.plazasPos.map((plaza) => {
+                            const estKey = buildEstKey(null, estacionamiento, `local:${index}`);
+                            const estado = estadoPlazas?.[estKey]?.[plaza.num] || 'libre';
+                            return (
+                              <div
+                                key={plaza.num}
+                                className={`${styles.plazaVista} ${estadoToClass(estado)}`}
+                                style={{
+                                  position: 'absolute',
+                                  left: plaza.x * 0.9,
+                                  top: plaza.y * 0.9,
+                                  width: mapa.plazaSize * 0.9,
+                                  height: mapa.plazaSize * 0.9,
+                                }}
+                                title={`Plaza ${plaza.num} - ${estado}`}
+                                aria-label={`Plaza ${plaza.num} - ${estado}. Click para cambiar estado`}
+                                tabIndex={0}
+                                onClick={() => togglePlaza(estKey, plaza.num)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlaza(estKey, plaza.num); }
+                                }}
+                              >
+                                {plaza.num}
+                              </div>
+                            );
+                          })}
                         </div>
+                        <div className={styles.legend}>
+                          <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaLibre}`}></span>Libre</span>
+                          <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaOcupado}`}></span>Ocupado</span>
+                          <span className={styles.legendItem}><span className={`${styles.legendDot} ${styles.plazaReservado}`}></span>Reservado</span>
+                        </div>
+                        </>
                       )}
                     </div>
                   </div>

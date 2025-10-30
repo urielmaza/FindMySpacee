@@ -268,10 +268,115 @@
 .mapaContainer {
   overflow: hidden;
   user-select: none;
+  background-color: #f7f7f7;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(45,124,255,0.06) 0px,
+      rgba(45,124,255,0.06) 16px,
+      transparent 16px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(45,124,255,0.06) 0px,
+      rgba(45,124,255,0.06) 16px,
+      transparent 16px,
+      transparent 32px
+    );
 }
 
+/* Plazas interactivas */
 .plazaVista {
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  border: 1px solid var(--plaza-border, #cbd5e1);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+  background: var(--plaza-bg, #ffffff);
+  color: var(--plaza-text, #1f2937);
+}
+
+.plazaVista:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+}
+
+.plazaVista:focus-visible {
+  outline: 3px solid rgba(105, 36, 151, 0.28);
+  outline-offset: 2px;
+}
+
+/* Estados de plaza (violeta libre, rojo ocupado, gris reservado) */
+.plazaLibre {
+  --plaza-bg: #692497; /* violeta */
+  --plaza-text: #ffffff;
+  --plaza-border: #4c1d95;
+  background: var(--plaza-bg);
+  color: var(--plaza-text);
+  border-color: var(--plaza-border);
+}
+
+.plazaOcupado {
+  --plaza-bg: #ef4444; /* rojo */
+  --plaza-text: #ffffff;
+  --plaza-border: #dc2626;
+  background: var(--plaza-bg);
+  color: var(--plaza-text);
+  border-color: var(--plaza-border);
+}
+
+.plazaReservado {
+  --plaza-bg: #9ca3af; /* gris */
+  --plaza-text: #1f2937;
+  --plaza-border: #6b7280;
+  background: var(--plaza-bg);
+  color: var(--plaza-text);
+  border-color: var(--plaza-border);
+}
+
+/* Leyenda de estados */
+.legend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-color, #333333);
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 6px 10px;
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.legendDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.12);
+}
+
+.mapaHint {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: var(--text-secondary, #666666);
 }
 
 /* Estilos para modo oscuro */
@@ -303,6 +408,31 @@
 
 :global(body.dark-mode) .infoEstacionamiento strong {
   color: #ffffff;
+}
+
+/* Ajustes de contraste en modo oscuro */
+:global(body.dark-mode) .plazaLibre {
+  --plaza-bg: #a855f7;
+  --plaza-border: #7e22ce;
+  --plaza-text: #ffffff;
+}
+
+:global(body.dark-mode) .plazaOcupado {
+  --plaza-bg: #dc2626;
+  --plaza-border: #b91c1c;
+  --plaza-text: #fff5f5;
+}
+
+:global(body.dark-mode) .plazaReservado {
+  --plaza-bg: #6b7280;
+  --plaza-border: #4b5563;
+  --plaza-text: #f3f4f6;
+}
+
+:global(body.dark-mode) .legendItem {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: #e5e7eb;
 }
 
 /* Labels e íconos en modo oscuro: celeste */

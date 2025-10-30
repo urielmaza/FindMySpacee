@@ -70,10 +70,35 @@ const Parkin = () => {
   const [vehiculosError, setVehiculosError] = useState('');
   const [selectedVehiculoId, setSelectedVehiculoId] = useState(null);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+  // Estados de plazas compartidos con MisEstacionamientos
+  const [estadoPlazas, setEstadoPlazas] = useState({}); // { `espacio:<id>`: { [num]: 'libre'|'ocupado'|'reservado' } }
 
   useEffect(() => {
     if (!user) navigate('/');
   }, [user, navigate]);
+
+  // Cargar estados de plazas desde localStorage una vez
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('findmyspace_estados_plazas');
+      if (raw) setEstadoPlazas(JSON.parse(raw));
+    } catch (_) {}
+  }, []);
+
+  const buildEstKey = (idEspacio) => (idEspacio ? `espacio:${idEspacio}` : null);
+  const estadoToClass = (estado) => {
+    if (estado === 'ocupado') return styles.plazaOcupado;
+    if (estado === 'reservado') return styles.plazaReservado;
+    return styles.plazaLibre; // libre
+  };
+  const setEstadoPersist = (estKey, num, nuevoEstado) => {
+    setEstadoPlazas(prev => {
+      const updated = { ...prev, [estKey]: { ...(prev[estKey] || {}), [num]: nuevoEstado } };
+      try { localStorage.setItem('findmyspace_estados_plazas', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+  };
+  const clamp = (v, min, max) => Math.max(min, Math.min(v, max));
 
   const handleLogout = () => {
     clearUserSession();
@@ -298,6 +323,9 @@ const Parkin = () => {
 
   const confirmVehicleSelection = () => {
     if (!selectedVehiculoId || !selectingPlaza) return;
+    // Marcar como reservado al confirmar selección de vehículo
+    const estKey = buildEstKey(selectedParking?.id_espacio);
+    if (estKey) setEstadoPersist(estKey, selectingPlaza, 'reservado');
     const vehiculo = vehiculosUsuario.find(v => (v.id_vehiculo || v.id) === selectedVehiculoId);
     navigate('/reservas', { state: {
       plazaNumero: selectingPlaza,
@@ -382,23 +410,38 @@ const Parkin = () => {
                   position: 'relative',
                 }}
               >
-                {plazas.map((plaza) => (
-                  <div
-                    key={plaza.num}
-                    className={`${styles.plaza} ${seleccionadas.includes(plaza.num) ? styles.plazaSelected : ''}`}
-                    style={{
-                      position: 'absolute',
-                      left: `${plaza.x}px`,
-                      top: `${plaza.y}px`,
-                      width: `${plazaSize}px`,
-                      height: `${plazaSize}px`,
-                    }}
-                    title={`Plaza ${plaza.num}`}
-                    onClick={() => handleSquareClick(plaza.num)}
-                  >
-                    {plaza.num}
-                  </div>
-                ))}
+                {plazas.map((plaza) => {
+                  const estKey = buildEstKey(selectedParking?.id_espacio);
+                  const estado = estKey ? (estadoPlazas?.[estKey]?.[plaza.num] || 'libre') : 'libre';
+                  const leftPx = clamp(Number(plaza.x) || 0, 0, (areaSize || 0) - (plazaSize || 0));
+                  const topPx = clamp(Number(plaza.y) || 0, 0, (areaSize || 0) - (plazaSize || 0));
+                  return (
+                    <div
+                      key={plaza.num}
+                      className={`${styles.plaza} ${estadoToClass(estado)}`}
+                      style={{
+                        position: 'absolute',
+                        left: `${leftPx}px`,
+                        top: `${topPx}px`,
+                        width: `${plazaSize}px`,
+                        height: `${plazaSize}px`,
+                      }}
+                      title={`Plaza ${plaza.num} - ${estado}`}
+                      aria-label={`Plaza ${plaza.num} - ${estado}${estado === 'libre' ? '. Click para reservar' : '. No disponible'}`}
+                      onClick={() => {
+                        if (estado !== 'libre') return; // bloquear uso si no está libre
+                        handleSquareClick(plaza.num);
+                      }}
+                    >
+                      {plaza.num}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className={styles.legendRow} style={{ justifyContent: 'center', gap: 16 }}>
+                <span className={styles.legendItem}><span className={`${styles.legendDot ?? ''} ${styles.plazaLibre}`}></span>Libre</span>
+                <span className={styles.legendItem}><span className={`${styles.legendDot ?? ''} ${styles.plazaOcupado}`}></span>Ocupado</span>
+                <span className={styles.legendItem}><span className={`${styles.legendDot ?? ''} ${styles.plazaReservado}`}></span>Reservado</span>
               </div>
             </>
           );
