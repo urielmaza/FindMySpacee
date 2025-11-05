@@ -19,20 +19,23 @@ const CargarVehiculo = () => {
     tipo_vehiculo: '',
   });
   const [userEmail, setUserEmail] = useState('');
+  const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' o 'error'
 
   useEffect(() => {
-    // Obtener datos de la sesión del usuario
-    const userSession = getUserSession();
-    if (userSession) {
-      setUserEmail(userSession.email);
-    }
-
-    // Llamada a la API para obtener las marcas
-    const fetchMarcas = async () => {
+    const initializeData = async () => {
       try {
+        setInitialLoading(true);
+        
+        // Obtener datos de la sesión del usuario
+        const userSession = getUserSession();
+        if (userSession) {
+          setUserEmail(userSession.email);
+        }
+
+        // Llamada a la API para obtener las marcas
         const response = await apiClient.get('/marcas/all');
         
         // Acceder a los datos correctos según la nueva estructura del controlador
@@ -45,10 +48,12 @@ const CargarVehiculo = () => {
       } catch (error) {
         console.error('Error al obtener las marcas:', error);
         setMarcas([]); // Array vacío en caso de error
+      } finally {
+        setInitialLoading(false);
       }
     };
 
-    fetchMarcas();
+    initializeData();
   }, []);
 
   // Detectar modo edición por query param ?id=123 y precargar
@@ -218,6 +223,24 @@ const CargarVehiculo = () => {
     
     setLoading(false);
   };
+
+  if (initialLoading) {
+    return (
+      <>
+        <BannerUser onMenuToggle={setIsMenuOpen} />
+        <div className={`${styles.pageContainer} ${isMenuOpen ? styles.pageContainerExpanded : ''}`}>
+          <div className={styles.contentContainer}>
+            <div className={styles.formCard}>
+              <div className={styles.loadingContainer}>
+                <div className={styles.spinner}></div>
+                <p>Cargando formulario...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

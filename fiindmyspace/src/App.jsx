@@ -12,7 +12,7 @@ import MisVehiculos from './pages/MisVehiculos'; // Nueva importación
 import MisEstacionamientos from './pages/MisEstacionamientos'; // Nueva importación
 import MisReservas from './pages/MisReservas'; // Nueva importación
 import AuthCallback from './pages/AuthCallback'; // Nueva importación
-import styles from './App.module.css'; // Asegúrate de tener este archivo CSS
+import styles from './App.module.css'; // Asegúrate de tener este archivo CSS0
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';

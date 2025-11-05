@@ -43,6 +43,7 @@ const Reservas = () => {
   const [cantidad, setCantidad] = useState(1);
   // Hora fija para día/semana/mes/año (retiro/entrega)
   const [horaFija, setHoraFija] = useState('07:30');
+  const [loading, setLoading] = useState(true);
 
   // Etiquetas amigables para modalidades
   const LABELS = {
@@ -81,17 +82,20 @@ const Reservas = () => {
   // Cargar datos del espacio
   useEffect(() => {
     const load = async () => {
-      if (!parkingId) return;
       try {
+        setLoading(true);
+        
+        if (!parkingId) return;
+        
         const resp = await apiClient.get(`/espacios/${parkingId}`);
         const data = resp.data?.data || {};
-    setModalidades(Array.isArray(data.modalidades) ? data.modalidades : []);
-    setTarifas(Array.isArray(data.tarifas) ? data.tarifas : []);
-    setHorarios(Array.isArray(data.horarios) ? data.horarios : []);
-  const mp = Array.isArray(data.metodos_pago) ? data.metodos_pago : [];
-  setMetodosPago(mp);
-  setEspacioInfo(data.espacio || null);
-  setMetodoPago(''); // limpiar selección al cambiar de espacio
+        setModalidades(Array.isArray(data.modalidades) ? data.modalidades : []);
+        setTarifas(Array.isArray(data.tarifas) ? data.tarifas : []);
+        setHorarios(Array.isArray(data.horarios) ? data.horarios : []);
+        const mp = Array.isArray(data.metodos_pago) ? data.metodos_pago : [];
+        setMetodosPago(mp);
+        setEspacioInfo(data.espacio || null);
+        setMetodoPago(''); // limpiar selección al cambiar de espacio
         // Cargar métodos de pago del propietario para este espacio
         try {
           const mresp = await apiClient.get(`/espacios/${parkingId}/payment-methods`);
@@ -104,6 +108,8 @@ const Reservas = () => {
         setModalidad(def);
       } catch (e) {
         console.error('Error cargando espacio:', e);
+      } finally {
+        setLoading(false);
       }
     };
     load();
@@ -528,6 +534,17 @@ const Reservas = () => {
         alert('No se pudo crear la reserva');
       });
   };
+
+  if (loading) {
+    return (
+      <div className={styles.reservasContainer}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>Cargando información de la reserva...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.reservasContainer}>

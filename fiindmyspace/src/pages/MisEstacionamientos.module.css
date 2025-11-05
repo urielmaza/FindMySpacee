@@ -508,7 +508,17 @@
 }
 
 :global(body.dark-mode) .addButton:focus-visible {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 0 0 5px rgba(0, 225, 255, 0.45);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 0 0 5px rgba(0, 229, 255, 0.45);
+}
+
+/* Loading en modo oscuro */
+:global(body.dark-mode) .spinner {
+  border-color: #404040;
+  border-top-color: #00E5FF; /* celeste */
+}
+
+:global(body.dark-mode) .loadingContainer p {
+  color: #cccccc;
 }
 
 /* Animación reusada de MisVehiculos */
@@ -535,6 +545,16 @@
 }
 
 :global(body.dark-mode) .emptyMessage {
+  color: #cccccc;
+}
+
+/* Loading en modo oscuro */
+:global(body.dark-mode) .spinner {
+  border-color: #404040;
+  border-top-color: #00E5FF; /* celeste */
+}
+
+:global(body.dark-mode) .loadingContainer p {
   color: #cccccc;
 }
 

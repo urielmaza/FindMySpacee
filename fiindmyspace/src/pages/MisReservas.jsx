@@ -107,7 +107,10 @@ const MisReservas = () => {
 				<div className={`${styles.pageContainer} ${isMenuOpen ? styles.pageContainerExpanded : ''}`}>
 					<div className={styles.contentContainer}>
 						<h1 className={styles.pageTitle}>Mis Reservas</h1>
-						<div className={styles.simpleCard}>Cargando reservas…</div>
+						<div className={styles.loadingContainer}>
+							<div className={styles.spinner}></div>
+							<p>Cargando reservas...</p>
+						</div>
 					</div>
 				</div>
 			</>

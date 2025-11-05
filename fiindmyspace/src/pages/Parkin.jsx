@@ -70,11 +70,31 @@ const Parkin = () => {
   const [vehiculosError, setVehiculosError] = useState('');
   const [selectedVehiculoId, setSelectedVehiculoId] = useState(null);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   // Estados de plazas compartidos con MisEstacionamientos
   const [estadoPlazas, setEstadoPlazas] = useState({}); // { `espacio:<id>`: { [num]: 'libre'|'ocupado'|'reservado' } }
 
   useEffect(() => {
-    if (!user) navigate('/');
+    const initializeParkin = async () => {
+      try {
+        setLoading(true);
+        
+        if (!user) {
+          navigate('/');
+          return;
+        }
+        
+        // Cargar datos iniciales si es necesario
+        // Por ejemplo, cargar direcciones guardadas, etc.
+        
+      } catch (error) {
+        console.error('Error initializing Parkin:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initializeParkin();
   }, [user, navigate]);
 
   // Cargar estados de plazas desde localStorage una vez
@@ -515,6 +535,20 @@ const Parkin = () => {
           </div>
         )}
       </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <>
+        <BannerUser />
+        <div className={styles.pageContainer}>
+          <div className={styles.loadingContainer}>
+            <div className={styles.spinner}></div>
+            <p>Cargando...</p>
+          </div>
+        </div>
+      </>
     );
   }
 

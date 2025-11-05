@@ -47,6 +47,7 @@ const SubirEstacionamiento = () => {
   const [suggestions, setSuggestions] = useState([]); // UI-only, sin fetch
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [selectedPlazas, setSelectedPlazas] = useState([]);
   const [showMapa, setShowMapa] = useState(false);
@@ -115,8 +116,13 @@ const SubirEstacionamiento = () => {
   // Cargar datos cuando editingId existe
   useEffect(() => {
     const cargarDatos = async () => {
-      if (!editingId) return;
       try {
+        setLoading(true);
+        
+        if (!editingId) {
+          setLoading(false);
+          return;
+        }
         // Evitar que el efecto de reseteo del mapa se dispare mientras precargamos
         isPrefillingRef.current = true;
         // 1) Si viene un layout en el state de navegación, úsalo directamente
@@ -354,6 +360,7 @@ const SubirEstacionamiento = () => {
       isPrefillingRef.current = false;
       // Marcar que la precarga terminó; desde ahora, cambios en estructura son del usuario
       prefillDoneRef.current = true;
+      setLoading(false);
     });
   }, [editingId]);
 
@@ -1023,6 +1030,22 @@ const SubirEstacionamiento = () => {
       setTipoMensaje('error');
     }
   };
+
+  if (loading) {
+    return (
+      <>
+        <BannerUser />
+        <div className={styles.pageContainer}>
+          <div className={styles.contentContainer}>
+            <div className={styles.loadingContainer}>
+              <div className={styles.spinner}></div>
+              <p>{editingId ? 'Cargando datos del estacionamiento...' : 'Inicializando formulario...'}</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

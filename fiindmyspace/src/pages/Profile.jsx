@@ -21,6 +21,7 @@ const Profile = () => {
   const [newPw, setNewPw] = useState('');
   const [savingPw, setSavingPw] = useState(false);
   const [editPwMode, setEditPwMode] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Métodos de pago
   const [pmAvailableTypes, setPmAvailableTypes] = useState([]); // ['tarjeta','transferencia','billetera']
@@ -34,39 +35,49 @@ const Profile = () => {
   const [pmSaving, setPmSaving] = useState(false);
 
   useEffect(() => {
-    const session = getUserSession();
-    if (session) {
-      if (session.id_cliente) setIdCliente(session.id_cliente);
-      if (session.nombre) setNombre(session.nombre);
-      if (session.apellido) setApellido(session.apellido);
-      if (session.email) setEmail(session.email);
-    }
-    (async () => {
+    const initializeProfile = async () => {
       try {
-        const { data } = await apiClient.get('/profile');
-        if (data && data.success && data.user) {
-          setHasPassword(!!data.user.hasPassword);
-          setProviderGoogle(!!data.user.providerGoogle);
-          setEditPwMode(false);
-          if (data.user.nombre) setNombre(data.user.nombre);
-          if (data.user.apellido) setApellido(data.user.apellido);
-          if (data.user.email) setEmail(data.user.email);
-          if (data.user.tipo_cliente) setTipoCliente(data.user.tipo_cliente);
+        setLoading(true);
+        
+        const session = getUserSession();
+        if (session) {
+          if (session.id_cliente) setIdCliente(session.id_cliente);
+          if (session.nombre) setNombre(session.nombre);
+          if (session.apellido) setApellido(session.apellido);
+          if (session.email) setEmail(session.email);
         }
-      } catch (e) {
-        // Si falla (sin token), mantenemos los valores de sesión
+        
+        try {
+          const { data } = await apiClient.get('/profile');
+          if (data && data.success && data.user) {
+            setHasPassword(!!data.user.hasPassword);
+            setProviderGoogle(!!data.user.providerGoogle);
+            setEditPwMode(false);
+            if (data.user.nombre) setNombre(data.user.nombre);
+            if (data.user.apellido) setApellido(data.user.apellido);
+            if (data.user.email) setEmail(data.user.email);
+            if (data.user.tipo_cliente) setTipoCliente(data.user.tipo_cliente);
+          }
+        } catch (e) {
+          // Si falla (sin token), mantenemos los valores de sesión
+        }
+        
+        try {
+          const [typesRes, listRes] = await Promise.all([
+            apiClient.get('/payment-methods/available-types'),
+            apiClient.get('/payment-methods')
+          ]);
+          if (typesRes?.data?.success) setPmAvailableTypes(typesRes.data.tipos || []);
+          if (listRes?.data?.success) setPmItems(listRes.data.items || []);
+        } catch (e) {
+          // opcional: silenciar
+        }
+      } finally {
+        setLoading(false);
       }
-      try {
-        const [typesRes, listRes] = await Promise.all([
-          apiClient.get('/payment-methods/available-types'),
-          apiClient.get('/payment-methods')
-        ]);
-        if (typesRes?.data?.success) setPmAvailableTypes(typesRes.data.tipos || []);
-        if (listRes?.data?.success) setPmItems(listRes.data.items || []);
-      } catch (e) {
-        // opcional: silenciar
-      }
-    })();
+    };
+    
+    initializeProfile();
   }, []);
 
   // Detectar marca de tarjeta en base al BIN/prefijo
@@ -271,6 +282,19 @@ const Profile = () => {
       setPmSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="profileFormCard">
+          <div className="loadingContainer">
+            <div className="spinner"></div>
+            <p>Cargando perfil...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container">

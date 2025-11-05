@@ -8,6 +8,37 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
+/* Loading */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  height: 300px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e1e8ed;
+  border-top: 4px solid #8304b6; /* violeta */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingContainer p {
+  font-size: 1.1rem;
+  color: #666666;
+  margin: 0;
+  font-weight: 500;
+}
+
 .title {
   font-size: 2rem;
   font-weight: 800;
@@ -239,4 +270,44 @@ input[readonly] {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+/* Modo oscuro */
+:global(body.dark-mode) .reservasContainer {
+  background: #2c2c2e;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .title {
+  color: #ffffff;
+}
+
+:global(body.dark-mode) label {
+  color: #cccccc;
+}
+
+:global(body.dark-mode) input,
+:global(body.dark-mode) select,
+:global(body.dark-mode) textarea {
+  background: #1c1c1e;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+:global(body.dark-mode) input:focus,
+:global(body.dark-mode) select:focus,
+:global(body.dark-mode) textarea:focus {
+  border-color: #00E5FF; /* celeste */
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.15);
+}
+
+/* Loading en modo oscuro */
+:global(body.dark-mode) .spinner {
+  border-color: #404040;
+  border-top-color: #00E5FF; /* celeste */
+}
+
+:global(body.dark-mode) .loadingContainer p {
+  color: #cccccc;
 }
