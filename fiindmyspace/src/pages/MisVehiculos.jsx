@@ -9,12 +9,14 @@ const MisVehiculos = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [vehiculos, setVehiculos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, vehiculo: null });
 
   useEffect(() => {
     const fetchVehiculos = async () => {
       try {
+        setLoading(true);
         const userSession = getUserSession();
         if (!userSession) {
           setError('No se pudo obtener la sesión del usuario');
@@ -27,12 +29,15 @@ const MisVehiculos = () => {
         
         if (response.data.success) {
           setVehiculos(response.data.data);
+          setError(null);
         } else {
           setError('No se pudieron cargar los vehículos');
         }
       } catch (error) {
         console.error('Error al obtener vehículos:', error);
         setError('Error al cargar los vehículos');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -132,6 +137,22 @@ const MisVehiculos = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <>
+        <BannerUser onMenuToggle={setIsMenuOpen} />
+        <div className={`${styles.pageContainer} ${isMenuOpen ? styles.pageContainerExpanded : ''}`}>
+          <div className={styles.contentContainer}>
+            <h1 className={styles.pageTitle}>Mis Vehículos</h1>
+            <div className={styles.loadingContainer}>
+              <div className={styles.spinner}></div>
+              <p>Cargando vehículos...</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (error) {
     return (

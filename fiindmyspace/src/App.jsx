@@ -17,6 +17,7 @@ import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Reservas from './pages/Reservas'; // Importar el nuevo componente
+import Statistics from './pages/Statistics'; // Importar el componente de estadísticas
 
 function App() {
   const location = useLocation();
@@ -43,6 +44,7 @@ function App() {
           <Route path="/home-user" element={<HomeUser />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/reservas" element={<Reservas />} /> {/* Agregar la ruta para Reservas */}
+          <Route path="/estadisticas" element={<Statistics />} /> {/* Agregar la ruta para Estadísticas */}
           {/* Ruta para manejar rutas no definidas */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

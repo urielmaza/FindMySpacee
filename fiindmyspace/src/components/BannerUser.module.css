@@ -295,6 +295,20 @@
   transition-delay: 0.1s;
 }
 
+/* Línea divisora */
+.divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 12px 0;
+  transition: background-color 0.5s ease;
+  width: 100%;
+}
+
+/* Modo oscuro para divider */
+:global(body.dark-mode) .divider {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .logoutButton {
   color: #ff6b6b;
 }
@@ -443,4 +457,17 @@
 
 .container {
   margin-top: 0;
+}
+
+/* Estilos para impresión - Ocultar completamente el banner */
+@media print {
+  .headerContainer,
+  .headerContainerOpen,
+  .sidebar,
+  .sidebarOpen,
+  .hamburger,
+  .hamburgerOpen {
+    display: none !important;
+    visibility: hidden !important;
+  }
 }

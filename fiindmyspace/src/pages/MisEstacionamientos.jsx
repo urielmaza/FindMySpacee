@@ -91,35 +91,47 @@ const MisEstacionamientos = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mapasGuardados, setMapasGuardados] = useState([]);
   const [espacios, setEspacios] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [estadoPlazas, setEstadoPlazas] = useState({}); // { keyEst: { [num]: 'libre'|'ocupado'|'reservado' } }
 
   // Cargar mapas guardados al montar el componente
   useEffect(() => {
-    const mapas = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
-    setMapasGuardados(mapas);
-    // Cargar estados persistidos de plazas
-    try {
-      const raw = localStorage.getItem('findmyspace_estados_plazas');
-      if (raw) setEstadoPlazas(JSON.parse(raw));
-    } catch (_) {}
-    // Cargar espacios desde la API
-    const fetchEspacios = async () => {
+    const initializeData = async () => {
       try {
-        const session = getUserSession();
-        if (!session) return;
-        const res = await apiClient.get(`/espacios/usuario/${session.id_cliente}`);
-        if (res.data?.success) {
-          setEspacios(res.data.data || []);
-        } else {
-          setError('No se pudieron cargar los estacionamientos');
-        }
-      } catch (e) {
-        console.error('Error cargando espacios:', e);
-        setError('Error al cargar los estacionamientos');
+        setLoading(true);
+        
+        const mapas = JSON.parse(localStorage.getItem('findmyspace_mapas') || '[]');
+        setMapasGuardados(mapas);
+        // Cargar estados persistidos de plazas
+        try {
+          const raw = localStorage.getItem('findmyspace_estados_plazas');
+          if (raw) setEstadoPlazas(JSON.parse(raw));
+        } catch (_) {}
+        // Cargar espacios desde la API
+        const fetchEspacios = async () => {
+          try {
+            const session = getUserSession();
+            if (!session) return;
+            const res = await apiClient.get(`/espacios/usuario/${session.id_cliente}`);
+            if (res.data?.success) {
+              setEspacios(res.data.data || []);
+              setError(null);
+            } else {
+              setError('No se pudieron cargar los estacionamientos');
+            }
+          } catch (e) {
+            console.error('Error cargando espacios:', e);
+            setError('Error al cargar los estacionamientos');
+          }
+        };
+        await fetchEspacios();
+      } finally {
+        setLoading(false);
       }
     };
-    fetchEspacios();
+    
+    initializeData();
   }, []);
 
   // Helpers de estados
@@ -216,6 +228,23 @@ const MisEstacionamientos = () => {
       minute: '2-digit'
     });
   };
+
+  if (loading) {
+    return (
+      <>
+        <BannerUser onMenuToggle={setIsMenuOpen} />
+        <div className={`${styles.pageContainer} ${isMenuOpen ? styles.pageContainerExpanded : ''}`}>
+          <div className={styles.contentContainer}>
+            <h1 className={styles.pageTitle}>Mis Estacionamientos</h1>
+            <div className={styles.loadingContainer}>
+              <div className={styles.spinner}></div>
+              <p>Cargando estacionamientos...</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
